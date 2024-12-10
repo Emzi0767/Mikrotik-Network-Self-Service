@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35312.102
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2D537F72-7DD6-484B-BF3D-611ADA4D9466}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "proto", "proto", "{1E859A58-6335-4E2A-9D12-E83BA86ECFE6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Emzi0767.NetworkSelfService.Mikrotik", "src\Emzi0767.NetworkSelfService.Mikrotik\Emzi0767.NetworkSelfService.Mikrotik.csproj", "{2834B27C-8BF1-421D-B413-F5C903F7B37E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2834B27C-8BF1-421D-B413-F5C903F7B37E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2834B27C-8BF1-421D-B413-F5C903F7B37E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2834B27C-8BF1-421D-B413-F5C903F7B37E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2834B27C-8BF1-421D-B413-F5C903F7B37E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1E859A58-6335-4E2A-9D12-E83BA86ECFE6} = {2D537F72-7DD6-484B-BF3D-611ADA4D9466}
+		{2834B27C-8BF1-421D-B413-F5C903F7B37E} = {2D537F72-7DD6-484B-BF3D-611ADA4D9466}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0A8539E0-6CC4-4096-9959-E5B518A0F6CA}
+	EndGlobalSection
+EndGlobal
