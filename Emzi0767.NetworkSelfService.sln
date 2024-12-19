@@ -7,7 +7,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2D537F72-7DD
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "proto", "proto", "{1E859A58-6335-4E2A-9D12-E83BA86ECFE6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Emzi0767.NetworkSelfService.Mikrotik", "src\Emzi0767.NetworkSelfService.Mikrotik\Emzi0767.NetworkSelfService.Mikrotik.csproj", "{2834B27C-8BF1-421D-B413-F5C903F7B37E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emzi0767.NetworkSelfService.Mikrotik", "src\Emzi0767.NetworkSelfService.Mikrotik\Emzi0767.NetworkSelfService.Mikrotik.csproj", "{2834B27C-8BF1-421D-B413-F5C903F7B37E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0B9C63EE-2949-4477-B04E-7BC30A4210A8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Emzi0767.NetworkSelfService.Mikrotik.Tests", "tests\Emzi0767.NetworkSelfService.Mikrotik.Tests\Emzi0767.NetworkSelfService.Mikrotik.Tests.csproj", "{9A0DB5F5-A875-4585-993D-7E47363F2980}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,6 +23,10 @@ Global
 		{2834B27C-8BF1-421D-B413-F5C903F7B37E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2834B27C-8BF1-421D-B413-F5C903F7B37E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2834B27C-8BF1-421D-B413-F5C903F7B37E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A0DB5F5-A875-4585-993D-7E47363F2980}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A0DB5F5-A875-4585-993D-7E47363F2980}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A0DB5F5-A875-4585-993D-7E47363F2980}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A0DB5F5-A875-4585-993D-7E47363F2980}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -26,6 +34,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{1E859A58-6335-4E2A-9D12-E83BA86ECFE6} = {2D537F72-7DD6-484B-BF3D-611ADA4D9466}
 		{2834B27C-8BF1-421D-B413-F5C903F7B37E} = {2D537F72-7DD6-484B-BF3D-611ADA4D9466}
+		{9A0DB5F5-A875-4585-993D-7E47363F2980} = {0B9C63EE-2949-4477-B04E-7BC30A4210A8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0A8539E0-6CC4-4096-9959-E5B518A0F6CA}

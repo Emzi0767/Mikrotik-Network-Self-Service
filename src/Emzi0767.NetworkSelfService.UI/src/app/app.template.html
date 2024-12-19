@@ -1,0 +1,26 @@
+<mat-toolbar>
+    @if (isTinyDisplay()) {
+        <ng-container>
+            <mat-toolbar-row>
+                <span>Network Administration</span>
+            </mat-toolbar-row>
+            <mat-toolbar-row>
+                <ng-container *ngTemplateOutlet="navDarkModeToggle"></ng-container>
+            </mat-toolbar-row>
+        </ng-container>
+    } @else {
+        <ng-container>
+            <span>Self-Service Network Administration Panel</span>
+            <ng-container *ngTemplateOutlet="navDarkModeToggle"></ng-container>
+        </ng-container>
+    }
+    
+    <ng-template #navDarkModeToggle>
+        <span class="spacer">&nbsp;</span>
+        <mat-slide-toggle [(ngModel)]="prefersDarkTheme">Dark Mode</mat-slide-toggle>
+    </ng-template>
+</mat-toolbar>
+
+<h1>goddamn toolbar</h1>
+
+<router-outlet />
