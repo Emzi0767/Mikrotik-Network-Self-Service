@@ -25,7 +25,7 @@ public readonly struct MikrotikSentence
             MikrotikThrowHelper.Throw_ArgumentNull(nameof(words), "Words enumerable cannot be null.");
 
         if (!Validate(words))
-            MikrotikThrowHelper.Throw_ArgumentException(nameof(words), "Supplied word sequence is invalid.");
+            MikrotikThrowHelper.Throw_Argument(nameof(words), "Supplied word sequence is invalid.");
 
         this.Words = words;
     }
@@ -56,6 +56,6 @@ public readonly struct MikrotikSentence
     /// <returns>Whether the sequence is valid.</returns>
     private static bool Validate(IEnumerable<IMikrotikWord> words)
         => words.Any()
-        && words.First() is MikrotikCommandWord
+        && (words.First() is MikrotikCommandWord || words.First() is MikrotikReplyWord)
         && words.Last() is MikrotikStopWord;
 }

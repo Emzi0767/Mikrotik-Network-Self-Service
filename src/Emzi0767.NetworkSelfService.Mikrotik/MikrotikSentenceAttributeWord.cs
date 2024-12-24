@@ -59,9 +59,6 @@ public sealed class MikrotikSentenceAttributeWord : IMikrotikWord
     /// <inheritdoc />
     public bool TryEncode(IMemoryBuffer<byte> destination)
     {
-        if ((int)destination.Length < this.Length)
-            return false;
-
         if (!Prefix.TryEncodeTo(destination))
             return false;
 

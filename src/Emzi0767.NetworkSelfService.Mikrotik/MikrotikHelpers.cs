@@ -113,6 +113,16 @@ internal static class MikrotikHelpers
         dest.Advance(bytesWritten);
         return true;
     }
+    
+    /// <summary>
+    /// Attempts to decode a given buffer as a length.
+    /// </summary>
+    /// <param name="src">Source buffer to decode from.</param>
+    /// <param name="length">Decoded length or <see cref="long.MinValue"/> on failure.</param>
+    /// <param name="bytesRead">Number of bytes read or -1 on failure.</param>
+    /// <returns>Whether the operation was successful.</returns>
+    public static bool TryDecodeLength(this Span<byte> src, out long length, out int bytesRead)
+        => ((ReadOnlySpan<byte>)src).TryDecodeLength(out length, out bytesRead);
 
     /// <summary>
     /// Attempts to decode a given buffer as a length.

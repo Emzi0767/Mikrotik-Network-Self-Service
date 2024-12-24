@@ -37,7 +37,7 @@ public sealed class MikrotikCommandWord : IMikrotikWord
 
         if (!parts.Any())
         {
-            MikrotikThrowHelper.Throw_ArgumentException(nameof(parts), "The parts collection must contain at least one item.");
+            MikrotikThrowHelper.Throw_Argument(nameof(parts), "The parts collection must contain at least one item.");
             return;
         }
 

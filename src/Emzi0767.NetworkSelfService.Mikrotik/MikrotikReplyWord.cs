@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using Emzi0767.Types;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik;
@@ -31,9 +32,9 @@ public sealed class MikrotikReplyWord : IMikrotikWord
     {
         _codebook = typeof(MikrotikReplyWordType)
             .GetFields(BindingFlags.Public | BindingFlags.Static)
-            .Select(x => new { v = (MikrotikReplyWordType)x.GetValue(null), a = x.GetCustomAttribute<MikrotikReplyTextAttribute>() })
+            .Select(x => new { v = (MikrotikReplyWordType)x.GetValue(null), a = x.GetCustomAttribute<EnumMemberAttribute>() })
             .Where(x => x.a is not null)
-            .ToDictionary(x => x.v, x => x.a.Text);
+            .ToDictionary(x => x.v, x => x.a.Value);
 
         _decodebook = _codebook.ToDictionary(x => x.Value, x => x.Key, StringComparer.OrdinalIgnoreCase);
     }
@@ -68,7 +69,7 @@ public sealed class MikrotikReplyWord : IMikrotikWord
         if (_codebook.TryGetValue(type, out var encoded))
             return prefixLen + encoded.ComputeEncodedLength();
 
-        MikrotikThrowHelper.Throw_OutOfRangeException(nameof(type), "Specified reply type is invalid.");
+        MikrotikThrowHelper.Throw_OutOfRange(nameof(type), "Specified reply type is invalid.");
         return -1;
     }
 }
