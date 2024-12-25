@@ -19,7 +19,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik;
 /// <summary>
 /// Provides low-level functionality for interacting with Mikrotik's API.
 /// </summary>
-public sealed class MikrotikClient : IDisposable, IAsyncDisposable
+public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
 {
     private static AddressFamily[] _supportedAddressFamilies = [ AddressFamily.InterNetwork, AddressFamily.InterNetworkV6 ];
     
@@ -27,7 +27,7 @@ public sealed class MikrotikClient : IDisposable, IAsyncDisposable
     private TcpClient _client;
     private CancellationTokenSource _cts;
 
-    private readonly AsyncEvent<MikrotikClient, MikrotikSentenceReceivedEventArgs> _sentenceReceived;
+    private readonly AsyncEvent<MikrotikApiClient, MikrotikSentenceReceivedEventArgs> _sentenceReceived;
     private readonly SemaphoreSlim _semaphore = new(1);
     private readonly IMemoryBuffer<byte> _buffer = new ContinuousMemoryBuffer<byte>();
     
@@ -39,7 +39,7 @@ public sealed class MikrotikClient : IDisposable, IAsyncDisposable
     /// <summary>
     /// Creates a new Mikrotik API client that uses plaintext connections.
     /// </summary>
-    public MikrotikClient()
+    public MikrotikApiClient()
         : this(default)
     { }
 
@@ -47,7 +47,7 @@ public sealed class MikrotikClient : IDisposable, IAsyncDisposable
     /// Creates a new Mikrotik API client with specified TLS options.
     /// </summary>
     /// <param name="tlsOptions">Options for TLS connections.</param>
-    public MikrotikClient(MikrotikTlsOptions tlsOptions)
+    public MikrotikApiClient(MikrotikTlsOptions tlsOptions)
     {
         this.TlsOptions = tlsOptions;
         this._sentenceReceived = new("SENTENCE_RECEIVED", TimeSpan.FromSeconds(1), this.AsyncEventException);
@@ -248,7 +248,7 @@ public sealed class MikrotikClient : IDisposable, IAsyncDisposable
     /// <summary>
     /// Fired whenever a sentence is received from the API.
     /// </summary>
-    public event AsyncEventHandler<MikrotikClient, MikrotikSentenceReceivedEventArgs> SentenceReceived
+    public event AsyncEventHandler<MikrotikApiClient, MikrotikSentenceReceivedEventArgs> SentenceReceived
     {
         add => this._sentenceReceived.Register(value);
         remove => this._sentenceReceived.Unregister(value);
@@ -257,7 +257,7 @@ public sealed class MikrotikClient : IDisposable, IAsyncDisposable
     /// <summary>
     /// Fired whenever an exception is thrown in an event handler.
     /// </summary>
-    public event TypedEventHandler<MikrotikClient, MikrotikExceptionEventArgs> Exception;
+    public event TypedEventHandler<MikrotikApiClient, MikrotikExceptionEventArgs> Exception;
 
     private async Task ReadLoop(Stream stream, CancellationToken cancellationToken)
     {
@@ -323,7 +323,7 @@ public sealed class MikrotikClient : IDisposable, IAsyncDisposable
         }
     }
 
-    private void AsyncEventException<TArgs>(AsyncEvent<MikrotikClient, TArgs> asyncEvent, Exception exception, AsyncEventHandler<MikrotikClient, TArgs> handler, MikrotikClient sender, TArgs args)
+    private void AsyncEventException<TArgs>(AsyncEvent<MikrotikApiClient, TArgs> asyncEvent, Exception exception, AsyncEventHandler<MikrotikApiClient, TArgs> handler, MikrotikApiClient sender, TArgs args)
         where TArgs : AsyncEventArgs
     {
         if (this.Exception is not null)
@@ -332,7 +332,7 @@ public sealed class MikrotikClient : IDisposable, IAsyncDisposable
                 Exception = exception,
                 Event = asyncEvent,
                 EventArgs = args,
-                Handler = handler as AsyncEventHandler<MikrotikClient, AsyncEventArgs>,
+                Handler = handler as AsyncEventHandler<MikrotikApiClient, AsyncEventArgs>,
             });
     }
 }

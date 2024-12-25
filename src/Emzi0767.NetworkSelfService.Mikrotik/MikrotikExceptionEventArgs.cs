@@ -4,7 +4,7 @@ using Emzi0767.Utilities;
 namespace Emzi0767.NetworkSelfService.Mikrotik;
 
 /// <summary>
-/// Represents arguments for <see cref="MikrotikClient.Exception"/> event.
+/// Represents arguments for <see cref="MikrotikApiClient.Exception"/> event.
 /// </summary>
 public sealed class MikrotikExceptionEventArgs : EventArgs
 {
@@ -26,5 +26,5 @@ public sealed class MikrotikExceptionEventArgs : EventArgs
     /// <summary>
     /// Gets the handler in which the exception occured.
     /// </summary>
-    public AsyncEventHandler<MikrotikClient, AsyncEventArgs> Handler { get; init; }
+    public AsyncEventHandler<MikrotikApiClient, AsyncEventArgs> Handler { get; init; }
 }

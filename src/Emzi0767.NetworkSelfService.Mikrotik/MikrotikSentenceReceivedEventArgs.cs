@@ -3,7 +3,7 @@
 namespace Emzi0767.NetworkSelfService.Mikrotik;
 
 /// <summary>
-/// Represents arguments for <see cref="MikrotikClient.SentenceReceived"/>.
+/// Represents arguments for <see cref="MikrotikApiClient.SentenceReceived"/>.
 /// </summary>
 public sealed class MikrotikSentenceReceivedEventArgs : AsyncEventArgs
 {
