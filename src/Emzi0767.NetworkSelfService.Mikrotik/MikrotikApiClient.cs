@@ -59,7 +59,7 @@ public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
     /// <param name="endpoint">Endpoint the API is located at.</param>
     /// <param name="addressFamilies">Address families to try to resolve the hostname to.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    public async Task ConnectAsync(DnsEndPoint endpoint, AddressFamily[] addressFamilies = default, CancellationToken cancellationToken = default)
+    public async Task ConnectAsync(DnsEndPoint endpoint, IEnumerable<AddressFamily> addressFamilies = default, CancellationToken cancellationToken = default)
     {
         addressFamilies ??= _supportedAddressFamilies;
         if (addressFamilies != _supportedAddressFamilies)
