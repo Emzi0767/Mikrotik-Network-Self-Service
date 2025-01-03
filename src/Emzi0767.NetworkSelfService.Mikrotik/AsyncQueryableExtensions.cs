@@ -30,7 +30,7 @@ public static class AsyncQueryableExtensions
     public static async Task<List<T>> ToListAsync<T>(this IAsyncQueryable<T> source, CancellationToken cancellationToken = default)
     {
         var list = new List<T>();
-        await foreach (var item in source.WithCancellation(cancellationToken))
+        await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
             list.Add(item);
 
         return list;
@@ -123,7 +123,7 @@ public static class AsyncQueryableExtensions
     )
     {
         var dict = new Dictionary<TKey, TValue>(comparer);
-        await foreach (var item in source.WithCancellation(cancellationToken))
+        await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
             dict.Add(keySelector(item), valueSelector(item));
         
         return dict;

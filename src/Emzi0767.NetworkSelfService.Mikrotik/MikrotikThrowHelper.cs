@@ -29,4 +29,8 @@ internal static class MikrotikThrowHelper
     [DoesNotReturn]
     public static void Throw_Connection(string msg)
         => throw new MikrotikConnectionException(msg);
+
+    [DoesNotReturn]
+    public static void Throw_RequestTerminatedEarly()
+        => throw new OperationCanceledException();
 }

@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -10,11 +13,12 @@ namespace Emzi0767.NetworkSelfService.Mikrotik;
 /// <summary>
 /// Allows for interfacing with Mikrotik RouterOS devices via the API.
 /// </summary>
-public sealed class MikrotikClient
+public sealed class MikrotikClient : IDisposable
 {
     private readonly MikrotikApiClient _api;
     private readonly MikrotikClientConfiguration _config;
     private volatile int _requestCounter = 0;
+    private IDictionary<string, MikrotikRequest> _outstandingRequests;
 
     /// <summary>
     /// Creates a new Mikrotik API client.
@@ -23,6 +27,7 @@ public sealed class MikrotikClient
     public MikrotikClient(MikrotikClientConfiguration config)
     {
         this._config = config;
+        this._outstandingRequests = new ConcurrentDictionary<string, MikrotikRequest>();
 
         this._api = new(this._config.TlsOptions);
         this._api.SentenceReceived += this.SentenceReceivedAsync;
@@ -59,9 +64,11 @@ public sealed class MikrotikClient
             new MikrotikAttributeWord("password", this._config.Password),
             MikrotikStopWord.Instance,
         ]);
+        var req = new MikrotikRequest(null, login);
+        this._outstandingRequests[""] = req;
         
         await this._api.SendAsync(login, cancellationToken);
-        // TODO: await response
+        await req.AwaitCompletionAsync(cancellationToken);
     }
 
     /// <summary>
@@ -80,9 +87,29 @@ public sealed class MikrotikClient
         where T : IMikrotikEntity
         => new MikrotikQueryable<T>(this, this.AssignRequestId());
 
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        foreach (var request in this._outstandingRequests.Values)
+            request.Dispose();
+        
+        this._outstandingRequests.Clear();
+        this._api.Dispose();
+    }
+
     private async Task SentenceReceivedAsync(MikrotikApiClient client, MikrotikSentenceReceivedEventArgs ea)
     {
+        var sentence = ea.Sentence;
+        var tagAttribute = sentence.Words.OfType<MikrotikSentenceAttributeWord>()
+            .FirstOrDefault(x => x.Name == MikrotikSentenceAttributeWord.Tag);
+
+        var tag = tagAttribute?.Value ?? "";
+        if (!this._outstandingRequests.TryGetValue(tag, out var req))
+            return;
         
+        req.Feed(sentence);
+        if (req.IsCompleted)
+            this._outstandingRequests.Remove(tag);
     }
 
     private string AssignRequestId()

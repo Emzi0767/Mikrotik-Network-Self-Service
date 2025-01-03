@@ -2,6 +2,8 @@
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Emzi0767.Types;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik;
@@ -220,4 +222,71 @@ internal static class MikrotikHelpers
         var written = encoding.GetBytes(s, destination);
         return written == s.ComputeEncodedLength();
     }
+
+    // https://www.meziantou.net/waiting-for-a-manualreseteventslim-to-be-set-asynchronously.htm
+    
+    /// <summary>
+    /// Asynchronously waits for a given wait handle. This method returns a task, that will be resolved or cancelled
+    /// when waiting for the handle is done, or the waiting is cancelled via the cancellation token.
+    /// </summary>
+    /// <param name="handle">Handle to wait on.</param>
+    /// <param name="timeout">
+    /// Maximum amount of time to wait for the handle. Use <see cref="Timeout.InfiniteTimeSpan"/> to wait indefinitely.
+    /// </param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task which allows for asynchronous waiting for the wait handle.</returns>
+    public static Task WaitAsync(this WaitHandle handle, TimeSpan timeout, CancellationToken cancellationToken = default)
+    {
+        var registration = default(CancellationTokenRegistration);
+        var source = new TaskCompletionSource();
+        var wait = ThreadPool.RegisterWaitForSingleObject(
+            handle,
+            _waitCallback,
+            timeout: timeout,
+            state: null,
+            executeOnlyOnce: true
+        );
+
+        if (cancellationToken.CanBeCanceled)
+            registration = cancellationToken.Register(_cancelCallback);
+
+        return source.Task;
+
+        void _waitCallback(object state, bool timedOut)
+        {
+            registration.Unregister();
+            
+            if (!timedOut)
+                source.TrySetResult();
+            else
+                source.TrySetException(new TimeoutException());
+        }
+
+        void _cancelCallback()
+        {
+            wait.Unregister(handle);
+            source.TrySetCanceled();
+        }
+    }
+    
+    /// <summary>
+    /// Asynchronously waits for a given event to be set.
+    /// </summary>
+    /// <param name="event">Event to wait on.</param>
+    /// <param name="timeout">
+    /// Maximum amount of time to wait for the event to be set. Use <see cref="Timeout.InfiniteTimeSpan"/> to wait indefinitely.
+    /// </param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task representing the operation.</returns>
+    public static Task WaitAsync(this ManualResetEventSlim @event, TimeSpan timeout, CancellationToken cancellationToken = default)
+        => @event.WaitHandle.WaitAsync(timeout, cancellationToken);
+    
+    /// <summary>
+    /// Asynchronously waits for a given event to be set. This method will wait indefinitely.
+    /// </summary>
+    /// <param name="event">Event to wait on.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task representing the operation.</returns>
+    public static Task WaitAsync(this ManualResetEventSlim @event, CancellationToken cancellationToken = default)
+        => @event.WaitAsync(Timeout.InfiniteTimeSpan, cancellationToken);
 }
