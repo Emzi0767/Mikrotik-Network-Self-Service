@@ -8,7 +8,22 @@ using System.Threading.Tasks;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 
-internal sealed class MikrotikQueryable<T> : IAsyncQueryable<T>, IAsyncQueryProvider
+internal abstract class MikrotikQueryable
+{
+    protected readonly MikrotikClient _client;
+    protected readonly string _requestId;
+
+    public MikrotikQueryable(MikrotikClient client, string requestId)
+    {
+        this._client = client;
+        this._requestId = requestId;
+    }
+    
+    public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
+        => new MikrotikQueryable<TElement>(this._client, this._requestId, expression);
+}
+
+internal sealed class MikrotikQueryable<T> : MikrotikQueryable, IAsyncQueryable<T>, IAsyncQueryProvider
 {
     public Type ElementType
         => typeof(T);
@@ -18,34 +33,28 @@ internal sealed class MikrotikQueryable<T> : IAsyncQueryable<T>, IAsyncQueryProv
     
     public Expression Expression { get; }
 
-    private readonly MikrotikClient _client;
-    private readonly string _requestId;
-
     public MikrotikQueryable(MikrotikClient client, string requestId)
+        : base(client, requestId)
     {
-        this._client = client;
-        this._requestId = requestId;
-        this.Expression = Expression.Constant(client);
+        this.Expression = Expression.Constant(this);
     }
 
-    private MikrotikQueryable(MikrotikClient client, string requestId, Expression expression)
+    public MikrotikQueryable(MikrotikClient client, string requestId, Expression expression)
+        : base(client, requestId)
     {
-        this._client = client;
-        this._requestId = requestId;
         this.Expression = expression;
     }
-
+    
     public IQueryable CreateQuery(Expression expression)
     {
-        throw new NotImplementedException();
+        var createQueryGeneric = expression.CreateQueryGeneric();
+        return createQueryGeneric.Invoke(this, [ expression ]) as IQueryable;
     }
-
-    public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
-        => new MikrotikQueryable<TElement>(this._client, this._requestId, expression);
 
     public IEnumerator<T> GetEnumerator()
     {
-        throw new NotImplementedException();
+        MikrotikThrowHelper.Throw_SyncNotSupported();
+        return null;
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -58,7 +67,8 @@ internal sealed class MikrotikQueryable<T> : IAsyncQueryable<T>, IAsyncQueryProv
 
     public TResult Execute<TResult>(Expression expression)
     {
-        throw new NotImplementedException();
+        MikrotikThrowHelper.Throw_SyncNotSupported();
+        return default;
     }
 
     public object Execute(Expression expression)

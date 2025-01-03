@@ -33,4 +33,12 @@ internal static class MikrotikThrowHelper
     [DoesNotReturn]
     public static void Throw_RequestTerminatedEarly()
         => throw new OperationCanceledException();
+    
+    [DoesNotReturn]
+    public static void Throw_SyncNotSupported()
+        => Throw_NotSupported("Synchronous operations are not supported.");
+    
+    [DoesNotReturn]
+    public static void Throw_NotSupported(string msg)
+        => throw new NotSupportedException(msg);
 }

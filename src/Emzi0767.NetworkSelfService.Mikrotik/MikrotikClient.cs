@@ -84,8 +84,17 @@ public sealed class MikrotikClient : IDisposable
     /// <typeparam name="T">Type of entity to retrieve.</typeparam>
     /// <returns>A queryable which allows for specifying retrieval parameters.</returns>
     public IAsyncQueryable<T> Get<T>()
-        where T : IMikrotikEntity
+        where T : class, IMikrotikEntity
         => new MikrotikQueryable<T>(this, this.AssignRequestId());
+
+    /// <summary>
+    /// Creates a new entity using the API.
+    /// </summary>
+    /// <typeparam name="T">Type of entity to create.</typeparam>
+    /// <returns>An interactive builder instance, which allows for building the entity.</returns>
+    public IMikrotikEntityModifier<T> Create<T>()
+        where T : class, IMikrotikEntity
+        => throw new NotImplementedException();
 
     /// <inheritdoc />
     public void Dispose()
@@ -97,7 +106,7 @@ public sealed class MikrotikClient : IDisposable
         this._api.Dispose();
     }
 
-    private async Task SentenceReceivedAsync(MikrotikApiClient client, MikrotikSentenceReceivedEventArgs ea)
+    private Task SentenceReceivedAsync(MikrotikApiClient client, MikrotikSentenceReceivedEventArgs ea)
     {
         var sentence = ea.Sentence;
         var tagAttribute = sentence.Words.OfType<MikrotikSentenceAttributeWord>()
@@ -105,11 +114,13 @@ public sealed class MikrotikClient : IDisposable
 
         var tag = tagAttribute?.Value ?? "";
         if (!this._outstandingRequests.TryGetValue(tag, out var req))
-            return;
+            return Task.CompletedTask;
         
         req.Feed(sentence);
         if (req.IsCompleted)
             this._outstandingRequests.Remove(tag);
+        
+        return Task.CompletedTask;
     }
 
     private string AssignRequestId()
