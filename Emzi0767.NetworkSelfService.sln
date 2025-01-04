@@ -11,7 +11,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emzi0767.NetworkSelfService
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0B9C63EE-2949-4477-B04E-7BC30A4210A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Emzi0767.NetworkSelfService.Mikrotik.Tests", "tests\Emzi0767.NetworkSelfService.Mikrotik.Tests\Emzi0767.NetworkSelfService.Mikrotik.Tests.csproj", "{9A0DB5F5-A875-4585-993D-7E47363F2980}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emzi0767.NetworkSelfService.Mikrotik.Tests", "tests\Emzi0767.NetworkSelfService.Mikrotik.Tests\Emzi0767.NetworkSelfService.Mikrotik.Tests.csproj", "{9A0DB5F5-A875-4585-993D-7E47363F2980}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C2C3D626-9B32-4595-8820-8D58ABCAA961}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
