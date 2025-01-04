@@ -16,6 +16,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C2C3D626-9B32-4595-8820-8D58ABCAA961}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		X:\Developer\Visual Studio 2022\Projects\Emzi0767.NetworkSelfService\COPYING.TXT = X:\Developer\Visual Studio 2022\Projects\Emzi0767.NetworkSelfService\COPYING.TXT
+		X:\Developer\Visual Studio 2022\Projects\Emzi0767.NetworkSelfService\NOTICE.TXT = X:\Developer\Visual Studio 2022\Projects\Emzi0767.NetworkSelfService\NOTICE.TXT
 	EndProjectSection
 EndProject
 Global
