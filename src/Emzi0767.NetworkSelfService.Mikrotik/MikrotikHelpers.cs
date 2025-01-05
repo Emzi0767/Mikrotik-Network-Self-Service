@@ -20,6 +20,7 @@ using System.Buffers.Binary;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Emzi0767.NetworkSelfService.Mikrotik.Entities;
 using Emzi0767.Types;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik;
@@ -117,21 +118,21 @@ internal static class MikrotikHelpers
             >= 0x10000000 and <= uint.MaxValue => 5,
             _ => -1,
         };
-        
+
         if (destLen < 0)
             return false;
-        
+
         var span = dest.GetSpan(destLen);
         if (!length.TryEncodeLength(span, out var bytesWritten))
             return false;
-        
+
         if (bytesWritten != destLen)
             return false;
-        
+
         dest.Advance(bytesWritten);
         return true;
     }
-    
+
     /// <summary>
     /// Attempts to decode a given buffer as a length.
     /// </summary>
@@ -240,7 +241,7 @@ internal static class MikrotikHelpers
     }
 
     // https://www.meziantou.net/waiting-for-a-manualreseteventslim-to-be-set-asynchronously.htm
-    
+
     /// <summary>
     /// Asynchronously waits for a given wait handle. This method returns a task, that will be resolved or cancelled
     /// when waiting for the handle is done, or the waiting is cancelled via the cancellation token.
@@ -271,7 +272,7 @@ internal static class MikrotikHelpers
         void _waitCallback(object state, bool timedOut)
         {
             registration.Unregister();
-            
+
             if (!timedOut)
                 source.TrySetResult();
             else
@@ -284,7 +285,7 @@ internal static class MikrotikHelpers
             source.TrySetCanceled();
         }
     }
-    
+
     /// <summary>
     /// Asynchronously waits for a given event to be set.
     /// </summary>
@@ -296,7 +297,7 @@ internal static class MikrotikHelpers
     /// <returns>A task representing the operation.</returns>
     public static Task WaitAsync(this ManualResetEventSlim @event, TimeSpan timeout, CancellationToken cancellationToken = default)
         => @event.WaitHandle.WaitAsync(timeout, cancellationToken);
-    
+
     /// <summary>
     /// Asynchronously waits for a given event to be set. This method will wait indefinitely.
     /// </summary>
@@ -305,4 +306,23 @@ internal static class MikrotikHelpers
     /// <returns>A task representing the operation.</returns>
     public static Task WaitAsync(this ManualResetEventSlim @event, CancellationToken cancellationToken = default)
         => @event.WaitAsync(Timeout.InfiniteTimeSpan, cancellationToken);
+
+    /// <summary>
+    /// Checks whether given type is a Mikrotik API entity type.
+    /// </summary>
+    /// <param name="type">Type to check.</param>
+    /// <returns>Whether the type is a valid Mikrotik API entity type.</returns>
+    public static bool IsMikrotikEntity(this Type type)
+        => type.IsClass || !typeof(IMikrotikEntity).IsAssignableFrom(type);
+
+    /// <summary>
+    /// Checks whether given type is a more specialized (i.e. descendant) variant of a given generalized type.
+    /// </summary>
+    /// <param name="type">Type to check.</param>
+    /// <param name="generalizedType">Type to check against.</param>
+    /// <returns>Whether the relation is true.</returns>
+    public static bool IsMikrotikEntitySpecializationOf(this Type type, Type generalizedType)
+        => type.IsMikrotikEntity()
+        && generalizedType.IsMikrotikEntity()
+        && generalizedType.IsAssignableFrom(type);
 }

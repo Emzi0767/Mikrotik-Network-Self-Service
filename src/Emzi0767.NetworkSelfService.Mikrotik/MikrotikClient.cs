@@ -82,7 +82,7 @@ public sealed class MikrotikClient : IDisposable
         ]);
         var req = new MikrotikRequest(null, login);
         this._outstandingRequests[""] = req;
-        
+
         await this._api.SendAsync(login, cancellationToken);
         await req.AwaitCompletionAsync(cancellationToken);
     }
@@ -101,7 +101,7 @@ public sealed class MikrotikClient : IDisposable
     /// <returns>A queryable which allows for specifying retrieval parameters.</returns>
     public IAsyncQueryable<T> Get<T>()
         where T : class, IMikrotikEntity
-        => new MikrotikQueryable<T>(this, this.AssignRequestId());
+        => new MikrotikQueryable<T>(this, this.AssignRequestId(), typeof(T));
 
     /// <summary>
     /// Creates a new entity using the API.
@@ -117,7 +117,7 @@ public sealed class MikrotikClient : IDisposable
     {
         foreach (var request in this._outstandingRequests.Values)
             request.Dispose();
-        
+
         this._outstandingRequests.Clear();
         this._api.Dispose();
     }
@@ -131,11 +131,11 @@ public sealed class MikrotikClient : IDisposable
         var tag = tagAttribute?.Value ?? "";
         if (!this._outstandingRequests.TryGetValue(tag, out var req))
             return Task.CompletedTask;
-        
+
         req.Feed(sentence);
         if (req.IsCompleted)
             this._outstandingRequests.Remove(tag);
-        
+
         return Task.CompletedTask;
     }
 

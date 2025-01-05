@@ -16,7 +16,7 @@
 
 using System;
 
-namespace Emzi0767.NetworkSelfService.Mikrotik;
+namespace Emzi0767.NetworkSelfService.Mikrotik.Exceptions;
 
 /// <summary>
 /// Indicates that a problem occured when connecting to a router.

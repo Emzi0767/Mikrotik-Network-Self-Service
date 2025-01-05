@@ -17,6 +17,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using Emzi0767.NetworkSelfService.Mikrotik.Exceptions;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik;
 
@@ -41,7 +42,7 @@ internal static class MikrotikThrowHelper
     [DoesNotReturn]
     public static void Throw_InvalidData(string msg)
         => throw new InvalidDataException(msg);
-    
+
     [DoesNotReturn]
     public static void Throw_Connection(string msg)
         => throw new MikrotikConnectionException(msg);
@@ -49,12 +50,20 @@ internal static class MikrotikThrowHelper
     [DoesNotReturn]
     public static void Throw_RequestTerminatedEarly()
         => throw new OperationCanceledException();
-    
+
     [DoesNotReturn]
     public static void Throw_SyncNotSupported()
         => Throw_NotSupported("Synchronous operations are not supported.");
-    
+
     [DoesNotReturn]
     public static void Throw_NotSupported(string msg)
         => throw new NotSupportedException(msg);
+
+    [DoesNotReturn]
+    public static void Throw_InvalidEntityType(Type type)
+        => throw new MikrotikEntityTypeException(type);
+
+    [DoesNotReturn]
+    public static void Throw_InvalidEntityType(Type type, string msg)
+        => throw new MikrotikEntityTypeException(type, msg);
 }

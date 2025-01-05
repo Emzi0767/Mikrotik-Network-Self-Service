@@ -21,6 +21,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Emzi0767.NetworkSelfService.Mikrotik.Expressions;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 
@@ -28,15 +29,17 @@ internal abstract class MikrotikQueryable
 {
     protected readonly MikrotikClient _client;
     protected readonly string _requestId;
+    protected readonly Type _rootType;
 
-    public MikrotikQueryable(MikrotikClient client, string requestId)
+    public MikrotikQueryable(MikrotikClient client, string requestId, Type rootType)
     {
         this._client = client;
         this._requestId = requestId;
+        this._rootType = rootType;
     }
-    
+
     public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
-        => new MikrotikQueryable<TElement>(this._client, this._requestId, expression);
+        => new MikrotikQueryable<TElement>(this._client, this._requestId, this._rootType, expression);
 }
 
 internal sealed class MikrotikQueryable<T> : MikrotikQueryable, IAsyncQueryable<T>, IAsyncQueryProvider
@@ -46,21 +49,25 @@ internal sealed class MikrotikQueryable<T> : MikrotikQueryable, IAsyncQueryable<
 
     public IQueryProvider Provider
         => this;
-    
+
     public Expression Expression { get; }
 
-    public MikrotikQueryable(MikrotikClient client, string requestId)
-        : base(client, requestId)
+    private Lazy<MikrotikSentence> Sentence { get; }
+
+    public MikrotikQueryable(MikrotikClient client, string requestId, Type rootType)
+        : base(client, requestId, rootType)
     {
         this.Expression = Expression.Constant(this);
+        this.Sentence = new(this.BuildSentence);
     }
 
-    public MikrotikQueryable(MikrotikClient client, string requestId, Expression expression)
-        : base(client, requestId)
+    public MikrotikQueryable(MikrotikClient client, string requestId, Type rootType, Expression expression)
+        : base(client, requestId, rootType)
     {
         this.Expression = expression;
+        this.Sentence = new(this.BuildSentence);
     }
-    
+
     public IQueryable CreateQuery(Expression expression)
     {
         var createQueryGeneric = expression.CreateQueryGeneric();
@@ -78,6 +85,7 @@ internal sealed class MikrotikQueryable<T> : MikrotikQueryable, IAsyncQueryable<
 
     public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
+        var sentence = this.Sentence.Value;
         throw new NotImplementedException();
     }
 
@@ -92,6 +100,16 @@ internal sealed class MikrotikQueryable<T> : MikrotikQueryable, IAsyncQueryable<
 
     public ValueTask<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
     {
+        var sentence = this.Sentence.Value;
         throw new NotImplementedException();
+    }
+
+    private MikrotikSentence BuildSentence()
+        => new(this.ParseExpression());
+
+    private IEnumerable<IMikrotikWord> ParseExpression()
+    {
+        var parser = MikrotikExpressionParser.Instance;
+        return parser.Parse(this.Expression, this._rootType);
     }
 }

@@ -30,10 +30,10 @@ namespace Emzi0767.NetworkSelfService.Mikrotik;
 public sealed class MikrotikQueryWord : IMikrotikWord
 {
     internal const string ValuePlaceholder = "{}";
-    
+
     private static readonly IReadOnlyDictionary<MikrotikQueryType, string> _typeDictionary;
-    private static readonly IReadOnlyDictionary<MikrotikQueryOperation, Func<String, String>> _operationDictionary;
-    
+    private static readonly IReadOnlyDictionary<MikrotikQueryOperation, Func<string, string>> _operationDictionary;
+
     /// <summary>
     /// Gets the prefix for all attributes.
     /// </summary>
@@ -56,12 +56,12 @@ public sealed class MikrotikQueryWord : IMikrotikWord
     /// Gets the value of this attribute.
     /// </summary>
     public string Value { get; }
-    
+
     /// <summary>
     /// Gets the type of the query.
     /// </summary>
     public MikrotikQueryType Type { get; }
-    
+
     /// <summary>
     /// Gets the operation to be performed as part of the query evaluation.
     /// </summary>
@@ -76,7 +76,7 @@ public sealed class MikrotikQueryWord : IMikrotikWord
             .Select(x => new { v = (MikrotikQueryType)x.GetValue(null), a = x.GetCustomAttribute<EnumMemberAttribute>() })
             .Where(x => x.a is not null)
             .ToDictionary(x => x.v, x => x.a.Value);
-        
+
         _operationDictionary = typeof(MikrotikQueryOperation)
             .GetFields(BindingFlags.Public | BindingFlags.Static)
             .Select(x => new { v = (MikrotikQueryOperation)x.GetValue(null), a = x.GetCustomAttribute<EnumMemberAttribute>() })
@@ -138,7 +138,7 @@ public sealed class MikrotikQueryWord : IMikrotikWord
     {
         if (string.IsNullOrWhiteSpace(name))
             MikrotikThrowHelper.Throw_ArgumentNull(nameof(name), "Property name cannot be null.");
-        
+
         if (string.IsNullOrWhiteSpace(value))
             MikrotikThrowHelper.Throw_ArgumentNull(nameof(name), "Value cannot be null.");
 
@@ -157,7 +157,7 @@ public sealed class MikrotikQueryWord : IMikrotikWord
     {
         if (string.IsNullOrWhiteSpace(name))
             MikrotikThrowHelper.Throw_ArgumentNull(nameof(name), "Property name cannot be null.");
-        
+
         if (string.IsNullOrWhiteSpace(value))
             MikrotikThrowHelper.Throw_ArgumentNull(nameof(name), "Value cannot be null.");
 
@@ -176,7 +176,7 @@ public sealed class MikrotikQueryWord : IMikrotikWord
     {
         if (string.IsNullOrWhiteSpace(name))
             MikrotikThrowHelper.Throw_ArgumentNull(nameof(name), "Property name cannot be null.");
-        
+
         if (string.IsNullOrWhiteSpace(value))
             MikrotikThrowHelper.Throw_ArgumentNull(nameof(name), "Value cannot be null.");
 
@@ -195,16 +195,16 @@ public sealed class MikrotikQueryWord : IMikrotikWord
     {
         if (operation == MikrotikQueryOperation.Unknown)
             MikrotikThrowHelper.Throw_Argument(nameof(operation), "Invalid operation specified.");
-        
+
         if (operation is MikrotikQueryOperation.Replace or MikrotikQueryOperation.Copy or MikrotikQueryOperation.CopyTop && string.IsNullOrWhiteSpace(value))
             MikrotikThrowHelper.Throw_Argument(nameof(value), "Value is required for given operations.");
-        
+
         var type = MikrotikQueryType.Operation;
         var computed = CreateComputed(null, value, type, operation);
         return new(null, value, type, operation, computed);
     }
 
-    private static Func<String, String> MakeTransformer(string v)
+    private static Func<string, string> MakeTransformer(string v)
     {
         if (v == ValuePlaceholder)
             return static x => x;
@@ -222,7 +222,7 @@ public sealed class MikrotikQueryWord : IMikrotikWord
     {
         var sb = new StringBuilder();
         sb.Append(Prefix);
-        
+
         var typePrefix = _typeDictionary[type];
         sb.Append(typePrefix);
 
