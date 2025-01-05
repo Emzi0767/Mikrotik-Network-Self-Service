@@ -14,26 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Threading;
-using System.Threading.Tasks;
-using Emzi0767.NetworkSelfService.Mikrotik.Attributes;
+using System.Collections.Generic;
+using Emzi0767.Serialization;
 
-namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
+namespace Emzi0767.NetworkSelfService.Mikrotik.Attributes;
 
-[MikrotikEntity("ip", "dhcp-server", "lease")]
-public class MikrotikDhcpLease : IMikrotikEntity, IMikrotikDeletableEntity
+/// <summary>
+/// Specifies API path for the given entity.
+/// </summary>
+public sealed class MikrotikEntityAttribute : SerializationAttribute
 {
-    public MikrotikClient Client { get; }
+    /// <summary>
+    /// Gets the path to the entity instances.
+    /// </summary>
+    public IEnumerable<string> Path { get; }
 
-    public string Server { get; }
-
-    public MikrotikDhcpLease(MikrotikClient client)
+    /// <summary>
+    /// Specifies API path for the given entity.
+    /// </summary>
+    /// <param name="path">Path to entity instances.</param>
+    public MikrotikEntityAttribute(params string[] path)
     {
-        this.Client = client;
-    }
-
-    public Task DeleteAsync(CancellationToken cancellationToken = default)
-    {
-        throw new System.NotImplementedException();
+        this.Path = path;
     }
 }

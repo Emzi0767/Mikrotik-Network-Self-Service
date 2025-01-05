@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Emzi0767.Common" Version="2.12.1" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.0" />
   </ItemGroup>
 
 </Project>

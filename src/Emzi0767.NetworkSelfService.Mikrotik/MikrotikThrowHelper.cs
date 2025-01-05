@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Emzi0767.NetworkSelfService.Mikrotik.Exceptions;
@@ -23,47 +24,47 @@ namespace Emzi0767.NetworkSelfService.Mikrotik;
 
 internal static class MikrotikThrowHelper
 {
-    [DoesNotReturn]
+    [DoesNotReturn, StackTraceHidden]
     public static void Throw_ArgumentNull(string arg, string msg)
         => throw new ArgumentNullException(arg, msg);
 
-    [DoesNotReturn]
+    [DoesNotReturn, StackTraceHidden]
     public static void Throw_Argument(string arg, string msg)
         => throw new ArgumentException(msg, arg);
 
-    [DoesNotReturn]
+    [DoesNotReturn, StackTraceHidden]
     public static void Throw_OutOfRange(string arg, string msg)
         => throw new ArgumentOutOfRangeException(arg, msg);
 
-    [DoesNotReturn]
+    [DoesNotReturn, StackTraceHidden]
     public static void Throw_InvalidOperation(string msg)
         => throw new InvalidOperationException(msg);
 
-    [DoesNotReturn]
+    [DoesNotReturn, StackTraceHidden]
     public static void Throw_InvalidData(string msg)
         => throw new InvalidDataException(msg);
 
-    [DoesNotReturn]
+    [DoesNotReturn, StackTraceHidden]
     public static void Throw_Connection(string msg)
         => throw new MikrotikConnectionException(msg);
 
-    [DoesNotReturn]
+    [DoesNotReturn, StackTraceHidden]
     public static void Throw_RequestTerminatedEarly()
         => throw new OperationCanceledException();
 
-    [DoesNotReturn]
+    [DoesNotReturn, StackTraceHidden]
     public static void Throw_SyncNotSupported()
         => Throw_NotSupported("Synchronous operations are not supported.");
 
-    [DoesNotReturn]
+    [DoesNotReturn, StackTraceHidden]
     public static void Throw_NotSupported(string msg)
         => throw new NotSupportedException(msg);
 
-    [DoesNotReturn]
+    [DoesNotReturn, StackTraceHidden]
     public static void Throw_InvalidEntityType(Type type)
         => throw new MikrotikEntityTypeException(type);
 
-    [DoesNotReturn]
+    [DoesNotReturn, StackTraceHidden]
     public static void Throw_InvalidEntityType(Type type, string msg)
         => throw new MikrotikEntityTypeException(type, msg);
 }
