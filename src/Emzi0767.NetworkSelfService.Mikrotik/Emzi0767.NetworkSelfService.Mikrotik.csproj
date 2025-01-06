@@ -9,4 +9,8 @@
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Emzi0767.NetworkSelfService.Mikrotik.SourceGens\Emzi0767.NetworkSelfService.Mikrotik.SourceGens.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="False" />
+  </ItemGroup>
+
 </Project>

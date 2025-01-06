@@ -28,7 +28,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 /// <summary>
 /// Represents a DHCP lease on a Mikrotik DHCP server.
 /// </summary>
-[MikrotikEntity("ip", "dhcp-server", "lease")]
+[GenerateMikrotikEntityMetadata, MikrotikEntity("ip", "dhcp-server", "lease")]
 public class MikrotikDhcpLease : IMikrotikEntity, IMikrotikDeletableEntity
 {
     /// <summary>
