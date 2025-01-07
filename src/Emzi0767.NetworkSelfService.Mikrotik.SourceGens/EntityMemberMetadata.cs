@@ -14,46 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Immutable;
-
 namespace Emzi0767.NetworkSelfService.Mikrotik.SourceGens;
 
 /// <summary>
-/// Represents metadata of a Mikrotik entity.
+/// Represents metadata of a Mikrotik entity's member.
 /// </summary>
-public readonly struct EntityMetadata
+public readonly struct EntityMemberMetadata
 {
     /// <summary>
-    /// Gets whether the metadata object is initialized.
-    /// </summary>
-    public bool IsInitialized { get; }
-
-    /// <summary>
-    /// Gets the name of the entity.
+    /// Gets the name of the property.
     /// </summary>
     public string Name { get; }
 
     /// <summary>
-    /// Gets the qualified name of the entity.
+    /// Gets the fully-qualified name of the property type.
     /// </summary>
-    public string QualifiedName { get; }
+    public string Type { get; }
 
     /// <summary>
-    /// Gets the members of this entity.
+    /// Gets the serialized property name.
     /// </summary>
-    public ImmutableArray<EntityMemberMetadata> Members { get; }
+    public string SerializedName { get; }
 
     /// <summary>
-    /// Creates new entity metadata.
+    /// Creates new entity member metadata.
     /// </summary>
-    /// <param name="name">Name of the entity.</param>
-    /// <param name="qualifiedName">Qualified name of the entity.</param>
-    /// <param name="members">Information about the entity's members.</param>
-    public EntityMetadata(string name, string qualifiedName, ImmutableArray<EntityMemberMetadata> members)
+    /// <param name="name">Name of the property.</param>
+    /// <param name="type">Fully qualified name of the property's type.</param>
+    /// <param name="serializedName">Name of the property in serialized data.</param>
+    public EntityMemberMetadata(string name, string type, string serializedName)
     {
-        this.IsInitialized = true;
         this.Name = name;
-        this.QualifiedName = qualifiedName;
-        this.Members = members;
+        this.Type = type;
+        this.SerializedName = serializedName;
     }
 }
