@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik;
 internal static partial class EntityProxies
@@ -25,5 +27,49 @@ internal static partial class EntityProxies
         ["server"] = new MikrotikEntityProxyGetterSetter<Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease, string>(static x => x.Server, static (x, v) => x.Server = v),
         ["use-src-mac"] = new MikrotikEntityProxyGetterSetter<Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease, bool>(static x => x.UseSourceMac, static (x, v) => x.UseSourceMac = v),
     };
+    private static readonly IReadOnlyDictionary<string, string> _unmapEmzi0767NetworkSelfServiceMikrotikEntitiesMikrotikDhcpLease = new Dictionary<string, string>()
+    {
+        [".id"] = "Id",
+        ["address"] = "Address",
+        ["address-list"] = "AddressLists",
+        ["allow-dual-stack-queue"] = "AllowsDualStackQueue",
+        ["always-broadcast"] = "AlwaysBroadcasts",
+        ["block-access"] = "AccessBlocked",
+        ["client-id"] = "ClientId",
+        ["dhcp-option"] = "DhcpOptions",
+        ["dhcp-option-set"] = "DhcpOptionSets",
+        ["insert-queue-before"] = "InsertQueueBefore",
+        ["lease-time"] = "LeaseTime",
+        ["mac-address"] = "MacAddress",
+        ["parent-queue"] = "ParentQueue",
+        ["queue-type"] = "QueueType",
+        ["rate-limit"] = "RateLimit",
+        ["routes"] = "Routes",
+        ["server"] = "Server",
+        ["use-src-mac"] = "UseSourceMac",
+    };
+    private static readonly IReadOnlyDictionary<string, string> _mapEmzi0767NetworkSelfServiceMikrotikEntitiesMikrotikDhcpLease = new Dictionary<string, string>()
+    {
+        ["Id"] = ".id",
+        ["Address"] = "address",
+        ["AddressLists"] = "address-list",
+        ["AllowsDualStackQueue"] = "allow-dual-stack-queue",
+        ["AlwaysBroadcasts"] = "always-broadcast",
+        ["AccessBlocked"] = "block-access",
+        ["ClientId"] = "client-id",
+        ["DhcpOptions"] = "dhcp-option",
+        ["DhcpOptionSets"] = "dhcp-option-set",
+        ["InsertQueueBefore"] = "insert-queue-before",
+        ["LeaseTime"] = "lease-time",
+        ["MacAddress"] = "mac-address",
+        ["ParentQueue"] = "parent-queue",
+        ["QueueType"] = "queue-type",
+        ["RateLimit"] = "rate-limit",
+        ["Routes"] = "routes",
+        ["Server"] = "server",
+        ["UseSourceMac"] = "use-src-mac",
+    };
     public static IMikrotikEntityProxy GetProxy(this Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease entity) => new MikrotikEntityProxy<Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease>(entity, _propertiesEmzi0767NetworkSelfServiceMikrotikEntitiesMikrotikDhcpLease);
+    public static string MapToSerialized<T>(this Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease entity, Expression<Func<Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease, T>> prop) => prop.Body is MemberExpression { Member: PropertyInfo property } ? (_mapEmzi0767NetworkSelfServiceMikrotikEntitiesMikrotikDhcpLease.TryGetValue(property.Name, out var serialized) ? serialized : null) : null;
+    public static string MapFromSerialized(this Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease entity, string serialized) => _unmapEmzi0767NetworkSelfServiceMikrotikEntitiesMikrotikDhcpLease.TryGetValue(serialized, out var name) ? name : null;
 }
