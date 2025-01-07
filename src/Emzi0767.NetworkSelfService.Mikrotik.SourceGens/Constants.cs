@@ -241,7 +241,12 @@ public static class Constants
     //         => new MikrotikEntityProxy<ENTITY>(entity, _propertiesQUALIFIER);
     //
     //     public static string MapToSerialized<T>(this ENTITY entity, Expression<Func<ENTITY, T>> prop)
-    //         => prop.Body is MemberExpression { Member: PropertyInfo property }
+    //         => prop.Body is MemberExpression member
+    //         ? entity.MapToSerialized(member)
+    //         : null;
+    //
+    //     public static string MapToSerialized(this ENTITY entity, MemberExpression member)
+    //         => member is { Member: PropertyInfo property }
     //         ? (_mapQUALIFIER.TryGetValue(property.Name, out var serialized)
     //             ? serialized
     //             : null)
@@ -493,7 +498,7 @@ public static class Constants
                                                         new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithTypeParameterList(
                                                     SyntaxFactory.TypeParameterList(
-                                                        SyntaxFactory.SingletonSeparatedList(
+                                                        SyntaxFactory.SingletonSeparatedList<TypeParameterSyntax>(
                                                             SyntaxFactory.TypeParameter(
                                                                 SyntaxFactory.Identifier("T")))))
                                                 .WithParameterList(
@@ -523,8 +528,8 @@ public static class Constants
                                                                                                     SyntaxFactory.SeparatedList<TypeSyntax>(
                                                                                                         new SyntaxNodeOrToken[]
                                                                                                         {
-                                                                                                            SyntaxFactory.IdentifierName(metadata.QualifiedName),
-                                                                                                            SyntaxFactory.Token(SyntaxKind.CommaToken), SyntaxFactory.IdentifierName("T")
+                                                                                                            SyntaxFactory.IdentifierName(metadata.QualifiedName), SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                                                            SyntaxFactory.IdentifierName("T")
                                                                                                         })))))))
                                                             })))
                                                 .WithExpressionBody(
@@ -535,12 +540,57 @@ public static class Constants
                                                                     SyntaxKind.SimpleMemberAccessExpression,
                                                                     SyntaxFactory.IdentifierName("prop"),
                                                                     SyntaxFactory.IdentifierName("Body")),
-                                                                SyntaxFactory.RecursivePattern()
+                                                                SyntaxFactory.DeclarationPattern(
+                                                                    SyntaxFactory.IdentifierName("MemberExpression"),
+                                                                    SyntaxFactory.SingleVariableDesignation(
+                                                                        SyntaxFactory.Identifier("member")))),
+                                                            SyntaxFactory.InvocationExpression(
+                                                                    SyntaxFactory.MemberAccessExpression(
+                                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                                        SyntaxFactory.IdentifierName("entity"),
+                                                                        SyntaxFactory.IdentifierName("MapToSerialized")))
+                                                                .WithArgumentList(
+                                                                    SyntaxFactory.ArgumentList(
+                                                                        SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                                                                            SyntaxFactory.Argument(
+                                                                                SyntaxFactory.IdentifierName("member"))))),
+                                                            SyntaxFactory.LiteralExpression(
+                                                                SyntaxKind.NullLiteralExpression))))
+                                                .WithSemicolonToken(
+                                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                                            SyntaxFactory.MethodDeclaration(
+                                                    SyntaxFactory.PredefinedType(
+                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                                    SyntaxFactory.Identifier("MapToSerialized"))
+                                                .WithModifiers(
+                                                    SyntaxFactory.TokenList(
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
+                                                .WithParameterList(
+                                                    SyntaxFactory.ParameterList(
+                                                        SyntaxFactory.SeparatedList<ParameterSyntax>(
+                                                            new SyntaxNodeOrToken[]
+                                                            {
+                                                                SyntaxFactory.Parameter(
+                                                                        SyntaxFactory.Identifier("entity"))
+                                                                    .WithModifiers(
+                                                                        SyntaxFactory.TokenList(
+                                                                            SyntaxFactory.Token(SyntaxKind.ThisKeyword)))
+                                                                    .WithType(
+                                                                        SyntaxFactory.IdentifierName(metadata.QualifiedName)),
+                                                                SyntaxFactory.Token(SyntaxKind.CommaToken), SyntaxFactory.Parameter(
+                                                                        SyntaxFactory.Identifier("member"))
                                                                     .WithType(
                                                                         SyntaxFactory.IdentifierName("MemberExpression"))
+                                                            })))
+                                                .WithExpressionBody(
+                                                    SyntaxFactory.ArrowExpressionClause(
+                                                        SyntaxFactory.ConditionalExpression(
+                                                            SyntaxFactory.IsPatternExpression(
+                                                                SyntaxFactory.IdentifierName("member"),
+                                                                SyntaxFactory.RecursivePattern()
                                                                     .WithPropertyPatternClause(
                                                                         SyntaxFactory.PropertyPatternClause(
-                                                                            SyntaxFactory.SingletonSeparatedList(
+                                                                            SyntaxFactory.SingletonSeparatedList<SubpatternSyntax>(
                                                                                 SyntaxFactory.Subpattern(
                                                                                         SyntaxFactory.DeclarationPattern(
                                                                                             SyntaxFactory.IdentifierName("PropertyInfo"),
