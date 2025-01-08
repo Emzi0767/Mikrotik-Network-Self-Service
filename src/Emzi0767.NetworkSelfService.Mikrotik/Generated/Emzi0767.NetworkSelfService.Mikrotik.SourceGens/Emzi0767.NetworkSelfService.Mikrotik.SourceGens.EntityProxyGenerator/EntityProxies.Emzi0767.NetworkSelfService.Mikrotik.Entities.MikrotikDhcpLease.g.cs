@@ -69,8 +69,30 @@ internal static partial class EntityProxies
         ["Server"] = "server",
         ["UseSourceMac"] = "use-src-mac",
     };
+    private static readonly IReadOnlyDictionary<string, Type> _typesEmzi0767NetworkSelfServiceMikrotikEntitiesMikrotikDhcpLease = new Dictionary<string, Type>()
+    {
+        ["Id"] = typeof(string),
+        ["Address"] = typeof(System.Net.IPAddress),
+        ["AddressLists"] = typeof(System.Collections.Generic.IEnumerable<string>),
+        ["AllowsDualStackQueue"] = typeof(bool),
+        ["AlwaysBroadcasts"] = typeof(bool),
+        ["AccessBlocked"] = typeof(bool),
+        ["ClientId"] = typeof(string),
+        ["DhcpOptions"] = typeof(System.Collections.Generic.IEnumerable<string>),
+        ["DhcpOptionSets"] = typeof(System.Collections.Generic.IEnumerable<string>),
+        ["InsertQueueBefore"] = typeof(string),
+        ["LeaseTime"] = typeof(System.TimeSpan),
+        ["MacAddress"] = typeof(Emzi0767.NetworkSelfService.Mikrotik.Types.MacAddress),
+        ["ParentQueue"] = typeof(string),
+        ["QueueType"] = typeof(Emzi0767.NetworkSelfService.Mikrotik.Types.MikrotikDhcpQueueType),
+        ["RateLimit"] = typeof(Emzi0767.NetworkSelfService.Mikrotik.Types.MikrotikDhcpRateLimit),
+        ["Routes"] = typeof(System.Collections.Generic.IEnumerable<Emzi0767.NetworkSelfService.Mikrotik.Types.MikrotikDhcpRoute>),
+        ["Server"] = typeof(string),
+        ["UseSourceMac"] = typeof(bool),
+    };
     public static IMikrotikEntityProxy GetProxy(this Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease entity) => new MikrotikEntityProxy<Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease>(entity, _propertiesEmzi0767NetworkSelfServiceMikrotikEntitiesMikrotikDhcpLease);
     public static string MapToSerialized<T>(this Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease entity, Expression<Func<Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease, T>> prop) => prop.Body is MemberExpression member ? entity.MapToSerialized(member) : null;
     public static string MapToSerialized(this Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease entity, MemberExpression member) => member is { Member: PropertyInfo property } ? (_mapEmzi0767NetworkSelfServiceMikrotikEntitiesMikrotikDhcpLease.TryGetValue(property.Name, out var serialized) ? serialized : null) : null;
     public static string MapFromSerialized(this Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease entity, string serialized) => _unmapEmzi0767NetworkSelfServiceMikrotikEntitiesMikrotikDhcpLease.TryGetValue(serialized, out var name) ? name : null;
+    public static Type GetPropertyType(this Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease entity, string name) => _typesEmzi0767NetworkSelfServiceMikrotikEntitiesMikrotikDhcpLease.TryGetValue(name, out var type) ? type : null;
 }
