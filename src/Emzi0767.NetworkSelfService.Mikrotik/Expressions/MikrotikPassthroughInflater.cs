@@ -16,29 +16,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik.Expressions;
 
-internal ref struct MikrotikExpressionParserState
+public sealed class MikrotikPassthroughInflater : IMikrotikInflater
 {
-    public Type RootType { get; }
-    public List<IMikrotikWord> Words { get; }
-    public Type ResultType { get; set; }
-    public List<string> IncludedPropertyNames { get; }
-    public Type QueryableType { get; set; }
-    public ConstructorInfo AnonymousConstructor { get; set; }
-    public IDictionary<string, string> AnonymousPropertyMap { get; set; }
-    public bool IsSelectMany { get; set; }
+    public Type ObjectType { get; init; }
+    public string SerializedProperty { get; init; }
 
-    public MikrotikExpressionParserState(Type rootType)
-    {
-        this.RootType = rootType;
-        this.Words = [];
-        this.ResultType = rootType;
-        this.IncludedPropertyNames = [];
-        this.QueryableType = typeof(IAsyncQueryable<>).MakeGenericType(rootType);
-        this.AnonymousConstructor = null;
-        this.IsSelectMany = false;
-    }
+    public object Inflate(MikrotikClient client, IReadOnlyDictionary<string, object> data)
+        => data[this.SerializedProperty];
 }

@@ -27,16 +27,47 @@ internal sealed class MikrotikExpressionParser
 {
     public static MikrotikExpressionParser Instance { get; } = new();
 
-    public IEnumerable<IMikrotikWord> Parse(Expression expression, Type rootType)
+    public MikrotikExpression Parse(Expression expression, Type rootType)
     {
         ValidateRootType(rootType);
 
         var state = new MikrotikExpressionParserState(rootType);
+        state.IncludedPropertyNames.AddRange(EntityProxies.GetProperties(rootType));
+
         this.ParseInternal(expression, ref state);
         this.AddPropertyList(ref state);
         state.Words.Add(MikrotikStopWord.Instance);
 
-        return state.Words;
+        var properties = state.IncludedPropertyNames;
+        var inflater = (state.AnonymousConstructor is not null, state.IsSelectMany) switch
+        {
+            (false, false) => new MikrotikEntityInflater { ObjectType = state.ResultType } as IMikrotikInflater,
+            (true, false) => new MikrotikAnonymousInflater
+            {
+                ObjectType = state.ResultType,
+                Constructor = state.AnonymousConstructor,
+                SerializedProperties = state.IncludedPropertyNames.Select(x => EntityProxies.MapToSerialized(rootType, x))
+                    .ToArray(),
+            },
+            (false, true) => new MikrotikPassthroughInflater
+            {
+                ObjectType = state.ResultType,
+                SerializedProperty = EntityProxies.MapToSerialized(rootType, properties.Single()),
+            },
+            _ => null,
+        };
+
+        if (inflater is null)
+            MikrotikThrowHelper.Throw_InvalidOperation("Invalid expression state reached.");
+
+        var expr = new MikrotikExpression
+        {
+            Sentence = new(state.Words),
+            Inflater = inflater,
+            UnpackEnumerable = state.IsSelectMany,
+        };
+
+        return expr;
     }
 
     private void ParseInternal(Expression expression, ref MikrotikExpressionParserState state)
@@ -147,7 +178,7 @@ internal sealed class MikrotikExpressionParser
         ValidateTypeTransform(sourceType, state.ResultType);
 
         state.ResultType = sourceType;
-        state.IncludedMemberNames.Clear();
+        state.IncludedPropertyNames.Clear();
         // TODO: add all member names
         // TODO: create a query for ?=${TYPE_DISCRIM}=${TYPE_VALUE}
         MikrotikThrowHelper.Throw_NotSupported("OfType transforms are currently not supported.");
@@ -172,10 +203,10 @@ internal sealed class MikrotikExpressionParser
         state.ResultType = source.GetTargetElementType();
         state.AnonymousConstructor = anon.Constructor;
         state.AnonymousPropertyMap = new Dictionary<string, string>();
-        state.IncludedMemberNames.Clear();
+        state.IncludedPropertyNames.Clear();
         foreach (var (member, arg) in anon.Members.Zip(anon.Arguments))
         {
-            if (arg is not MemberExpression { Member: PropertyInfo prop })
+            if (arg is not MemberExpression { Member: PropertyInfo prop, Expression: ParameterExpression })
             {
                 MikrotikThrowHelper.Throw_NotSupported("Only basic anonymous object transforms are supported.");
                 return;
@@ -188,22 +219,41 @@ internal sealed class MikrotikExpressionParser
                 return;
             }
 
-            state.IncludedMemberNames.Add(propName);
+            state.IncludedPropertyNames.Add(propName);
             state.AnonymousPropertyMap[member.Name] = propName;
         }
     }
 
     private void ParseSelectMany(Expression source, Expression selector, Expression transformer, ref MikrotikExpressionParserState state)
     {
-        if (selector is not UnaryExpression { NodeType: ExpressionType.Quote, Operand: LambdaExpression { Body: MemberExpression { Member: PropertyInfo prop } } })
+        if (selector is not UnaryExpression { NodeType: ExpressionType.Quote, Operand: LambdaExpression { Body: MemberExpression { Member: PropertyInfo prop, Expression: ParameterExpression } } })
         {
             MikrotikThrowHelper.Throw_NotSupported("Only a single property can be directly selected for a SelectMany transform.");
             return;
         }
 
-        state.ResultType = source.GetTargetElementType();
+        if (transformer is not null)
+        {
+            MikrotikThrowHelper.Throw_NotSupported("Transforming SelectMany is not supported.");
+            return;
+        }
+
+        var propType = prop.PropertyType;
+        if (propType.IsGenericType && propType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+        {
+            state.ResultType = propType;
+        }
+        else
+        {
+            var elementType = prop.PropertyType.GetInterfaces()
+                .First(x => x.IsGenericType && typeof(IEnumerable<>) == x.GetGenericTypeDefinition())
+                .GetGenericArguments().First();
+
+            state.ResultType = typeof(IEnumerable<>).MakeGenericType(elementType);
+        }
+
         state.IsSelectMany = true;
-        state.IncludedMemberNames.Clear();
+        state.IncludedPropertyNames.Clear();
         var propName = prop.Name;
         if (state.AnonymousPropertyMap is not null && !state.AnonymousPropertyMap.TryGetValue(propName, out propName))
         {
@@ -211,13 +261,15 @@ internal sealed class MikrotikExpressionParser
             return;
         }
 
-        state.IncludedMemberNames.Add(propName);
+        state.IncludedPropertyNames.Add(propName);
+        state.AnonymousConstructor = null;
+        state.AnonymousPropertyMap = null;
     }
 
     private void AddPropertyList(ref MikrotikExpressionParserState state)
     {
         var rootType = state.RootType;
-        var properties = state.IncludedMemberNames
+        var properties = state.IncludedPropertyNames
             .Select(x => EntityProxies.MapToSerialized(rootType, x));
 
         var propertiesValue = string.Join(",", properties);

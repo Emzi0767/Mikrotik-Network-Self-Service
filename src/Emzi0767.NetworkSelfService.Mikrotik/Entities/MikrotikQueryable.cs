@@ -52,20 +52,20 @@ internal sealed class MikrotikQueryable<T> : MikrotikQueryable, IAsyncQueryable<
 
     public Expression Expression { get; }
 
-    private Lazy<MikrotikSentence> Sentence { get; }
+    private Lazy<MikrotikExpression> QueryExpression { get; }
 
     public MikrotikQueryable(MikrotikClient client, string requestId, Type rootType)
         : base(client, requestId, rootType)
     {
         this.Expression = Expression.Constant(this);
-        this.Sentence = new(this.BuildSentence);
+        this.QueryExpression = new(this.BuildQueryExpression);
     }
 
     public MikrotikQueryable(MikrotikClient client, string requestId, Type rootType, Expression expression)
         : base(client, requestId, rootType)
     {
         this.Expression = expression;
-        this.Sentence = new(this.BuildSentence);
+        this.QueryExpression = new(this.BuildQueryExpression);
     }
 
     public IQueryable CreateQuery(Expression expression)
@@ -85,7 +85,7 @@ internal sealed class MikrotikQueryable<T> : MikrotikQueryable, IAsyncQueryable<
 
     public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
-        var sentence = this.Sentence.Value;
+        var expr = this.QueryExpression.Value;
         throw new NotImplementedException();
     }
 
@@ -100,14 +100,11 @@ internal sealed class MikrotikQueryable<T> : MikrotikQueryable, IAsyncQueryable<
 
     public ValueTask<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
     {
-        var sentence = this.Sentence.Value;
+        var expr = this.QueryExpression.Value;
         throw new NotImplementedException();
     }
 
-    private MikrotikSentence BuildSentence()
-        => new(this.ParseExpression());
-
-    private IEnumerable<IMikrotikWord> ParseExpression()
+    private MikrotikExpression BuildQueryExpression()
     {
         var parser = MikrotikExpressionParser.Instance;
         return parser.Parse(this.Expression, this._rootType);

@@ -16,29 +16,25 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik.Expressions;
 
-internal ref struct MikrotikExpressionParserState
+public sealed class MikrotikEntityInflater : IMikrotikInflater
 {
-    public Type RootType { get; }
-    public List<IMikrotikWord> Words { get; }
-    public Type ResultType { get; set; }
-    public List<string> IncludedPropertyNames { get; }
-    public Type QueryableType { get; set; }
-    public ConstructorInfo AnonymousConstructor { get; set; }
-    public IDictionary<string, string> AnonymousPropertyMap { get; set; }
-    public bool IsSelectMany { get; set; }
+    public Type ObjectType { get; init; }
 
-    public MikrotikExpressionParserState(Type rootType)
+    public object Inflate(MikrotikClient client, IReadOnlyDictionary<string, object> data)
     {
-        this.RootType = rootType;
-        this.Words = [];
-        this.ResultType = rootType;
-        this.IncludedPropertyNames = [];
-        this.QueryableType = typeof(IAsyncQueryable<>).MakeGenericType(rootType);
-        this.AnonymousConstructor = null;
-        this.IsSelectMany = false;
+        var instance = Activator.CreateInstance(this.ObjectType, client);
+
+        var t = this.ObjectType;
+        var proxy = EntityProxies.GetProxy(t, instance);
+        foreach (var (k, v) in data)
+        {
+            var property = EntityProxies.MapFromSerialized(t, k);
+            proxy.Set(property, v);
+        }
+
+        return instance;
     }
 }

@@ -42,4 +42,17 @@ internal static partial class EntityProxies
         };
         return dict is not null && dict.TryGetValue(serialized, out var name) ? name : null;
     }
+
+    public static IEnumerable<string> GetProperties<T>()
+        where T : class, IMikrotikEntity => GetProperties(typeof(T));
+    public static IEnumerable<string> GetProperties(Type t) => t.FullName switch
+    {
+        "Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease" => _propertiesEmzi0767NetworkSelfServiceMikrotikEntitiesMikrotikDhcpLease,
+        _ => null,
+    };
+    public static IMikrotikEntityProxy GetProxy(Type t, object entity) => t.FullName switch
+    {
+        "Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease" => (entity as Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease).GetProxy(),
+        _ => null,
+    };
 }

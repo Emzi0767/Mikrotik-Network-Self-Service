@@ -24,6 +24,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik.SourceGens;
 
+// for every $1 donated, I plant another syntax tree
+
 /// <summary>
 /// Contains static and constant values for the generator.
 /// </summary>
@@ -226,7 +228,7 @@ public static class Constants
     //
     // internal static partial class EntityProxies
     // {
-    //     private static readonly IReadOnlyDictionary<string, IMikrotikEntityProxyGetterSetter<ENTITY>> _propertiesQUALIFIER = new Dictionary<string, IMikrotikEntityProxyGetterSetter<ENTITY>>()
+    //     private static readonly IReadOnlyDictionary<string, IMikrotikEntityProxyGetterSetter<ENTITY>> _proxiesQUALIFIER = new Dictionary<string, IMikrotikEntityProxyGetterSetter<ENTITY>>()
     //     {
     //         ["PROPNAME"] = new MikrotikEntityProxyGetterSetter<ENTITY, PROPTYPE>(static x => x.PROPNAME, static (x, v) => x.PROPNAME = v),
     //     };
@@ -246,10 +248,12 @@ public static class Constants
     //         ["PROPMEMBER"] = typeof(PROPTYPE),
     //     };
     //
-    //     private static readonly string[] _pathQUALIFIER = [ "PATH1", "PATH2" ];
+    //     private static readonly string[] _pathQUALIFIER = [ "PATH1", ];
+    //
+    //     private static readonly string[] _propertiesQUALIFIER = [ "PROPMEMBER", ];
     //
     //     public static IMikrotikEntityProxy GetProxy(this ENTITY entity)
-    //         => new MikrotikEntityProxy<ENTITY>(entity, _propertiesQUALIFIER);
+    //         => new MikrotikEntityProxy<ENTITY>(entity, _proxiesQUALIFIER);
     //
     //     public static string MapToSerialized<T>(this ENTITY entity, Expression<Func<ENTITY, T>> prop)
     //         => prop.Body is MemberExpression member
@@ -275,6 +279,9 @@ public static class Constants
     //
     //     public static IEnumerable<string> GetPath(this ENTITY entity)
     //         => _pathQUALIFIER;
+    //
+    //     public static IEnumerable<string> GetProperties(this ENTITY entity)
+    //         => _propertiesQUALIFIER;
     // }
     /// <summary>
     /// Generates an entity proxy for a given entity.
@@ -343,7 +350,7 @@ public static class Constants
                                                         .WithVariables(
                                                             SyntaxFactory.SingletonSeparatedList(
                                                                 SyntaxFactory.VariableDeclarator(
-                                                                        SyntaxFactory.Identifier("_properties" + CreateQualifier(metadata.QualifiedName)))
+                                                                        SyntaxFactory.Identifier("_proxies" + CreateQualifier(metadata.QualifiedName)))
                                                                     .WithInitializer(
                                                                         SyntaxFactory.EqualsValueClause(
                                                                             SyntaxFactory.ObjectCreationExpression(
@@ -520,7 +527,33 @@ public static class Constants
                                                                         SyntaxFactory.EqualsValueClause(
                                                                             SyntaxFactory.CollectionExpression(
                                                                                 SyntaxFactory.SeparatedList<CollectionElementSyntax>(
-                                                                                    metadata.Path.SelectMany(GeneratePath))))))))
+                                                                                    metadata.Path.SelectMany(GenerateArrayStringEntry))))))))
+                                                .WithModifiers(
+                                                    SyntaxFactory.TokenList(
+                                                        new[]
+                                                        {
+                                                            SyntaxFactory.Token(SyntaxKind.PrivateKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword),
+                                                            SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)
+                                                        })),
+                                            SyntaxFactory.FieldDeclaration(
+                                                    SyntaxFactory.VariableDeclaration(
+                                                            SyntaxFactory.ArrayType(
+                                                                    SyntaxFactory.PredefinedType(
+                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)))
+                                                                .WithRankSpecifiers(
+                                                                    SyntaxFactory.SingletonList(
+                                                                        SyntaxFactory.ArrayRankSpecifier(
+                                                                            SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                                                                SyntaxFactory.OmittedArraySizeExpression())))))
+                                                        .WithVariables(
+                                                            SyntaxFactory.SingletonSeparatedList(
+                                                                SyntaxFactory.VariableDeclarator(
+                                                                        SyntaxFactory.Identifier("_properties" + CreateQualifier(metadata.QualifiedName)))
+                                                                    .WithInitializer(
+                                                                        SyntaxFactory.EqualsValueClause(
+                                                                            SyntaxFactory.CollectionExpression(
+                                                                                SyntaxFactory.SeparatedList<CollectionElementSyntax>(
+                                                                                    metadata.Members.SelectMany(x => GenerateArrayStringEntry(x.Name)))))))))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
                                                         new[]
@@ -560,7 +593,7 @@ public static class Constants
                                                                             SyntaxFactory.Argument(
                                                                                 SyntaxFactory.IdentifierName("entity")),
                                                                             SyntaxFactory.Token(SyntaxKind.CommaToken), SyntaxFactory.Argument(
-                                                                                SyntaxFactory.IdentifierName("_properties" + CreateQualifier(metadata.QualifiedName)))
+                                                                                SyntaxFactory.IdentifierName("_proxies" + CreateQualifier(metadata.QualifiedName)))
                                                                         })))))
                                                 .WithSemicolonToken(
                                                     SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
@@ -873,7 +906,34 @@ public static class Constants
                                                     SyntaxFactory.ArrowExpressionClause(
                                                         SyntaxFactory.IdentifierName("_path" + CreateQualifier(metadata.QualifiedName))))
                                                 .WithSemicolonToken(
-                                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                                            SyntaxFactory.MethodDeclaration(
+                                                    SyntaxFactory.GenericName(
+                                                            SyntaxFactory.Identifier("IEnumerable"))
+                                                        .WithTypeArgumentList(
+                                                            SyntaxFactory.TypeArgumentList(
+                                                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                                                    SyntaxFactory.PredefinedType(
+                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))))),
+                                                    SyntaxFactory.Identifier("GetProperties"))
+                                                .WithModifiers(
+                                                    SyntaxFactory.TokenList(
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
+                                                .WithParameterList(
+                                                    SyntaxFactory.ParameterList(
+                                                        SyntaxFactory.SingletonSeparatedList(
+                                                            SyntaxFactory.Parameter(
+                                                                    SyntaxFactory.Identifier("entity"))
+                                                                .WithModifiers(
+                                                                    SyntaxFactory.TokenList(
+                                                                        SyntaxFactory.Token(SyntaxKind.ThisKeyword)))
+                                                                .WithType(
+                                                                    SyntaxFactory.IdentifierName(metadata.QualifiedName)))))
+                                                .WithExpressionBody(
+                                                    SyntaxFactory.ArrowExpressionClause(
+                                                        SyntaxFactory.IdentifierName("_properties" + CreateQualifier(metadata.QualifiedName))))
+                                                .WithSemicolonToken(
+                                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
                                         ]))))))
             .NormalizeWhitespace();
 
@@ -1025,13 +1085,15 @@ public static class Constants
             SyntaxFactory.Token(SyntaxKind.CommaToken)
         ];
 
-    // "PATH1",
+    // "PATH",
+    // or
+    // "PROPMEMBER",
     /// <summary>
     /// Generates array entry for path element.
     /// </summary>
     /// <param name="element">Element to generate.</param>
     /// <returns>Generated array entry.</returns>
-    private static IEnumerable<SyntaxNodeOrToken> GeneratePath(string element)
+    private static IEnumerable<SyntaxNodeOrToken> GenerateArrayStringEntry(string element)
         =>
         [
             SyntaxFactory.ExpressionElement(
@@ -1866,6 +1928,24 @@ public static class Constants
     //             ? name
     //             : null;
     //     }
+    //
+    //     public static IEnumerable<string> GetProperties<T>()
+    //         where T : class, IMikrotikEntity
+    //         => GetProperties(typeof(T));
+    //
+    //     public static IEnumerable<string> GetProperties(Type t)
+    //         => t.FullName switch
+    //         {
+    //             "ENTITY" => _propertiesQUALIFIER,
+    //             _ => null,
+    //         };
+    //
+    //     public static IMikrotikEntityProxy GetProxy(Type t, object entity)
+    //         => t.FullName switch
+    //         {
+    //             "ENTITY" => (entity as ENTITY).GetProxy(),
+    //             _ => null,
+    //         };
     // }
     /// <summary>
     /// Generates an entity path map for all collected entities.
@@ -2559,6 +2639,126 @@ public static class Constants
                                                                 SyntaxFactory.IdentifierName("name"),
                                                                 SyntaxFactory.LiteralExpression(
                                                                     SyntaxKind.NullLiteralExpression))))),
+                                            SyntaxFactory.MethodDeclaration(
+                                                    SyntaxFactory.GenericName(
+                                                            SyntaxFactory.Identifier("IEnumerable"))
+                                                        .WithTypeArgumentList(
+                                                            SyntaxFactory.TypeArgumentList(
+                                                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                                                    SyntaxFactory.PredefinedType(
+                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))))),
+                                                    SyntaxFactory.Identifier("GetProperties"))
+                                                .WithModifiers(
+                                                    SyntaxFactory.TokenList(
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
+                                                .WithTypeParameterList(
+                                                    SyntaxFactory.TypeParameterList(
+                                                        SyntaxFactory.SingletonSeparatedList(
+                                                            SyntaxFactory.TypeParameter(
+                                                                SyntaxFactory.Identifier("T")))))
+                                                .WithConstraintClauses(
+                                                    SyntaxFactory.SingletonList(
+                                                        SyntaxFactory.TypeParameterConstraintClause(
+                                                                SyntaxFactory.IdentifierName("T"))
+                                                            .WithConstraints(
+                                                                SyntaxFactory.SeparatedList<TypeParameterConstraintSyntax>(
+                                                                    new SyntaxNodeOrToken[]
+                                                                    {
+                                                                        SyntaxFactory.ClassOrStructConstraint(
+                                                                            SyntaxKind.ClassConstraint),
+                                                                        SyntaxFactory.Token(SyntaxKind.CommaToken), SyntaxFactory.TypeConstraint(
+                                                                            SyntaxFactory.IdentifierName("IMikrotikEntity"))
+                                                                    }))))
+                                                .WithExpressionBody(
+                                                    SyntaxFactory.ArrowExpressionClause(
+                                                        SyntaxFactory.InvocationExpression(
+                                                                SyntaxFactory.IdentifierName("GetProperties"))
+                                                            .WithArgumentList(
+                                                                SyntaxFactory.ArgumentList(
+                                                                    SyntaxFactory.SingletonSeparatedList(
+                                                                        SyntaxFactory.Argument(
+                                                                            SyntaxFactory.TypeOfExpression(
+                                                                                SyntaxFactory.IdentifierName("T"))))))))
+                                                .WithSemicolonToken(
+                                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                                            SyntaxFactory.MethodDeclaration(
+                                                    SyntaxFactory.GenericName(
+                                                            SyntaxFactory.Identifier("IEnumerable"))
+                                                        .WithTypeArgumentList(
+                                                            SyntaxFactory.TypeArgumentList(
+                                                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                                                    SyntaxFactory.PredefinedType(
+                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))))),
+                                                    SyntaxFactory.Identifier("GetProperties"))
+                                                .WithModifiers(
+                                                    SyntaxFactory.TokenList(
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
+                                                .WithParameterList(
+                                                    SyntaxFactory.ParameterList(
+                                                        SyntaxFactory.SingletonSeparatedList(
+                                                            SyntaxFactory.Parameter(
+                                                                    SyntaxFactory.Identifier("t"))
+                                                                .WithType(
+                                                                    SyntaxFactory.IdentifierName("Type")))))
+                                                .WithExpressionBody(
+                                                    SyntaxFactory.ArrowExpressionClause(
+                                                        SyntaxFactory.SwitchExpression(
+                                                                SyntaxFactory.MemberAccessExpression(
+                                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                                    SyntaxFactory.IdentifierName("t"),
+                                                                    SyntaxFactory.IdentifierName("FullName")))
+                                                            .WithArms(
+                                                                SyntaxFactory.SeparatedList<SwitchExpressionArmSyntax>(
+                                                                [
+                                                                    ..metadatas.SelectMany(x => GenerateSwitchArm(x, "_properties")),
+                                                                    SyntaxFactory.SwitchExpressionArm(
+                                                                        SyntaxFactory.DiscardPattern(),
+                                                                        SyntaxFactory.LiteralExpression(
+                                                                            SyntaxKind.NullLiteralExpression)),
+                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken)
+                                                                ]))))
+                                                .WithSemicolonToken(
+                                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                                            SyntaxFactory.MethodDeclaration(
+                                                    SyntaxFactory.IdentifierName(ProxyInterfaceName),
+                                                    SyntaxFactory.Identifier("GetProxy"))
+                                                .WithModifiers(
+                                                    SyntaxFactory.TokenList(
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
+                                                .WithParameterList(
+                                                    SyntaxFactory.ParameterList(
+                                                        SyntaxFactory.SeparatedList<ParameterSyntax>(
+                                                            new SyntaxNodeOrToken[]
+                                                            {
+                                                                SyntaxFactory.Parameter(
+                                                                        SyntaxFactory.Identifier("t"))
+                                                                    .WithType(
+                                                                        SyntaxFactory.IdentifierName("Type")),
+                                                                SyntaxFactory.Token(SyntaxKind.CommaToken), SyntaxFactory.Parameter(
+                                                                        SyntaxFactory.Identifier("entity"))
+                                                                    .WithType(
+                                                                        SyntaxFactory.PredefinedType(
+                                                                            SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
+                                                            })))
+                                                .WithExpressionBody(
+                                                    SyntaxFactory.ArrowExpressionClause(
+                                                        SyntaxFactory.SwitchExpression(
+                                                                SyntaxFactory.MemberAccessExpression(
+                                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                                    SyntaxFactory.IdentifierName("t"),
+                                                                    SyntaxFactory.IdentifierName("FullName")))
+                                                            .WithArms(
+                                                                SyntaxFactory.SeparatedList<SwitchExpressionArmSyntax>(
+                                                                [
+                                                                    ..metadatas.SelectMany(x => GenerateProxySwitchArm(x)),
+                                                                    SyntaxFactory.SwitchExpressionArm(
+                                                                        SyntaxFactory.DiscardPattern(),
+                                                                        SyntaxFactory.LiteralExpression(
+                                                                            SyntaxKind.NullLiteralExpression)),
+                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken)
+                                                                ]))))
+                                                .WithSemicolonToken(
+                                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
                                         ]))))))
             .NormalizeWhitespace();
 
@@ -2587,6 +2787,8 @@ public static class Constants
     // "ENTITY" => _mapQUALIFIER,
     // or
     // "ENTITY" => _unmapQUALIFIER,
+    // or
+    // "ENTITY" => _propertiesQUALIFIER,
     /// <summary>
     /// Generates switch arm for given entity type.
     /// </summary>
@@ -2602,6 +2804,32 @@ public static class Constants
                         SyntaxKind.StringLiteralExpression,
                         SyntaxFactory.Literal(metadata.QualifiedName))),
                 SyntaxFactory.IdentifierName(fieldPrefix + CreateQualifier(metadata.QualifiedName))),
+            SyntaxFactory.Token(SyntaxKind.CommaToken),
+        ];
+
+    // "ENTITY" => (entity as ENTITY).GetProxy(),
+    /// <summary>
+    /// Generates switch arm for given entity type.
+    /// </summary>
+    /// <param name="metadata">Metadata to generate for.</param>
+    /// <returns>Generated switch arm.</returns>
+    public static IEnumerable<SyntaxNodeOrToken> GenerateProxySwitchArm(in EntityMetadata metadata)
+        =>
+        [
+            SyntaxFactory.SwitchExpressionArm(
+                SyntaxFactory.ConstantPattern(
+                    SyntaxFactory.LiteralExpression(
+                        SyntaxKind.StringLiteralExpression,
+                        SyntaxFactory.Literal(metadata.QualifiedName))),
+                SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.ParenthesizedExpression(
+                            SyntaxFactory.BinaryExpression(
+                                SyntaxKind.AsExpression,
+                                SyntaxFactory.IdentifierName("entity"),
+                                SyntaxFactory.IdentifierName(metadata.QualifiedName))),
+                        SyntaxFactory.IdentifierName("GetProxy")))),
             SyntaxFactory.Token(SyntaxKind.CommaToken),
         ];
 }
