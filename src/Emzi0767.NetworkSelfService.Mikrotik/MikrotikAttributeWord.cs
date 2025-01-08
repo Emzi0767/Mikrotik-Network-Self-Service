@@ -33,6 +33,11 @@ public sealed class MikrotikAttributeWord : IMikrotikWord
     /// </summary>
     public const string Separator = "=";
 
+    /// <summary>
+    /// Gets the key for property list.
+    /// </summary>
+    public const string KeyPropertyList = ".proplist";
+
     /// <inheritdoc />
     public int Length { get; }
 
