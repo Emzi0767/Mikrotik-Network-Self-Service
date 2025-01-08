@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -49,7 +50,10 @@ public sealed class EntityProxyGenerator : IIncrementalGenerator
             )
             .Where(static m => m.IsInitialized);
 
+        var bulkMetadata = entityMetadata.Collect();
+
         context.RegisterSourceOutput(entityMetadata, static (ctx, metadata) => Execute(metadata, ctx));
+        context.RegisterSourceOutput(bulkMetadata, static (ctx, metadatas) => ExecuteBulk(metadatas, ctx));
     }
 
     private static EntityMetadata GetEntityMetadata(SemanticModel model, SyntaxNode root)
@@ -61,6 +65,23 @@ public sealed class EntityProxyGenerator : IIncrementalGenerator
         var qualifiedName = symbol.ToDisplayString(Constants.QualifiedTypeName);
         var members = symbol.GetMembers();
         var memberMetadata = ImmutableArray<EntityMemberMetadata>.Empty;
+        var path = default(string[]);
+
+        foreach (var attr in symbol.GetAttributes())
+        {
+            if (attr.AttributeClass is null || attr.AttributeClass.ToDisplayString(Constants.QualifiedTypeName) != Constants.EntityAttributeQualifiedName)
+                continue;
+
+            var @const = attr.ConstructorArguments.First();
+            if (@const.Kind != TypedConstantKind.Array)
+                return default;
+
+            path = @const.Values.Select(x => x.Value as string)
+                .ToArray();
+        }
+
+        if (path is null or { Length: 0 })
+            return default;
 
         foreach (var member in members)
         {
@@ -84,7 +105,7 @@ public sealed class EntityProxyGenerator : IIncrementalGenerator
             memberMetadata = memberMetadata.Add(new(member.Name, typeName, serializedName));
         }
 
-        return new(entityName, qualifiedName, memberMetadata);
+        return new(entityName, qualifiedName, memberMetadata, [..path]);
     }
 
     private static void Execute(in EntityMetadata metadata, SourceProductionContext context)
@@ -95,6 +116,14 @@ public sealed class EntityProxyGenerator : IIncrementalGenerator
         context.AddSource(
             $"{Constants.EntityProxiesClassName}.{metadata.QualifiedName}.g.cs",
             Constants.GenerateEntityProxyStatic(metadata).ToSourceText()
+        );
+    }
+
+    private static void ExecuteBulk(in ImmutableArray<EntityMetadata> metadatas, SourceProductionContext context)
+    {
+        context.AddSource(
+            $"{Constants.EntityProxiesClassName}.pathmap.g.cs",
+            Constants.GenerateEntityPathMapStatic(metadatas).ToSourceText()
         );
     }
 }

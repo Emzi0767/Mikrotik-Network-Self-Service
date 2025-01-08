@@ -4,13 +4,13 @@ using Emzi0767.NetworkSelfService.Mikrotik.Entities;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik;
 internal interface IMikrotikEntityProxyGetterSetter<T>
-    where T : IMikrotikEntity
+    where T : class, IMikrotikEntity
 {
     object Get(T @this);
     void Set(T @this, object value);
 }
 
-internal readonly struct MikrotikEntityProxyGetterSetter<T, TProp> : IMikrotikEntityProxyGetterSetter<T> where T : IMikrotikEntity
+internal readonly struct MikrotikEntityProxyGetterSetter<T, TProp> : IMikrotikEntityProxyGetterSetter<T> where T : class, IMikrotikEntity
 {
     public Func<T, TProp> Getter { get; }
     public Action<T, TProp> Setter { get; }
@@ -31,7 +31,7 @@ internal interface IMikrotikEntityProxy
     void Set(string name, object value);
 }
 
-internal readonly struct MikrotikEntityProxy<T> : IMikrotikEntityProxy where T : IMikrotikEntity
+internal readonly struct MikrotikEntityProxy<T> : IMikrotikEntityProxy where T : class, IMikrotikEntity
 {
     private T This { get; }
     private IReadOnlyDictionary<string, IMikrotikEntityProxyGetterSetter<T>> PropertyProxies { get; }

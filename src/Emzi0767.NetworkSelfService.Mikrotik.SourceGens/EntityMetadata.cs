@@ -44,16 +44,23 @@ public readonly struct EntityMetadata
     public ImmutableArray<EntityMemberMetadata> Members { get; }
 
     /// <summary>
+    /// Gets the API resource path.
+    /// </summary>
+    public ImmutableArray<string> Path { get; }
+
+    /// <summary>
     /// Creates new entity metadata.
     /// </summary>
     /// <param name="name">Name of the entity.</param>
     /// <param name="qualifiedName">Qualified name of the entity.</param>
     /// <param name="members">Information about the entity's members.</param>
-    public EntityMetadata(string name, string qualifiedName, ImmutableArray<EntityMemberMetadata> members)
+    /// <param name="path">Path to the API resource.</param>
+    public EntityMetadata(string name, string qualifiedName, ImmutableArray<EntityMemberMetadata> members, ImmutableArray<string> path)
     {
         this.IsInitialized = true;
         this.Name = name;
         this.QualifiedName = qualifiedName;
         this.Members = members;
+        this.Path = path;
     }
 }

@@ -131,8 +131,8 @@ internal sealed class MikrotikExpressionParser
         var sourceType = source.GetTargetElementType();
         ValidateTypeTransform(sourceType, resultType);
 
-        Debug.WriteLine("VALID T-FORM: {0} -> {1}", [ sourceType, resultType ]);
         // TODO: create a query for ?=${TYPE_DISCRIM}=${TYPE_VALUE}
+        MikrotikThrowHelper.Throw_NotSupported("OfType transforms are currently not supported.");
         yield break;
     }
 
