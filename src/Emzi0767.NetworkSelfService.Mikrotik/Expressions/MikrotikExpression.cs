@@ -21,7 +21,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik.Expressions;
 
 internal readonly struct MikrotikExpression
 {
-    public MikrotikSentence Sentence { get; init; }
+    public IEnumerable<IMikrotikWord> Words { get; init; }
     public IMikrotikInflater Inflater { get; init; }
     public bool UnpackEnumerable { get; init; }
     public IReadOnlyDictionary<string, Type> SerializedTypes { get; init; }

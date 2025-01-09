@@ -67,4 +67,12 @@ internal static class MikrotikThrowHelper
     [DoesNotReturn, StackTraceHidden]
     public static void Throw_InvalidEntityType(Type type, string msg)
         => throw new MikrotikEntityTypeException(type, msg);
+
+    [DoesNotReturn, StackTraceHidden]
+    public static void Throw_MikrotikApi(string message)
+        => throw new MikrotikApiException(message);
+
+    [DoesNotReturn, StackTraceHidden]
+    public static void Throw_MikrotikApi(string message, MikrotikApiErrorCategory category)
+        => throw new MikrotikApiException(message, category);
 }

@@ -134,4 +134,11 @@ public static class MikrotikExpressionHelpers
 
     internal static MikrotikTransformType GetTransformType(this MethodCallExpression expression)
         => Enum.Parse<MikrotikTransformType>(expression.Method.Name, false);
+
+    internal static bool IsEnumerableType(this Type t)
+        => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>)
+        || t.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+
+    internal static bool IsEnumerableType<T>()
+        => typeof(T).IsEnumerableType();
 }

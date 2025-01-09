@@ -62,7 +62,7 @@ internal sealed class MikrotikExpressionParser
 
         var expr = new MikrotikExpression
         {
-            Sentence = new(state.Words),
+            Words = state.Words,
             Inflater = inflater,
             UnpackEnumerable = state.IsSelectMany,
             SerializedTypes = state.IncludedPropertyNames

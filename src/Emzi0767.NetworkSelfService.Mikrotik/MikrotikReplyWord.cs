@@ -40,12 +40,18 @@ public sealed class MikrotikReplyWord : IMikrotikWord
     /// Gets the type of this reply.
     /// </summary>
     public MikrotikReplyWordType Type { get; }
-    
+
     /// <summary>
     /// Gets whether this sentence is the final one in a response.
     /// </summary>
     public bool IsFinal
         => this.Type is MikrotikReplyWordType.Completed or MikrotikReplyWordType.Error;
+
+    /// <summary>
+    /// Gets whether this sentence indicates an error.
+    /// </summary>
+    public bool IsError
+        => this.Type is MikrotikReplyWordType.Error;
 
     /// <inheritdoc />
     public int Length { get; }

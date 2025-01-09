@@ -85,7 +85,17 @@ public sealed class MikrotikClient : IDisposable
 
         await this._api.SendAsync(login, cancellationToken);
         await req.AwaitCompletionAsync(cancellationToken);
+        this.EndRequest(req);
     }
+
+    internal async Task SendAsync(MikrotikRequest request, CancellationToken cancellationToken = default)
+    {
+        this._outstandingRequests[request.Tag] = request;
+        await this._api.SendAsync(request.Request, cancellationToken);
+    }
+
+    internal void EndRequest(MikrotikRequest request)
+        => this._outstandingRequests.Remove(request.Tag);
 
     /// <summary>
     /// Disconnects from the API and stops processing events.
@@ -111,6 +121,19 @@ public sealed class MikrotikClient : IDisposable
     public IMikrotikEntityModifier<T> Create<T>()
         where T : class, IMikrotikEntity
         => throw new NotImplementedException();
+
+    internal MikrotikRequest CreateRequest(IEnumerable<IMikrotikWord> words)
+    {
+        var reqId = this.AssignRequestId();
+        var reqWord = new MikrotikSentenceAttributeWord(MikrotikSentenceAttributeWord.Tag, reqId);
+        var reqWords = words.Take(1)
+            .Append(reqWord)
+            .Concat(words.Skip(1))
+            .ToArray();
+
+        var sentence = new MikrotikSentence(reqWords);
+        return new(reqId, sentence);
+    }
 
     /// <inheritdoc />
     public void Dispose()
