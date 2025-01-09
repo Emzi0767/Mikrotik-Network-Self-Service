@@ -124,7 +124,7 @@ internal sealed class MikrotikExpressionParser
     {
         if (state.IsSelectMany)
         {
-            MikrotikThrowHelper.Throw_NotSupported("Nested SelectMany is not supported.");
+            MikrotikThrowHelper.Throw_NotSupported("Transforming SelectMany results is not supported.");
             return;
         }
 
@@ -336,6 +336,12 @@ internal sealed class MikrotikExpressionParser
 
     private void ParseSelect(Expression source, Expression selector, ref MikrotikExpressionParserState state)
     {
+        if (state.IsSelectMany)
+        {
+            MikrotikThrowHelper.Throw_NotSupported("Transforming SelectMany results is not supported.");
+            return;
+        }
+
         if (selector is not UnaryExpression { NodeType: ExpressionType.Quote, Operand: LambdaExpression { Body: NewExpression { Members: not null } anon } })
         {
             MikrotikThrowHelper.Throw_NotSupported("Only basic anonymous object transforms are supported.");
