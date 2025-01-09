@@ -40,7 +40,7 @@ some common libraries. Specifically:
   reflection and inspection, to compile time, netting some performance gains.
 
 So why go to all that trouble for something that does 2 things and is meant for internal use only? I don't know, but I
-hope the knowledge gained is worth it.~~~~
+hope the knowledge gained is worth it.
 
 ### The backend
 The backend is an ASP.NET Core app, which hosts a gRPC service. There's little more to it than that. There's also all
