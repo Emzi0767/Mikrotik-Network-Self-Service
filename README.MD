@@ -63,5 +63,17 @@ repository. If you have any problems with the project, feel free to express it, 
 even write me an angry email, if you're so inclined, as long as it's constructive. You can even suggest changes, but I
 ask that you explain them. This way, I can learn.
 
+## Resources
+Here's some cool and useful links I used when working on the project.
+
+- [Mikrotik's website][1] - they make some cool hardware, and it's the reason this project exists in the first place
+- [Mikrotik's API documentation][2] - this documents just the protocol, for functionality, it's the same as CLI
+- [Not a rick roll][3]
+- [Cat video][4]
+
 
 [0]: https://gitlab.emzi0767.dev/Emzi0767/arctis-local-network-manager
+[1]: https://mikrotik.com/
+[2]: https://help.mikrotik.com/docs/spaces/ROS/pages/47579160/API
+[3]: https://youtu.be/dQw4w9WgXcQ
+[4]: https://youtu.be/h3XXlYbdzdU
