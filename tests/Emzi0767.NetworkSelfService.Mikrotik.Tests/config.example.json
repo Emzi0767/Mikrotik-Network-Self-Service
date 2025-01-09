@@ -1,0 +1,8 @@
+﻿{
+    "hostname": "demo.mt.lv",
+    "port": 8729,
+    "username": "admin",
+    "password": "",
+    "tls": true,
+    "allowObsoleteTls": false
+}
