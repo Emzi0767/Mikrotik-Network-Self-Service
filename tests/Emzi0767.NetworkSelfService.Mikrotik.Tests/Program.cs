@@ -24,7 +24,7 @@ internal static class Program
 {
     public static async Task Main(string[] args)
     {
-        var configJson = args.Length > 0 ? args[0] : null;
+        var configJson = args.Length > 0 ? args[0] : "config.json";
         using var json = File.OpenRead(configJson);
         var config = await JsonSerializer.DeserializeAsync<Config>(json).ConfigureAwait(false);
 
@@ -47,15 +47,11 @@ internal static class Program
         await Task.Delay(TimeSpan.FromSeconds(1));
         Console.WriteLine("! SETTLED");
 
+        var address = IPAddress.Parse("10.0.1.1");
         var countQuery = await mikrotik.Get<MikrotikDhcpLease>()
-            //.OfType<MikrotikDhcpLease>()
-            .Where(x => x.Server != null)
-            .Select(x => new { s = x.Server, b = x.AccessBlocked, d = x.AddressLists, })
-            .Select(x => new { srv = x.s, x.b, x.d, })
-            .Where(x => x.b)
-            .SelectMany(x => x.d)
+            .Where(x => x.Server != null && x.Address == address)
             .AsAsyncQueryable()
-            .CountAsync();
+            .ToListAsync();
         Console.WriteLine("! SENT INTERFACE LIST QUERY");
 
         await Task.Delay(TimeSpan.FromSeconds(3));

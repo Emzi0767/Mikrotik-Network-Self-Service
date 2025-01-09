@@ -23,7 +23,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik.Types;
 /// <summary>
 /// Represents a route, as configured in a DHCP lease.
 /// </summary>
-public readonly struct MikrotikDhcpRoute : IParsable<MikrotikDhcpRoute>
+public readonly struct MikrotikDhcpRoute : IParsable<MikrotikDhcpRoute>, ISpanParsable<MikrotikDhcpRoute>
 {
     /// <summary>
     /// Gets the destination subnet the route is for.
@@ -94,5 +94,60 @@ public readonly struct MikrotikDhcpRoute : IParsable<MikrotikDhcpRoute>
     }
 
     /// <inheritdoc />
-    public static bool TryParse(string s, IFormatProvider provider, out MikrotikDhcpRoute result) => throw new NotImplementedException();
+    public static bool TryParse(string s, IFormatProvider provider, out MikrotikDhcpRoute result)
+        => TryParse(s.AsSpan(), provider, out result);
+
+    /// <inheritdoc />
+    public static MikrotikDhcpRoute Parse(ReadOnlySpan<char> s, IFormatProvider provider)
+    {
+        if (TryParse(s, provider, out var result))
+            return result;
+
+        MikrotikThrowHelper.Throw_Argument(nameof(s), "Invalid route specification.");
+        return default;
+    }
+
+    /// <inheritdoc />
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider provider, out MikrotikDhcpRoute result)
+    {
+        var subnet = Optional<IPSubnet>.Default;
+        var gateway = Optional<IPAddress>.Default;
+        var distance = Optional<int>.Default;
+        result = default;
+        if (IPSubnet.TryParse(s, provider, out var subnetValue))
+        {
+            subnet = subnetValue;
+            if (!_advance(ref s))
+            {
+                result = new(subnet, gateway, distance);
+                return true;
+            }
+        }
+
+        if (IPAddress.TryParse(s, out var gatewayValue))
+        {
+            gateway = gatewayValue;
+            if (!_advance(ref s))
+            {
+                result = new(subnet, gateway, distance);
+                return true;
+            }
+        }
+
+        if (int.TryParse(s, out var distanceValue))
+            distance = distanceValue;
+
+        result = new MikrotikDhcpRoute(subnet, gateway, distance);
+        return true;
+
+        static bool _advance(ref ReadOnlySpan<char> _s)
+        {
+            var spIdx = _s.IndexOf(' ');
+            if (spIdx == -1)
+                return false;
+
+            _s = _s[(spIdx + 1)..];
+            return true;
+        }
+    }
 }

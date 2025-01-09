@@ -25,7 +25,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik.Types;
 /// <summary>
 /// Represents information about an IP subnet, based on CIDR notation.
 /// </summary>
-public readonly struct IPSubnet : IParsable<IPSubnet>, IEquatable<IPSubnet>
+public readonly struct IPSubnet : IParsable<IPSubnet>, IEquatable<IPSubnet>, ISpanParsable<IPSubnet>
 {
     /// <summary>
     /// Gets the default (zero) CIDR subnet.
@@ -116,6 +116,36 @@ public readonly struct IPSubnet : IParsable<IPSubnet>, IEquatable<IPSubnet>
             else if (hasAddress && !(hasMask = int.TryParse(segment, provider, out mask)))
                 return false;
         }
+
+        result = new(address, mask);
+        return true;
+    }
+
+    /// <inheritdoc />
+    public static IPSubnet Parse(ReadOnlySpan<char> s, IFormatProvider provider)
+    {
+        if (TryParse(s, provider, out var result))
+            return result;
+
+        MikrotikThrowHelper.Throw_Argument(nameof(s), "Malformed CIDR string.");
+        return default;
+    }
+
+    /// <inheritdoc />
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider provider, out IPSubnet result)
+    {
+        result = default;
+        var index = s.IndexOf('/');
+        if (index == -1)
+            return false;
+
+        var ipSegment = s[..index];
+        var maskSegment = s[(index + 1)..];
+        if (!IPAddress.TryParse(ipSegment, out var address))
+            return false;
+
+        if (!int.TryParse(maskSegment, out var mask))
+            return false;
 
         result = new(address, mask);
         return true;

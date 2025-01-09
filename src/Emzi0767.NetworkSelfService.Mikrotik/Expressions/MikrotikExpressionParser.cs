@@ -62,6 +62,7 @@ internal sealed class MikrotikExpressionParser
 
         var expr = new MikrotikExpression
         {
+            EntityType = state.RootType,
             Words = state.Words,
             Inflater = inflater,
             UnpackEnumerable = state.IsSelectMany,
@@ -167,6 +168,7 @@ internal sealed class MikrotikExpressionParser
         var sourceType = source.GetTargetElementType();
         ValidateTypeTransform(sourceType, state.ResultType);
 
+        state.RootType = sourceType;
         state.ResultType = sourceType;
         state.IncludedPropertyNames.Clear();
         state.IncludedPropertyNames.AddRange(EntityProxies.GetProperties(sourceType));
@@ -216,12 +218,21 @@ internal sealed class MikrotikExpressionParser
             {
                 _validateCombo(left, right, out var member, out var @const);
                 var property = _mapProperty(member.Member as PropertyInfo, ref state);
-                var value = @const.Value.ToMikrotikString();
+                var value = @const.ToMikrotikString();
 
-                var query = new MikrotikComparisonQuery(property, value, MikrotikComparisonQueryOperator.Equals);
-                return expression.NodeType == ExpressionType.NotEqual
-                    ? new MikrotikNegationQuery(query)
-                    : query;
+                if (value is not null)
+                {
+                    var query = new MikrotikComparisonQuery(property, value, MikrotikComparisonQueryOperator.Equals);
+                    return expression.NodeType == ExpressionType.NotEqual
+                        ? new MikrotikNegationQuery(query)
+                        : query;
+                }
+                else
+                {
+                    return expression.NodeType == ExpressionType.Equal
+                        ? new MikrotikLacksPropertyQuery(property)
+                        : new MikrotikHasPropertyQuery(property);
+                }
             }
 
             case ExpressionType.GreaterThan:
@@ -229,7 +240,7 @@ internal sealed class MikrotikExpressionParser
             {
                 _validateCombo(left, right, out var member, out var @const);
                 var property = _mapProperty(member.Member as PropertyInfo, ref state);
-                var value = @const.Value.ToMikrotikString();
+                var value = @const.ToMikrotikString();
 
                 return new MikrotikComparisonQuery(
                     property,
@@ -262,18 +273,43 @@ internal sealed class MikrotikExpressionParser
         MikrotikThrowHelper.Throw_NotSupported("Unsupported binary operator used in filter.");
         return null;
 
-        static void _validateCombo(Expression _l, Expression _r, out MemberExpression _ll, out ConstantExpression _rr)
+        static void _validateCombo(Expression _l, Expression _r, out MemberExpression _ll, out object _rr)
         {
             (_ll, _rr) = (null, null);
-            if (_l is MemberExpression { Member: PropertyInfo } member && _r is ConstantExpression @const)
+            if (_l is MemberExpression { Member: PropertyInfo })
             {
-                (_ll, _rr) = (member, @const);
+                _ll = _l as MemberExpression;
+            }
+            else if (_r is MemberExpression { Member: PropertyInfo })
+            {
+                _ll = _r as MemberExpression;
+            }
+            else
+            {
+                MikrotikThrowHelper.Throw_NotSupported("For comparison operators, one side has to be property access, while other has to be a constant.");
                 return;
             }
 
-            if (_l is ConstantExpression @const1 && _r is MemberExpression { Member: PropertyInfo } member1)
+            if (_l is ConstantExpression @const1)
             {
-                (_ll, _rr) = (member1, @const1);
+                _rr = @const1.Value;
+                return;
+            }
+            else if (_r is ConstantExpression @const2)
+            {
+                _rr = @const2.Value;
+                return;
+            }
+            else if (_l is MemberExpression { Member: FieldInfo field1, Expression: ConstantExpression @const3 })
+            {
+                var val = @const3.Value;
+                _rr = field1.GetValue(val);
+                return;
+            }
+            else if (_r is MemberExpression { Member: FieldInfo field2, Expression: ConstantExpression @const4 })
+            {
+                var val = @const4.Value;
+                _rr = field2.GetValue(val);
                 return;
             }
 

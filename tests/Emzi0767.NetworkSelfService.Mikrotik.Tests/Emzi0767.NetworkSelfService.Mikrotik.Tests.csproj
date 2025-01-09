@@ -11,4 +11,10 @@
     <ProjectReference Include="..\..\src\Emzi0767.NetworkSelfService.Mikrotik\Emzi0767.NetworkSelfService.Mikrotik.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

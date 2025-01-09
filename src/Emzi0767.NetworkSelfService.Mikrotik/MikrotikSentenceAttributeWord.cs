@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Diagnostics;
 using Emzi0767.Types;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik;
@@ -21,6 +22,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik;
 /// <summary>
 /// Represents a Mikrotik API sentence attribute word.
 /// </summary>
+[DebuggerDisplay("SENTENCE-ATTR: .{Name}={Value}")]
 public sealed class MikrotikSentenceAttributeWord : IMikrotikWord
 {
     /// <summary>

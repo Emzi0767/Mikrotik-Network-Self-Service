@@ -51,7 +51,7 @@ public class MikrotikDhcpLease : IMikrotikEntity, IMikrotikDeletableEntity
     /// <summary>
     /// Gets the address lists the address gets added to if this entry gets bound.
     /// </summary>
-    [DataMember(Name = "address-list")]
+    [DataMember(Name = "address-lists")]
     public IEnumerable<string> AddressLists { get; internal set; }
 
     /// <summary>

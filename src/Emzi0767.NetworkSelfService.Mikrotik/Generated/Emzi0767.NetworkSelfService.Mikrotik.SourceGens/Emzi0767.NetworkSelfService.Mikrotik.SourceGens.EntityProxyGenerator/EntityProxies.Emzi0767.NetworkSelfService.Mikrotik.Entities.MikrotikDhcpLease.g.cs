@@ -10,7 +10,7 @@ internal static partial class EntityProxies
     {
         [".id"] = new MikrotikEntityProxyGetterSetter<Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease, string>(static x => x.Id, static (x, v) => x.Id = v),
         ["address"] = new MikrotikEntityProxyGetterSetter<Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease, System.Net.IPAddress>(static x => x.Address, static (x, v) => x.Address = v),
-        ["address-list"] = new MikrotikEntityProxyGetterSetter<Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease, System.Collections.Generic.IEnumerable<string>>(static x => x.AddressLists, static (x, v) => x.AddressLists = v),
+        ["address-lists"] = new MikrotikEntityProxyGetterSetter<Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease, System.Collections.Generic.IEnumerable<string>>(static x => x.AddressLists, static (x, v) => x.AddressLists = v),
         ["allow-dual-stack-queue"] = new MikrotikEntityProxyGetterSetter<Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease, bool>(static x => x.AllowsDualStackQueue, static (x, v) => x.AllowsDualStackQueue = v),
         ["always-broadcast"] = new MikrotikEntityProxyGetterSetter<Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease, bool>(static x => x.AlwaysBroadcasts, static (x, v) => x.AlwaysBroadcasts = v),
         ["block-access"] = new MikrotikEntityProxyGetterSetter<Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease, bool>(static x => x.AccessBlocked, static (x, v) => x.AccessBlocked = v),
@@ -31,7 +31,7 @@ internal static partial class EntityProxies
     {
         [".id"] = "Id",
         ["address"] = "Address",
-        ["address-list"] = "AddressLists",
+        ["address-lists"] = "AddressLists",
         ["allow-dual-stack-queue"] = "AllowsDualStackQueue",
         ["always-broadcast"] = "AlwaysBroadcasts",
         ["block-access"] = "AccessBlocked",
@@ -52,7 +52,7 @@ internal static partial class EntityProxies
     {
         ["Id"] = ".id",
         ["Address"] = "address",
-        ["AddressLists"] = "address-list",
+        ["AddressLists"] = "address-lists",
         ["AllowsDualStackQueue"] = "allow-dual-stack-queue",
         ["AlwaysBroadcasts"] = "always-broadcast",
         ["AccessBlocked"] = "block-access",

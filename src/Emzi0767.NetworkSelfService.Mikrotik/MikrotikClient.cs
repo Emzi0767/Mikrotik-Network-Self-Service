@@ -55,7 +55,7 @@ public sealed class MikrotikClient : IDisposable
     /// <param name="endpoint">Endpoint to connect to.</param>
     /// <param name="addressFamilies">Address families to resolve the hostname to.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    public async Task ConnectAsync(DnsEndPoint endpoint, IEnumerable<AddressFamily> addressFamilies = default, CancellationToken cancellationToken = default)
+    public async Task ConnectAsync(DnsEndPoint endpoint, IEnumerable<AddressFamily> addressFamilies = null, CancellationToken cancellationToken = default)
     {
         await this._api.ConnectAsync(endpoint, addressFamilies, cancellationToken);
         await this.LoginAsync(cancellationToken);
@@ -85,7 +85,7 @@ public sealed class MikrotikClient : IDisposable
 
         await this._api.SendAsync(login, cancellationToken);
         await req.AwaitCompletionAsync(cancellationToken);
-        this.EndRequest(req);
+        this._outstandingRequests.Remove("");
     }
 
     internal async Task SendAsync(MikrotikRequest request, CancellationToken cancellationToken = default)

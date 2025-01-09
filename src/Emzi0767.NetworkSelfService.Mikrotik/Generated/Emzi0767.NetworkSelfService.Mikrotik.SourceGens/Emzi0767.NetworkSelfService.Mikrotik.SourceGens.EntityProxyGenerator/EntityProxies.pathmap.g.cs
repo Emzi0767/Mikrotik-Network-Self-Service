@@ -64,4 +64,10 @@ internal static partial class EntityProxies
         };
         return dict is not null && dict.TryGetValue(name, out var type) ? type : null;
     }
+
+    public static object Instantiate(Type tEntity, MikrotikClient client) => tEntity.FullName switch
+    {
+        "Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease" => new Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease(client),
+        _ => null,
+    };
 }

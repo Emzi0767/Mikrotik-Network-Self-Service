@@ -37,20 +37,20 @@ namespace Emzi0767.NetworkSelfService.Mikrotik;
 public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
 {
     private static AddressFamily[] _supportedAddressFamilies = [ AddressFamily.InterNetwork, AddressFamily.InterNetworkV6 ];
-    
+
     private Stream _stream;
     private TcpClient _client;
     private CancellationTokenSource _cts;
 
     private readonly AsyncEvent<MikrotikApiClient, MikrotikSentenceReceivedEventArgs> _sentenceReceived;
     private readonly SemaphoreSlim _semaphore = new(1);
-    private readonly IMemoryBuffer<byte> _buffer = new ContinuousMemoryBuffer<byte>();
-    
+    private readonly ContinuousMemoryBuffer<byte> _buffer = new();
+
     /// <summary>
     /// Gets the TLS options for this client instance.
     /// </summary>
     public MikrotikTlsOptions TlsOptions { get; }
-    
+
     /// <summary>
     /// Creates a new Mikrotik API client that uses plaintext connections.
     /// </summary>
@@ -113,7 +113,7 @@ public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
     {
         if (this._stream is not null)
             MikrotikThrowHelper.Throw_InvalidOperation("Cannot connect when already connected.");
-        
+
         await this._semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -133,10 +133,10 @@ public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
                     continue;
                 }
             }
-            
+
             if (this._client is null || this._stream is null)
                 MikrotikThrowHelper.Throw_Connection("Could not connect to the router using specified parameters.");
-            
+
             this._cts = new CancellationTokenSource();
             var token = this._cts.Token;
             _ = this.ReadLoop(this._stream, token);
@@ -146,7 +146,7 @@ public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
             this._semaphore.Release();
         }
     }
-    
+
     private async Task ConnectAsync(IPEndPoint endpoint, string hostname, CancellationToken cancellationToken = default)
     {
         this._client = new TcpClient();
@@ -158,7 +158,7 @@ public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
             var tls = this.TlsOptions.CertificateValidationCallback is null
                 ? new SslStream(this._stream, true)
                 : new SslStream(this._stream, true, this.TlsOptions.CertificateValidationCallback);
-            
+
             await tls.AuthenticateAsClientAsync(new()
             {
                 TargetHost = hostname,
@@ -180,11 +180,11 @@ public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
     {
         if (this._stream is null)
             MikrotikThrowHelper.Throw_InvalidOperation("Cannot disconnect when not connected.");
-        
+
         await this._semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            this._cts.Cancel();
+            await this._cts.CancelAsync();
             this._cts.Dispose();
             await this._stream.DisposeAsync().ConfigureAwait(false);
             this._client.Close();
@@ -208,14 +208,14 @@ public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
     {
         if (this._stream is null)
             MikrotikThrowHelper.Throw_InvalidOperation("Cannot send data when not connected.");
-        
+
         await this._semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             this._buffer.Clear();
             if (!sentence.TryEncode(this._buffer))
                 MikrotikThrowHelper.Throw_InvalidData("Invalid sentence.");
-            
+
             await this._buffer.CopyToAsync(this._stream, cancellationToken).ConfigureAwait(false);
             await this._stream.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -246,7 +246,7 @@ public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
     {
         try
         {
-            this._cts.Cancel();
+            await this._cts.CancelAsync();
             this._cts.Dispose();
         }
         catch { }
@@ -259,7 +259,7 @@ public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
 
         this._client?.Dispose();
     }
-    
+
     /// <summary>
     /// Fired whenever a sentence is received from the API.
     /// </summary>
@@ -268,7 +268,7 @@ public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
         add => this._sentenceReceived.Register(value);
         remove => this._sentenceReceived.Unregister(value);
     }
-    
+
     /// <summary>
     /// Fired whenever an exception is thrown in an event handler.
     /// </summary>
@@ -313,10 +313,10 @@ public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
             var decoded = new string(chars.Span);
             buff.Clear();
             chars.Clear();
-            
+
             if (!decoded.TryParseWord(out var word))
                 continue;
-            
+
             words.Add(word);
             if (word is MikrotikStopWord)
             {
@@ -325,7 +325,7 @@ public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
                 {
                     Sentence = sentence,
                 };
-                
+
                 await this._sentenceReceived.InvokeAsync(this, ea).ConfigureAwait(false);
                 words = new();
 

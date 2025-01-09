@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics;
 using Emzi0767.Types;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik;
@@ -22,13 +23,14 @@ namespace Emzi0767.NetworkSelfService.Mikrotik;
 /// <summary>
 /// Represents a raw Mikrotik API word.
 /// </summary>
+[DebuggerDisplay("RAW: {Value}")]
 public sealed class MikrotikRawWord : IMikrotikWord
 {
     /// <summary>
     /// Gets the value of this word.
     /// </summary>
     public string Value { get; }
-    
+
     /// <inheritdoc />
     public int Length { get; }
 
@@ -41,7 +43,7 @@ public sealed class MikrotikRawWord : IMikrotikWord
         this.Value = value;
         this.Length = value.ComputeEncodedLength();
     }
-    
+
     /// <inheritdoc />
     public bool TryEncode(IMemoryBuffer<byte> destination)
         => throw new NotImplementedException();

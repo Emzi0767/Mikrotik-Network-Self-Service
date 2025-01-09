@@ -75,4 +75,8 @@ internal static class MikrotikThrowHelper
     [DoesNotReturn, StackTraceHidden]
     public static void Throw_MikrotikApi(string message, MikrotikApiErrorCategory category)
         => throw new MikrotikApiException(message, category);
+
+    [DoesNotReturn, StackTraceHidden]
+    public static void Throw_Format(string msg)
+        => throw new FormatException(msg);
 }

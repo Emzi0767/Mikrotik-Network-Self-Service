@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -27,6 +28,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik;
 /// <summary>
 /// Represents a Mikrotik API query word.
 /// </summary>
+[DebuggerDisplay("QUERY: ?(T={Type}:O={Operation}){Name}={Value}")]
 public sealed class MikrotikQueryWord : IMikrotikWord
 {
     internal const string ValuePlaceholder = "{}";
@@ -108,9 +110,9 @@ public sealed class MikrotikQueryWord : IMikrotikWord
         if (string.IsNullOrWhiteSpace(name))
             MikrotikThrowHelper.Throw_ArgumentNull(nameof(name), "Property name cannot be null.");
 
-        var type = MikrotikQueryType.HasProperty;
+        const MikrotikQueryType type = MikrotikQueryType.HasProperty;
         var computed = CreateComputed(name, null, type, null);
-        return new(name, null, type, default, computed);
+        return new(name, null, type, null, computed);
     }
 
     /// <summary>
@@ -123,9 +125,9 @@ public sealed class MikrotikQueryWord : IMikrotikWord
         if (string.IsNullOrWhiteSpace(name))
             MikrotikThrowHelper.Throw_ArgumentNull(nameof(name), "Property name cannot be null.");
 
-        var type = MikrotikQueryType.LacksProperty;
+        const MikrotikQueryType type = MikrotikQueryType.LacksProperty;
         var computed = CreateComputed(name, null, type, null);
-        return new(name, null, type, default, computed);
+        return new(name, null, type, null, computed);
     }
 
     /// <summary>
@@ -142,9 +144,9 @@ public sealed class MikrotikQueryWord : IMikrotikWord
         if (string.IsNullOrWhiteSpace(value))
             MikrotikThrowHelper.Throw_ArgumentNull(nameof(name), "Value cannot be null.");
 
-        var type = MikrotikQueryType.Equals;
+        const MikrotikQueryType type = MikrotikQueryType.Equals;
         var computed = CreateComputed(name, value, type, null);
-        return new(name, value, type, default, computed);
+        return new(name, value, type, null, computed);
     }
 
     /// <summary>
@@ -161,9 +163,9 @@ public sealed class MikrotikQueryWord : IMikrotikWord
         if (string.IsNullOrWhiteSpace(value))
             MikrotikThrowHelper.Throw_ArgumentNull(nameof(name), "Value cannot be null.");
 
-        var type = MikrotikQueryType.GreaterThan;
+        const MikrotikQueryType type = MikrotikQueryType.GreaterThan;
         var computed = CreateComputed(name, value, type, null);
-        return new(name, value, type, default, computed);
+        return new(name, value, type, null, computed);
     }
 
     /// <summary>
@@ -180,9 +182,9 @@ public sealed class MikrotikQueryWord : IMikrotikWord
         if (string.IsNullOrWhiteSpace(value))
             MikrotikThrowHelper.Throw_ArgumentNull(nameof(name), "Value cannot be null.");
 
-        var type = MikrotikQueryType.LessThan;
+        const MikrotikQueryType type = MikrotikQueryType.LessThan;
         var computed = CreateComputed(name, value, type, null);
-        return new(name, value, type, default, computed);
+        return new(name, value, type, null, computed);
     }
 
     /// <summary>
@@ -191,7 +193,7 @@ public sealed class MikrotikQueryWord : IMikrotikWord
     /// <param name="operation">Operation to perform on the query result stack.</param>
     /// <param name="value">Value (index) as argument. Required only for some operations.</param>
     /// <returns>Constructed query word.</returns>
-    public static MikrotikQueryWord StackOperation(MikrotikQueryOperation operation, string value = default)
+    public static MikrotikQueryWord StackOperation(MikrotikQueryOperation operation, string value = null)
     {
         if (operation == MikrotikQueryOperation.Unknown)
             MikrotikThrowHelper.Throw_Argument(nameof(operation), "Invalid operation specified.");
@@ -199,7 +201,7 @@ public sealed class MikrotikQueryWord : IMikrotikWord
         if (operation is MikrotikQueryOperation.Replace or MikrotikQueryOperation.Copy or MikrotikQueryOperation.CopyTop && string.IsNullOrWhiteSpace(value))
             MikrotikThrowHelper.Throw_Argument(nameof(value), "Value is required for given operations.");
 
-        var type = MikrotikQueryType.Operation;
+        const MikrotikQueryType type = MikrotikQueryType.Operation;
         var computed = CreateComputed(null, value, type, operation);
         return new(null, value, type, operation, computed);
     }

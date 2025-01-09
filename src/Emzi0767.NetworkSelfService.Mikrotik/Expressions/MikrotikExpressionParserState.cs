@@ -22,7 +22,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik.Expressions;
 
 internal ref struct MikrotikExpressionParserState
 {
-    public Type RootType { get; }
+    public Type RootType { get; set; }
     public List<IMikrotikWord> Words { get; }
     public Type ResultType { get; set; }
     public List<string> IncludedPropertyNames { get; }

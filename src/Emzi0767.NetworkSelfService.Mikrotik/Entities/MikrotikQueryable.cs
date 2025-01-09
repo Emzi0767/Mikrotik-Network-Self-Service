@@ -19,6 +19,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Emzi0767.NetworkSelfService.Mikrotik.Exceptions;
@@ -90,10 +91,11 @@ internal sealed class MikrotikQueryable<T> : MikrotikQueryable, IAsyncQueryable<
         return this.ExecuteExpressionAsync(expr, cancellationToken).GetAsyncEnumerator(cancellationToken);
     }
 
-    private async IAsyncEnumerable<T> ExecuteExpressionAsync(MikrotikExpression expression, CancellationToken cancellationToken = default)
+    private async IAsyncEnumerable<T> ExecuteExpressionAsync(MikrotikExpression expression, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var req = this._client.CreateRequest(expression.Words);
-        await foreach (var response in req.Responses)
+        await this._client.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        await foreach (var response in req.Responses.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             var first = response.Words.First();
             if (first is MikrotikReplyWord { IsError: true })
@@ -110,9 +112,22 @@ internal sealed class MikrotikQueryable<T> : MikrotikQueryable, IAsyncQueryable<
                 continue;
 
             var data = new Dictionary<string, object>();
+            var tEntity = expression.EntityType;
             foreach (var attr in response.Words.OfType<MikrotikAttributeWord>())
             {
-                // TODO: parse
+                var mapped = attr.Name;
+                var unmapped = EntityProxies.MapFromSerialized(tEntity, mapped);
+                var serialized = attr.Value;
+                var type = EntityProxies.GetPropertyType(tEntity, unmapped);
+                var value = MikrotikValueParser.Parse(type, serialized, out var result);
+                if (result == MikrotikValueParser.Result.Failure)
+                {
+                    this._client.EndRequest(req);
+                    MikrotikThrowHelper.Throw_Format($"Could not parse value for '{mapped}'.");
+                    break;
+                }
+
+                data[mapped] = value;
             }
 
             var instance = expression.Inflater.Inflate(this._client, data);

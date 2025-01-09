@@ -46,7 +46,7 @@ internal static class MikrotikHelpers
     public static bool TryEncodeLength(this long length, Span<byte> dest, out int bytesWritten)
     {
         bytesWritten = 0;
-        if (length < 0 || length > uint.MaxValue)
+        if (length is < 0 or > uint.MaxValue)
             return false;
 
         switch (length)
@@ -213,7 +213,7 @@ internal static class MikrotikHelpers
     /// <param name="s">String to measure.</param>
     /// <param name="encoding">Encoding to use for computing.</param>
     /// <returns>Computed number of bytes required to encode the string.</returns>
-    public static int ComputeEncodedLength(this string s, Encoding encoding = default)
+    public static int ComputeEncodedLength(this string s, Encoding encoding = null)
         => (encoding ?? DefaultEncoding).GetByteCount(s);
 
     /// <summary>
@@ -224,7 +224,7 @@ internal static class MikrotikHelpers
     /// <param name="bytesWritten">Number of bytes actually encoded.</param>
     /// <param name="encoding">Encoding to use for the transform.</param>
     /// <returns>Whether the operation was a success.</returns>
-    public static bool TryEncodeTo(this string s, Span<byte> destination, out int bytesWritten, Encoding encoding = default)
+    public static bool TryEncodeTo(this string s, Span<byte> destination, out int bytesWritten, Encoding encoding = null)
         => (encoding ?? DefaultEncoding).TryGetBytes(s, destination, out bytesWritten);
 
     /// <summary>
@@ -234,7 +234,7 @@ internal static class MikrotikHelpers
     /// <param name="destination">Buffer to encode to.</param>
     /// <param name="encoding">Encoding to use for the transform.</param>
     /// <returns>Whether the operation was a success.</returns>
-    public static bool TryEncodeTo(this string s, IBufferWriter<byte> destination, Encoding encoding = default)
+    public static bool TryEncodeTo(this string s, IBufferWriter<byte> destination, Encoding encoding = null)
     {
         encoding ??= DefaultEncoding;
         var written = encoding.GetBytes(s, destination);
@@ -283,7 +283,7 @@ internal static class MikrotikHelpers
         void _cancelCallback()
         {
             wait.Unregister(handle);
-            source.TrySetCanceled();
+            source.TrySetCanceled(cancellationToken);
         }
     }
 

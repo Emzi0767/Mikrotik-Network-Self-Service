@@ -25,7 +25,7 @@ public sealed class MikrotikEntityInflater : IMikrotikInflater
 
     public object Inflate(MikrotikClient client, IReadOnlyDictionary<string, object> data)
     {
-        var instance = Activator.CreateInstance(this.ObjectType, client);
+        var instance = EntityProxies.Instantiate(this.ObjectType, client);
 
         var t = this.ObjectType;
         var proxy = EntityProxies.GetProxy(t, instance);

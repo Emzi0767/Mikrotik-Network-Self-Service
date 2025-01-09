@@ -135,10 +135,33 @@ public static class MikrotikExpressionHelpers
     internal static MikrotikTransformType GetTransformType(this MethodCallExpression expression)
         => Enum.Parse<MikrotikTransformType>(expression.Method.Name, false);
 
-    internal static bool IsEnumerableType(this Type t)
-        => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>)
-        || t.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+    internal static bool IsEnumerableType(this Type t, out Type tItem)
+    {
+        if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+        {
+            tItem = t.GetGenericArguments().First();
+            return true;
+        }
 
-    internal static bool IsEnumerableType<T>()
-        => typeof(T).IsEnumerableType();
+        foreach (var iface in t.GetInterfaces())
+        {
+            if (iface.IsGenericType && iface.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            {
+                tItem = iface.GetGenericArguments().First();
+                return true;
+            }
+        }
+
+        tItem = null;
+        return false;
+    }
+
+    internal static bool IsEnumerableType<T>(out Type tItem)
+        => typeof(T).IsEnumerableType(out tItem);
+
+    internal static bool IsSpanParsable(this Type t)
+        => t.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ISpanParsable<>));
+
+    internal static bool IsSpanParsable<T>(this Type t)
+        => typeof(T).IsSpanParsable();
 }

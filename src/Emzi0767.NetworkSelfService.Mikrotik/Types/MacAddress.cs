@@ -25,7 +25,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik.Types;
 /// <summary>
 /// Represents a MAC address.
 /// </summary>
-public readonly partial struct MacAddress : IEquatable<MacAddress>, IParsable<MacAddress>
+public readonly partial struct MacAddress : IEquatable<MacAddress>, IParsable<MacAddress>, ISpanParsable<MacAddress>
 {
     private static Regex MacRegex { get; } = MacRegexGen();
 
@@ -116,6 +116,31 @@ public readonly partial struct MacAddress : IEquatable<MacAddress>, IParsable<Ma
         result = new(bytes);
         return true;
     }
+
+    /// <summary>
+    /// Parses a MAC address from a <see cref="string"/> instance.
+    /// </summary>
+    /// <param name="s">String containing the address to parse.</param>
+    /// <param name="provider">Format provider for the parsing.</param>
+    /// <returns>Parsed MAC address.</returns>
+    public static MacAddress Parse(ReadOnlySpan<char> s, IFormatProvider provider)
+    {
+        if (TryParse(s, provider, out var result))
+            return result;
+
+        MikrotikThrowHelper.Throw_Argument(nameof(s), "Invalid MAC address supplied.");
+        return default;
+    }
+
+    /// <summary>
+    /// Attempts to parse a MAC address from a <see cref="string"/> instance.
+    /// </summary>
+    /// <param name="s">String containing the address to parse.</param>
+    /// <param name="provider">Format provider for the parsing.</param>
+    /// <param name="result">Parsed MAC address.</param>
+    /// <returns>Whether the operation was a success.</returns>
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider provider, out MacAddress result)
+        => TryParse(new string(s), provider, out result);
 
     public static bool operator ==(MacAddress a, MacAddress b)
         => a._bytes.SequenceEqual(b._bytes);

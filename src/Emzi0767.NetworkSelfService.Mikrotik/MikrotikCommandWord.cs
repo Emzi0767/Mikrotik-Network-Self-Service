@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Emzi0767.Types;
 
@@ -24,6 +25,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik;
 /// <summary>
 /// Represents a Mikrotik API command word.
 /// </summary>
+[DebuggerDisplay("CMD: '{Parts}'")]
 public sealed class MikrotikCommandWord : IMikrotikWord
 {
     /// <summary>
@@ -57,7 +59,7 @@ public sealed class MikrotikCommandWord : IMikrotikWord
             return;
         }
 
-        this.Parts = ImmutableArray.ToImmutableArray(parts);
+        this.Parts = parts.ToImmutableArray();
         this.Length = ComputeLength(this.Parts);
     }
 

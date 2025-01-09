@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -26,6 +27,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik;
 /// <summary>
 /// Represents a Mikrotik API reply word.
 /// </summary>
+[DebuggerDisplay("REPLY: !{Type}")]
 public sealed class MikrotikReplyWord : IMikrotikWord
 {
     /// <summary>
@@ -87,9 +89,7 @@ public sealed class MikrotikReplyWord : IMikrotikWord
     /// <param name="encoded">Encoded form of the reply type.</param>
     /// <returns>The determined reply type.</returns>
     public static MikrotikReplyWordType GetReplyType(string encoded)
-        => _decodebook.TryGetValue(encoded, out var type)
-            ? type
-            : MikrotikReplyWordType.Unknown;
+        => _decodebook.GetValueOrDefault(encoded, MikrotikReplyWordType.Unknown);
 
     private static int ComputeLength(MikrotikReplyWordType type)
     {

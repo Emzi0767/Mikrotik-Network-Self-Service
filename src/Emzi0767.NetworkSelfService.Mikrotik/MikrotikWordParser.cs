@@ -30,14 +30,14 @@ internal static class MikrotikWordParser
 
         if (decodedWord.StartsWith(MikrotikReplyWord.Prefix))
         {
-            var response = decodedWord.Substring(MikrotikReplyWord.Prefix.Length);
+            var response = decodedWord[MikrotikReplyWord.Prefix.Length..];
             var responseType = MikrotikReplyWord.GetReplyType(response);
             word = new MikrotikReplyWord(responseType);
             return true;
         }
         else if (decodedWord.StartsWith(MikrotikAttributeWord.Prefix))
         {
-            var kv = decodedWord.Substring(MikrotikAttributeWord.Prefix.Length).Split(MikrotikAttributeWord.Separator, 2, StringSplitOptions.None);
+            var kv = decodedWord[MikrotikAttributeWord.Prefix.Length..].Split(MikrotikAttributeWord.Separator, 2);
             var k = kv[0];
             var v = kv[1];
             word = new MikrotikAttributeWord(k, v);
@@ -45,13 +45,13 @@ internal static class MikrotikWordParser
         }
         else if (decodedWord.StartsWith(MikrotikSentenceAttributeWord.Prefix))
         {
-            var kv = decodedWord.Substring(MikrotikSentenceAttributeWord.Prefix.Length).Split(MikrotikSentenceAttributeWord.Separator, 2, StringSplitOptions.None);
+            var kv = decodedWord[MikrotikSentenceAttributeWord.Prefix.Length..].Split(MikrotikSentenceAttributeWord.Separator, 2);
             var k = kv[0];
             var v = kv[1];
             word = new MikrotikSentenceAttributeWord(k, v);
             return true;
         }
-        
+
         word = new MikrotikRawWord(decodedWord);
         return true;
     }

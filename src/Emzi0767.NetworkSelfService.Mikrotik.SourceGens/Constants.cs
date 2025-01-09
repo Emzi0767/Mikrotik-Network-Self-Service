@@ -891,7 +891,7 @@ public static class Constants
                                                     SyntaxFactory.Identifier("GetPath"))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
-                                                        new[] {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithParameterList(
                                                     SyntaxFactory.ParameterList(
                                                         SyntaxFactory.SingletonSeparatedList(
@@ -918,7 +918,7 @@ public static class Constants
                                                     SyntaxFactory.Identifier("GetProperties"))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
-                                                        new[] {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithParameterList(
                                                     SyntaxFactory.ParameterList(
                                                         SyntaxFactory.SingletonSeparatedList(
@@ -1959,6 +1959,13 @@ public static class Constants
     //             ? type
     //             : null;
     //     }
+    //
+    //     public static object Instantiate(Type tEntity, MikrotikClient client)
+    //         => tEntity.FullName switch
+    //         {
+    //             "ENTITY" => new ENTITY(client),
+    //             _ => null,
+    //         };
     // }
     /// <summary>
     /// Generates an entity path map for all collected entities.
@@ -2010,7 +2017,7 @@ public static class Constants
                                 SyntaxFactory.ClassDeclaration(EntityProxiesClassName)
                                     .WithModifiers(
                                         SyntaxFactory.TokenList(
-                                            new[] {SyntaxFactory.Token(SyntaxKind.InternalKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PartialKeyword)}))
+                                            new[] { SyntaxFactory.Token(SyntaxKind.InternalKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PartialKeyword) }))
                                     .WithMembers(
                                         SyntaxFactory.List<MemberDeclarationSyntax>(
                                         [
@@ -2079,7 +2086,7 @@ public static class Constants
                                                     SyntaxFactory.Identifier("GetPath"))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
-                                                        new[] {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithTypeParameterList(
                                                     SyntaxFactory.TypeParameterList(
                                                         SyntaxFactory.SingletonSeparatedList(
@@ -2121,7 +2128,7 @@ public static class Constants
                                                     SyntaxFactory.Identifier("GetPath"))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
-                                                        new[] {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithParameterList(
                                                     SyntaxFactory.ParameterList(
                                                         SyntaxFactory.SingletonSeparatedList(
@@ -2169,7 +2176,7 @@ public static class Constants
                                                     SyntaxFactory.Identifier("MapToSerialized"))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
-                                                        new[] {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithTypeParameterList(
                                                     SyntaxFactory.TypeParameterList(
                                                         SyntaxFactory.SeparatedList<TypeParameterSyntax>(
@@ -2248,7 +2255,7 @@ public static class Constants
                                                     SyntaxFactory.Identifier("MapToSerialized"))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
-                                                        new[] {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithTypeParameterList(
                                                     SyntaxFactory.TypeParameterList(
                                                         SyntaxFactory.SingletonSeparatedList(
@@ -2297,7 +2304,7 @@ public static class Constants
                                                     SyntaxFactory.Identifier("MapToSerialized"))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
-                                                        new[] {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithTypeParameterList(
                                                     SyntaxFactory.TypeParameterList(
                                                         SyntaxFactory.SingletonSeparatedList(
@@ -2354,7 +2361,7 @@ public static class Constants
                                                     SyntaxFactory.Identifier("MapToSerialized"))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
-                                                        new[] {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithParameterList(
                                                     SyntaxFactory.ParameterList(
                                                         SyntaxFactory.SeparatedList<ParameterSyntax>(
@@ -2422,7 +2429,7 @@ public static class Constants
                                                     SyntaxFactory.Identifier("MapToSerialized"))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
-                                                        new[] {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithParameterList(
                                                     SyntaxFactory.ParameterList(
                                                         SyntaxFactory.SeparatedList<ParameterSyntax>(
@@ -2515,7 +2522,7 @@ public static class Constants
                                                     SyntaxFactory.Identifier("MapFromSerialized"))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
-                                                        new[] {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithTypeParameterList(
                                                     SyntaxFactory.TypeParameterList(
                                                         SyntaxFactory.SingletonSeparatedList(
@@ -2565,7 +2572,7 @@ public static class Constants
                                                     SyntaxFactory.Identifier("MapFromSerialized"))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
-                                                        new[] {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithParameterList(
                                                     SyntaxFactory.ParameterList(
                                                         SyntaxFactory.SeparatedList<ParameterSyntax>(
@@ -2663,7 +2670,7 @@ public static class Constants
                                                     SyntaxFactory.Identifier("GetProperties"))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
-                                                        new[] {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithTypeParameterList(
                                                     SyntaxFactory.TypeParameterList(
                                                         SyntaxFactory.SingletonSeparatedList(
@@ -2705,7 +2712,7 @@ public static class Constants
                                                     SyntaxFactory.Identifier("GetProperties"))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
-                                                        new[] {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithParameterList(
                                                     SyntaxFactory.ParameterList(
                                                         SyntaxFactory.SingletonSeparatedList(
@@ -2737,7 +2744,7 @@ public static class Constants
                                                     SyntaxFactory.Identifier("GetProxy"))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
-                                                        new[] {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithParameterList(
                                                     SyntaxFactory.ParameterList(
                                                         SyntaxFactory.SeparatedList<ParameterSyntax>(
@@ -2777,7 +2784,7 @@ public static class Constants
                                                     SyntaxFactory.Identifier("GetPropertyType"))
                                                 .WithModifiers(
                                                     SyntaxFactory.TokenList(
-                                                        new[] {SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
                                                 .WithParameterList(
                                                     SyntaxFactory.ParameterList(
                                                         SyntaxFactory.SeparatedList<ParameterSyntax>(
@@ -2875,6 +2882,46 @@ public static class Constants
                                                                         SyntaxFactory.TriviaList())),
                                                                 SyntaxFactory.LiteralExpression(
                                                                     SyntaxKind.NullLiteralExpression))))),
+                                            SyntaxFactory.MethodDeclaration(
+                                                    SyntaxFactory.PredefinedType(
+                                                        SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
+                                                    SyntaxFactory.Identifier("Instantiate"))
+                                                .WithModifiers(
+                                                    SyntaxFactory.TokenList(
+                                                        new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword) }))
+                                                .WithParameterList(
+                                                    SyntaxFactory.ParameterList(
+                                                        SyntaxFactory.SeparatedList<ParameterSyntax>(
+                                                            new SyntaxNodeOrToken[]
+                                                            {
+                                                                SyntaxFactory.Parameter(
+                                                                        SyntaxFactory.Identifier("tEntity"))
+                                                                    .WithType(
+                                                                        SyntaxFactory.IdentifierName("Type")),
+                                                                SyntaxFactory.Token(SyntaxKind.CommaToken), SyntaxFactory.Parameter(
+                                                                        SyntaxFactory.Identifier("client"))
+                                                                    .WithType(
+                                                                        SyntaxFactory.IdentifierName("MikrotikClient"))
+                                                            })))
+                                                .WithExpressionBody(
+                                                    SyntaxFactory.ArrowExpressionClause(
+                                                        SyntaxFactory.SwitchExpression(
+                                                                SyntaxFactory.MemberAccessExpression(
+                                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                                    SyntaxFactory.IdentifierName("tEntity"),
+                                                                    SyntaxFactory.IdentifierName("FullName")))
+                                                            .WithArms(
+                                                                SyntaxFactory.SeparatedList<SwitchExpressionArmSyntax>(
+                                                                [
+                                                                    ..metadatas.SelectMany(x => GenerateConstructorSwitchArm(x)),
+                                                                    SyntaxFactory.SwitchExpressionArm(
+                                                                        SyntaxFactory.DiscardPattern(),
+                                                                        SyntaxFactory.LiteralExpression(
+                                                                            SyntaxKind.NullLiteralExpression)),
+                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken)
+                                                                ]))))
+                                                .WithSemicolonToken(
+                                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
                                         ]))))))
             .NormalizeWhitespace();
 
@@ -2948,6 +2995,30 @@ public static class Constants
                                 SyntaxFactory.IdentifierName("entity"),
                                 SyntaxFactory.IdentifierName(metadata.QualifiedName))),
                         SyntaxFactory.IdentifierName("GetProxy")))),
+            SyntaxFactory.Token(SyntaxKind.CommaToken),
+        ];
+
+    // "ENTITY" => new ENTITY(client),
+    /// <summary>
+    /// Generates switch arm for given entity type.
+    /// </summary>
+    /// <param name="metadata">Metadata to generate for.</param>
+    /// <returns>Generated switch arm.</returns>
+    public static IEnumerable<SyntaxNodeOrToken> GenerateConstructorSwitchArm(in EntityMetadata metadata)
+        =>
+        [
+            SyntaxFactory.SwitchExpressionArm(
+                SyntaxFactory.ConstantPattern(
+                    SyntaxFactory.LiteralExpression(
+                        SyntaxKind.StringLiteralExpression,
+                        SyntaxFactory.Literal(metadata.QualifiedName))),
+                SyntaxFactory.ObjectCreationExpression(
+                        SyntaxFactory.IdentifierName(metadata.QualifiedName))
+                    .WithArgumentList(
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("client")))))),
             SyntaxFactory.Token(SyntaxKind.CommaToken),
         ];
 }
