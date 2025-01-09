@@ -177,7 +177,7 @@ internal sealed class MikrotikExpressionParser
 
     private void ParseWhere(Expression source, Expression filter, ref MikrotikExpressionParserState state)
     {
-        if (filter is not UnaryExpression { NodeType: ExpressionType.Quote, Operand: LambdaExpression { Body: UnaryExpression or BinaryExpression } lambda })
+        if (filter is not UnaryExpression { NodeType: ExpressionType.Quote, Operand: LambdaExpression { Body: UnaryExpression or BinaryExpression or MemberExpression } lambda })
         {
             MikrotikThrowHelper.Throw_NotSupported("Unsupported filter type.");
             return;
@@ -191,8 +191,9 @@ internal sealed class MikrotikExpressionParser
             return;
         }
 
-        if (state.Query is not null)
-            state.Query = new MikrotikBinaryQuery(state.Query, query, MikrotikBinaryQueryOperator.And);
+        state.Query = state.Query is not null
+            ? new MikrotikBinaryQuery(state.Query, query, MikrotikBinaryQueryOperator.And)
+            : query;
     }
 
     private IMikrotikQuery ParseWhereExpression(Expression expression, ref MikrotikExpressionParserState state)
@@ -474,13 +475,16 @@ internal sealed class MikrotikExpressionParser
                 yield break;
 
             case MikrotikComparisonQuery comparison:
-                yield return comparison.Operator switch
-                {
-                    MikrotikComparisonQueryOperator.Equals => MikrotikQueryWord.PropertyEquals(comparison.Property, comparison.Value),
-                    MikrotikComparisonQueryOperator.GreaterThan => MikrotikQueryWord.PropertyGreaterThan(comparison.Property, comparison.Value),
-                    MikrotikComparisonQueryOperator.LessThan => MikrotikQueryWord.PropertyLessThan(comparison.Property, comparison.Value),
-                    _ => MikrotikQueryWord.StackOperation(MikrotikQueryOperation.Unknown),
-                };
+                if (comparison.Value is not null)
+                    yield return comparison.Operator switch
+                    {
+                        MikrotikComparisonQueryOperator.Equals => MikrotikQueryWord.PropertyEquals(comparison.Property, comparison.Value),
+                        MikrotikComparisonQueryOperator.GreaterThan => MikrotikQueryWord.PropertyGreaterThan(comparison.Property, comparison.Value),
+                        MikrotikComparisonQueryOperator.LessThan => MikrotikQueryWord.PropertyLessThan(comparison.Property, comparison.Value),
+                        _ => MikrotikQueryWord.StackOperation(MikrotikQueryOperation.Unknown),
+                    };
+                else
+                    yield return MikrotikQueryWord.HasProperty(comparison.Property);
 
                 yield break;
         }

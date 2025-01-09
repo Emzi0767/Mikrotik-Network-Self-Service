@@ -334,6 +334,9 @@ internal static class MikrotikHelpers
     /// <returns>Serialized object.</returns>
     public static string ToMikrotikString(this object obj)
     {
+        if (obj is null)
+            return null;
+
         if (obj is bool b)
             return b ? "yes" : "no";
 
