@@ -95,14 +95,18 @@ internal sealed class MikrotikQueryable<T> : MikrotikQueryable, IAsyncQueryable<
         var req = this._client.CreateRequest(expression.Words);
         await foreach (var response in req.Responses)
         {
-            if (response.Words.First() is MikrotikReplyWord { IsError: true })
+            var first = response.Words.First();
+            if (first is MikrotikReplyWord { IsError: true })
             {
                 this._client.EndRequest(req);
                 this.ParseAndThrow(response);
                 break;
             }
 
-            if (response.Words.First() is not MikrotikReplyWord { Type: MikrotikReplyWordType.Data })
+            if (first is MikrotikReplyWord { IsFinal: true })
+                break;
+
+            if (first is not MikrotikReplyWord { Type: MikrotikReplyWordType.Data })
                 continue;
 
             var data = new Dictionary<string, object>();
