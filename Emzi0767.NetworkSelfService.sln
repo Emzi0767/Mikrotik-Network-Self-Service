@@ -18,6 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		X:\Developer\Visual Studio 2022\Projects\Emzi0767.NetworkSelfService\COPYING.TXT = X:\Developer\Visual Studio 2022\Projects\Emzi0767.NetworkSelfService\COPYING.TXT
 		X:\Developer\Visual Studio 2022\Projects\Emzi0767.NetworkSelfService\NOTICE.TXT = X:\Developer\Visual Studio 2022\Projects\Emzi0767.NetworkSelfService\NOTICE.TXT
+		X:\Developer\Visual Studio 2022\Projects\Emzi0767.NetworkSelfService\README.MD = X:\Developer\Visual Studio 2022\Projects\Emzi0767.NetworkSelfService\README.MD
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Emzi0767.NetworkSelfService.Mikrotik.SourceGens", "src\Emzi0767.NetworkSelfService.Mikrotik.SourceGens\Emzi0767.NetworkSelfService.Mikrotik.SourceGens.csproj", "{C3796B8C-D93E-4559-AC26-73589DBE17E9}"
