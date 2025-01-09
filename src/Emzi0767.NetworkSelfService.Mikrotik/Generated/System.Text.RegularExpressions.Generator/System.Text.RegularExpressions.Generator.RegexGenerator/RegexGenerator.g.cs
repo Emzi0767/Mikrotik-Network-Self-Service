@@ -66,7 +66,7 @@ namespace System.Text.RegularExpressions.Generated
             base.capslist = new string[] {"0", "sep" };
             base.capsize = 2;
         }
-    
+            
         /// <summary>Provides a factory for creating <see cref="RegexRunner"/> instances to be used by methods on <see cref="Regex"/>.</summary>
         private sealed class RunnerFactory : RegexRunnerFactory
         {

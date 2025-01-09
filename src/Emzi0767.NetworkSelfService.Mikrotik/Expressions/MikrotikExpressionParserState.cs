@@ -30,6 +30,7 @@ internal ref struct MikrotikExpressionParserState
     public ConstructorInfo AnonymousConstructor { get; set; }
     public IDictionary<string, string> AnonymousPropertyMap { get; set; }
     public bool IsSelectMany { get; set; }
+    public IMikrotikQuery Query { get; set; }
 
     public MikrotikExpressionParserState(Type rootType)
     {
@@ -40,5 +41,6 @@ internal ref struct MikrotikExpressionParserState
         this.QueryableType = typeof(IAsyncQueryable<>).MakeGenericType(rootType);
         this.AnonymousConstructor = null;
         this.IsSelectMany = false;
+        this.Query = null;
     }
 }

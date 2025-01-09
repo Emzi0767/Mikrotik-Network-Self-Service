@@ -14,15 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
-
 namespace Emzi0767.NetworkSelfService.Mikrotik.Expressions;
 
-internal readonly struct MikrotikExpression
+internal interface IMikrotikQuery
+{ }
+
+internal enum MikrotikBinaryQueryOperator
 {
-    public MikrotikSentence Sentence { get; init; }
-    public IMikrotikInflater Inflater { get; init; }
-    public bool UnpackEnumerable { get; init; }
-    public IReadOnlyDictionary<string, Type> SerializedTypes { get; init; }
+    Or,
+    And,
 }
+
+internal enum MikrotikComparisonQueryOperator
+{
+    Equals,
+    GreaterThan,
+    LessThan,
+}
+
+internal readonly record struct MikrotikBinaryQuery(
+    IMikrotikQuery Left,
+    IMikrotikQuery Right,
+    MikrotikBinaryQueryOperator Operator
+) : IMikrotikQuery;
+
+internal readonly record struct MikrotikHasPropertyQuery(string Property) : IMikrotikQuery;
+
+internal readonly record struct MikrotikLacksPropertyQuery(string Property) : IMikrotikQuery;
+
+internal readonly record struct MikrotikComparisonQuery(
+    string Property,
+    string Value,
+    MikrotikComparisonQueryOperator Operator
+) : IMikrotikQuery;
+
+internal readonly record struct MikrotikNegationQuery(
+    IMikrotikQuery Inner
+) : IMikrotikQuery;

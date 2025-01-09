@@ -36,6 +36,7 @@ internal sealed class MikrotikExpressionParser
 
         this.ParseInternal(expression, ref state);
         this.AddPropertyList(ref state);
+        this.AddQuery(ref state);
         state.Words.Add(MikrotikStopWord.Instance);
 
         var properties = state.IncludedPropertyNames;
@@ -65,6 +66,8 @@ internal sealed class MikrotikExpressionParser
             Sentence = new(state.Words),
             Inflater = inflater,
             UnpackEnumerable = state.IsSelectMany,
+            SerializedTypes = state.IncludedPropertyNames
+                .ToDictionary(x => EntityProxies.MapToSerialized(rootType, x), x => EntityProxies.GetPropertyType(rootType, x))
         };
 
         return expr;
@@ -79,12 +82,6 @@ internal sealed class MikrotikExpressionParser
 
             case MethodCallExpression methodCall:
             {
-                Debug.WriteLine("-- -- -- -- -- --");
-                Debug.WriteLine("METHOD CALL:  {0}", [ methodCall.Method ]);
-                Debug.WriteLine("IS SUPPORTED: {0}", [ methodCall.IsSupportedTransform() ]);
-                Debug.WriteLine("CHAINED FROM: {0}", [ methodCall.Arguments[0] ]);
-                Debug.WriteLine("RESULT TYPE:  {0}", [ methodCall.GetTargetElementType() ]);
-
                 if (!methodCall.IsSupportedTransform())
                     MikrotikThrowHelper.Throw_NotSupported($"'{methodCall.Method}' transforms are not supported.'");
 
@@ -101,10 +98,6 @@ internal sealed class MikrotikExpressionParser
                 if (!state.QueryableType.IsAssignableFrom(constant.Type))
                     MikrotikThrowHelper.Throw_NotSupported("API expressions need to be rooted in an instance of IAsyncQueryable<T>.");
 
-                Debug.WriteLine("-- -- -- -- -- --");
-                Debug.WriteLine("CONSTANT:     {0}", [ constant.Value ]);
-                Debug.WriteLine("TYPE:         {0}", [ constant.GetTargetElementType() ]);
-
                 state.Words.Add(
                     new MikrotikCommandWord([
                         ..EntityProxies.GetPath(state.RootType),
@@ -116,8 +109,6 @@ internal sealed class MikrotikExpressionParser
 
             default:
             {
-                Debug.WriteLine("-- -- -- -- -- --");
-                Debug.WriteLine("UNSUPPORTED EXPRESSION");
                 MikrotikThrowHelper.Throw_NotSupported($"'{expression.NodeType}' expressions are not supported.");
                 return;
             }
@@ -179,15 +170,168 @@ internal sealed class MikrotikExpressionParser
 
         state.ResultType = sourceType;
         state.IncludedPropertyNames.Clear();
-        // TODO: add all member names
+        state.IncludedPropertyNames.AddRange(EntityProxies.GetProperties(sourceType));
         // TODO: create a query for ?=${TYPE_DISCRIM}=${TYPE_VALUE}
         MikrotikThrowHelper.Throw_NotSupported("OfType transforms are currently not supported.");
     }
 
     private void ParseWhere(Expression source, Expression filter, ref MikrotikExpressionParserState state)
     {
-        // TODO: create a query
-        return;
+        if (filter is not UnaryExpression { NodeType: ExpressionType.Quote, Operand: LambdaExpression { Body: UnaryExpression or BinaryExpression } lambda })
+        {
+            MikrotikThrowHelper.Throw_NotSupported("Unsupported filter type.");
+            return;
+        }
+
+        var expr = lambda.Body;
+        var query = this.ParseWhereExpression(expr, ref state);
+        if (query is null)
+        {
+            MikrotikThrowHelper.Throw_NotSupported("Unsupported filter type.");
+            return;
+        }
+
+        if (state.Query is not null)
+            state.Query = new MikrotikBinaryQuery(state.Query, query, MikrotikBinaryQueryOperator.And);
+    }
+
+    private IMikrotikQuery ParseWhereExpression(Expression expression, ref MikrotikExpressionParserState state)
+        => expression switch
+        {
+            BinaryExpression binary => this.ParseWhereBinary(binary, ref state),
+            UnaryExpression unary => this.ParseWhereUnary(unary, ref state),
+            MemberExpression member => this.ParseWhereMember(member, ref state),
+            _ => null,
+        };
+
+    private IMikrotikQuery ParseWhereBinary(BinaryExpression expression, ref MikrotikExpressionParserState state)
+    {
+        var left = expression.Left;
+        var right = expression.Right;
+
+        switch (expression.NodeType)
+        {
+            case ExpressionType.Equal:
+            case ExpressionType.NotEqual:
+            {
+                _validateCombo(left, right, out var member, out var @const);
+                var property = _mapProperty(member.Member as PropertyInfo, ref state);
+                var value = @const.Value.ToMikrotikString();
+
+                var query = new MikrotikComparisonQuery(property, value, MikrotikComparisonQueryOperator.Equals);
+                return expression.NodeType == ExpressionType.NotEqual
+                    ? new MikrotikNegationQuery(query)
+                    : query;
+            }
+
+            case ExpressionType.GreaterThan:
+            case ExpressionType.LessThan:
+            {
+                _validateCombo(left, right, out var member, out var @const);
+                var property = _mapProperty(member.Member as PropertyInfo, ref state);
+                var value = @const.Value.ToMikrotikString();
+
+                return new MikrotikComparisonQuery(
+                    property,
+                    value,
+                    expression.NodeType switch
+                    {
+                        ExpressionType.GreaterThan => MikrotikComparisonQueryOperator.GreaterThan,
+                        ExpressionType.LessThan => MikrotikComparisonQueryOperator.LessThan,
+                    }
+                );
+            }
+
+            case ExpressionType.And:
+            case ExpressionType.AndAlso:
+            case ExpressionType.Or:
+            case ExpressionType.OrElse:
+            {
+                var qLeft = this.ParseWhereExpression(left, ref state);
+                var qRight = this.ParseWhereExpression(right, ref state);
+                var @operator = expression.NodeType switch
+                {
+                    ExpressionType.And or ExpressionType.AndAlso => MikrotikBinaryQueryOperator.And,
+                    ExpressionType.Or or ExpressionType.OrElse => MikrotikBinaryQueryOperator.Or,
+                };
+
+                return new MikrotikBinaryQuery(qLeft, qRight, @operator);
+            }
+        }
+
+        MikrotikThrowHelper.Throw_NotSupported("Unsupported binary operator used in filter.");
+        return null;
+
+        static void _validateCombo(Expression _l, Expression _r, out MemberExpression _ll, out ConstantExpression _rr)
+        {
+            (_ll, _rr) = (null, null);
+            if (_l is MemberExpression { Member: PropertyInfo } member && _r is ConstantExpression @const)
+            {
+                (_ll, _rr) = (member, @const);
+                return;
+            }
+
+            if (_l is ConstantExpression @const1 && _r is MemberExpression { Member: PropertyInfo } member1)
+            {
+                (_ll, _rr) = (member1, @const1);
+                return;
+            }
+
+            MikrotikThrowHelper.Throw_NotSupported("For comparison operators, one side has to be property access, while other has to be a constant.");
+        }
+
+        static string _mapProperty(PropertyInfo _p, ref MikrotikExpressionParserState _s)
+        {
+            var name = _p.Name;
+            if (_s.AnonymousPropertyMap is null)
+                return EntityProxies.MapToSerialized(_s.RootType, name);
+
+            if (_s.AnonymousPropertyMap.TryGetValue(name, out var mapped))
+                return EntityProxies.MapToSerialized(_s.RootType, mapped);
+
+            MikrotikThrowHelper.Throw_InvalidOperation("Invalid property specified for Select transform.");
+            return null;
+        }
+    }
+
+    private IMikrotikQuery ParseWhereUnary(UnaryExpression expression, ref MikrotikExpressionParserState state)
+    {
+        if (expression is not { NodeType: ExpressionType.Not, Operand: MemberExpression { Member: PropertyInfo prop } })
+        {
+            MikrotikThrowHelper.Throw_NotSupported("Unsupported filter type.");
+            return null;
+        }
+
+        var propName = prop.Name;
+        if (state.AnonymousPropertyMap is not null && !state.AnonymousPropertyMap.TryGetValue(propName, out propName))
+        {
+            MikrotikThrowHelper.Throw_InvalidOperation("Invalid property specified for filter.");
+            return null;
+        }
+
+        propName = EntityProxies.MapToSerialized(state.RootType, propName);
+        // assume it's bool, little else would compile
+        return new MikrotikComparisonQuery(propName, "no", MikrotikComparisonQueryOperator.Equals);
+    }
+
+    private IMikrotikQuery ParseWhereMember(MemberExpression expression, ref MikrotikExpressionParserState state)
+    {
+        if (expression is not { Member: PropertyInfo prop })
+        {
+            MikrotikThrowHelper.Throw_NotSupported("Unsupported filter type.");
+            return null;
+        }
+
+        var propName = prop.Name;
+        if (state.AnonymousPropertyMap is not null && !state.AnonymousPropertyMap.TryGetValue(propName, out propName))
+        {
+            MikrotikThrowHelper.Throw_InvalidOperation("Invalid property specified for filter.");
+            return null;
+        }
+
+        propName = EntityProxies.MapToSerialized(state.RootType, propName);
+        // assume it's bool, little else would compile
+        return new MikrotikComparisonQuery(propName, "yes", MikrotikComparisonQueryOperator.Equals);
     }
 
     private void ParseSelect(Expression source, Expression selector, ref MikrotikExpressionParserState state)
@@ -275,6 +419,67 @@ internal sealed class MikrotikExpressionParser
         var propertiesValue = string.Join(",", properties);
         var word = new MikrotikAttributeWord(MikrotikAttributeWord.KeyPropertyList, propertiesValue);
         state.Words.Add(word);
+    }
+
+    private void AddQuery(ref MikrotikExpressionParserState state)
+    {
+        if (state.Query is not null)
+            state.Words.AddRange(this.SerializeQuery(state.Query));
+    }
+
+    private IEnumerable<IMikrotikWord> SerializeQuery(IMikrotikQuery query)
+    {
+        switch (query)
+        {
+            case MikrotikBinaryQuery binary:
+            {
+                foreach (var word in this.SerializeQuery(binary.Left))
+                    yield return word;
+
+                foreach (var word in this.SerializeQuery(binary.Right))
+                    yield return word;
+
+                yield return MikrotikQueryWord.StackOperation(
+                    binary.Operator switch
+                    {
+                        MikrotikBinaryQueryOperator.And => MikrotikQueryOperation.And,
+                        MikrotikBinaryQueryOperator.Or => MikrotikQueryOperation.Or,
+                        _ => MikrotikQueryOperation.Unknown,
+                    }
+                );
+                yield break;
+            }
+
+            case MikrotikNegationQuery negation:
+            {
+                foreach (var word in this.SerializeQuery(negation.Inner))
+                    yield return word;
+
+                yield return MikrotikQueryWord.StackOperation(MikrotikQueryOperation.Not);
+                yield break;
+            }
+
+            case MikrotikHasPropertyQuery has:
+                yield return MikrotikQueryWord.HasProperty(has.Property);
+                yield break;
+
+            case MikrotikLacksPropertyQuery lacks:
+                yield return MikrotikQueryWord.LacksProperty(lacks.Property);
+                yield break;
+
+            case MikrotikComparisonQuery comparison:
+                yield return comparison.Operator switch
+                {
+                    MikrotikComparisonQueryOperator.Equals => MikrotikQueryWord.PropertyEquals(comparison.Property, comparison.Value),
+                    MikrotikComparisonQueryOperator.GreaterThan => MikrotikQueryWord.PropertyGreaterThan(comparison.Property, comparison.Value),
+                    MikrotikComparisonQueryOperator.LessThan => MikrotikQueryWord.PropertyLessThan(comparison.Property, comparison.Value),
+                    _ => MikrotikQueryWord.StackOperation(MikrotikQueryOperation.Unknown),
+                };
+
+                yield break;
+        }
+
+        MikrotikThrowHelper.Throw_NotSupported("Unsupported query specified.");
     }
 
     private static void ValidateRootType(Type rootType)

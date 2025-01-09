@@ -17,6 +17,7 @@
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Globalization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -325,4 +326,20 @@ internal static class MikrotikHelpers
         => type.IsMikrotikEntity()
         && generalizedType.IsMikrotikEntity()
         && generalizedType.IsAssignableFrom(type);
+
+    /// <summary>
+    /// Serializes a given value to a Mikrotik string.
+    /// </summary>
+    /// <param name="obj">Object to serialize.</param>
+    /// <returns>Serialized object.</returns>
+    public static string ToMikrotikString(this object obj)
+    {
+        if (obj is bool b)
+            return b ? "yes" : "no";
+
+        if (obj is IFormattable f)
+            return f.ToString(null, CultureInfo.InvariantCulture);
+
+        return obj.ToString();
+    }
 }

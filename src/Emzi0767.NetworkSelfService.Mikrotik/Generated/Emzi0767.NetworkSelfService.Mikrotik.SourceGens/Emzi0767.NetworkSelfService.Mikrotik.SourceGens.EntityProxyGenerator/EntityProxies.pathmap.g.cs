@@ -55,4 +55,13 @@ internal static partial class EntityProxies
         "Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease" => (entity as Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease).GetProxy(),
         _ => null,
     };
+    public static Type GetPropertyType(Type tEntity, string name)
+    {
+        var dict = tEntity.FullName switch
+        {
+            "Emzi0767.NetworkSelfService.Mikrotik.Entities.MikrotikDhcpLease" => _typesEmzi0767NetworkSelfServiceMikrotikEntitiesMikrotikDhcpLease,
+            _ => null,
+        };
+        return dict is not null && dict.TryGetValue(name, out var type) ? type : null;
+    }
 }
