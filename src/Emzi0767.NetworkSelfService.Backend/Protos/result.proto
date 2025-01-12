@@ -1,0 +1,43 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Emzi0767.NetworkSelfService.gRPC";
+
+package result;
+
+import "google/protobuf/any.proto";
+
+// Represents a result of executing a request.
+message Result {
+    // Gets or sets whether the result is a success.
+    bool isSuccess = 1;
+
+    // Gets or sets the updated XSRF token to use with further requests.
+    optional string XsrfToken = 2;
+
+    // Gets the error or result.
+    oneof details {
+        // Gets the error information, if the request failed.
+        Error error = 3;
+
+        // Gets the result of the request, if any.
+        google.protobuf.Any result = 4;
+    }
+}
+
+// Represents an error
+message Error {
+    // Gets or sets the message of the error.
+    ErrorCode code = 1;
+}
+
+// Specifies the type of error.
+enum ErrorCode {
+    // Specifies unknown type of error.
+    UNKNOWN = 0;
+
+    // Specifies that the user tried to authenticate with invalid credentials.
+    INVALID_CREDENTIALS = 1;
+
+    // Specifies that the token used to authenticate represents an invalid or expired session.
+    SESSION_INVALID_OR_EXPIRED = 2;
+}

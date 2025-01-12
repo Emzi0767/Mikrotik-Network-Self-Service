@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Protobuf Include="Protos\greet.proto" GrpcServices="Server"/>
+        <Protobuf Include="Protos\**\*.proto" ProtoRoot="Protos" GrpcServices="Server"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -19,6 +19,10 @@
       <Content Include="..\..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Emzi0767.NetworkSelfService.Mikrotik\Emzi0767.NetworkSelfService.Mikrotik.csproj" />
     </ItemGroup>
 
 </Project>

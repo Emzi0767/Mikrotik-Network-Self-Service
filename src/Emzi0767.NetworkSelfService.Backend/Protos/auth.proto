@@ -1,0 +1,57 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Emzi0767.NetworkSelfService.gRPC";
+
+package authentication;
+
+import "google/protobuf/timestamp.proto";
+import "result.proto";
+
+// Represents an attempt to authenticate.
+message AuthenticationRequest {
+    // Gets or sets the password to authenticate with.
+    string username = 1;
+
+    // Gets or sets the password to authenticate with.
+    string password = 2;
+
+    // Gets whether to use a long session or not.
+    bool rememberMe = 3;
+}
+
+// Represents an authentication response.
+message AuthenticationResponse {
+    // Gets or sets the authentication token to send along all requests.
+    string token = 1;
+
+    // Gets or sets the token used to refresh the authentication token.
+    string refresh = 2;
+
+    // Gets or sets the timestamp at which the authentication token will expire.
+    google.protobuf.Timestamp expiresAt = 3;
+
+    // Gets or sets the timestamp at which the refresh token (and thus, the session), will expire.
+    google.protobuf.Timestamp refreshBy = 4;
+}
+
+// Represents a request to refresh a session.
+message SessionRefreshRequest {
+    // Gets or sets the token used to refresh a session.
+    string refresh = 1;
+}
+
+// Represents a request to destroy a session.
+message SessionDestroyRequest {
+
+}
+
+// Provides methods for creating, extending, and destroying sessions.
+service Authentication {
+    // Attempts to authenticate using provided credentials.
+    rpc Authenticate(AuthenticationRequest) returns (result.Result);
+
+    // Attempts to refresh a session using provided refresh token.
+    rpc RefreshSession(SessionRefreshRequest) returns (result.Result);
+
+    rpc DestroySession(SessionDestroyRequest) returns (result.Result);
+}
