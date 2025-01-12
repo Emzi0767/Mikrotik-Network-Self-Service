@@ -1,0 +1,6 @@
+﻿services:
+  backend:
+    image: nss-backend:latest
+    build:
+      context: .
+      dockerfile: src/Emzi0767.NetworkSelfService.Backend/Dockerfile

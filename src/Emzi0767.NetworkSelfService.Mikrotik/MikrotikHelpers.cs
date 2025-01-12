@@ -337,12 +337,37 @@ internal static class MikrotikHelpers
         if (obj is null)
             return null;
 
+        if (obj is TimeSpan timeSpan)
+            return timeSpan.ToMikrotikString();
+
         if (obj is bool b)
             return b ? "yes" : "no";
+
+        if (obj.GetType().IsEnum)
+            return EnumProxies.MapToSerialized(obj.GetType(), obj);
 
         if (obj is IFormattable f)
             return f.ToString(null, CultureInfo.InvariantCulture);
 
         return obj.ToString();
+    }
+
+    /// <summary>
+    /// Serializes a given <see cref="TimeSpan"/> to a Mikrotik string.
+    /// </summary>
+    /// <param name="timeSpan"><see cref="TimeSpan"/> to serialize.</param>
+    /// <returns>Serialized object.</returns>
+    public static string ToMikrotikString(this TimeSpan timeSpan)
+    {
+        if (timeSpan.TotalDays >= 1)
+            return timeSpan.ToString(@"d\d hh:mm:ss");
+
+        if (timeSpan.TotalHours >= 1)
+            return timeSpan.ToString(@"h\:mm\:ss");
+
+        if (timeSpan.TotalMinutes >= 1)
+            return timeSpan.ToString(@"m\:ss");
+
+        return timeSpan.ToString("s");
     }
 }

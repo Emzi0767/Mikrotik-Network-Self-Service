@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.IO;
 using System.Net;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Emzi0767.NetworkSelfService.Mikrotik.Entities;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik.Tests;
@@ -48,9 +51,8 @@ internal static class Program
         Console.WriteLine("! SETTLED");
 
         var address = IPAddress.Parse("10.0.1.1");
-        var countQuery = await mikrotik.Get<MikrotikDhcpLease>()
-            .Where(x => x.Server != null && x.Address == address)
-            .AsAsyncQueryable()
+        var countQuery = await mikrotik.Get<MikrotikIPv4Address>()
+            //.AsAsyncQueryable()
             .ToListAsync();
         Console.WriteLine("! SENT INTERFACE LIST QUERY");
 

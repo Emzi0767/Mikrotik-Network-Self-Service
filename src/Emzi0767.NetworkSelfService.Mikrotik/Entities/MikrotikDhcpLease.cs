@@ -31,9 +31,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 [GenerateMikrotikEntityMetadata, MikrotikEntity("ip", "dhcp-server", "lease")]
 public class MikrotikDhcpLease : IMikrotikEntity, IMikrotikDeletableEntity
 {
-    /// <summary>
-    /// Gets the API client this entity is associated with.
-    /// </summary>
+    /// <inheritdoc />
     public MikrotikClient Client { get; }
 
     /// <summary>
@@ -65,7 +63,7 @@ public class MikrotikDhcpLease : IMikrotikEntity, IMikrotikDeletableEntity
     /// Gets whether to always send DHCP replies as broadcast. If disabled, first 3 are sent as unicast packets.
     /// </summary>
     [DataMember(Name = "always-broadcast")]
-    public bool AlwaysBroadcasts { get; internal set; }
+    public bool AlwaysSendAsBroadcast { get; internal set; }
 
     /// <summary>
     /// Gets whether to block access for the client.
@@ -146,6 +144,12 @@ public class MikrotikDhcpLease : IMikrotikEntity, IMikrotikDeletableEntity
     /// </summary>
     [DataMember(Name = "use-src-mac")]
     public bool UseSourceMac { get; internal set; }
+
+    /// <summary>
+    /// Gets whether the lease is dynamic.
+    /// </summary>
+    [DataMember(Name = "dynamic")]
+    public bool IsDynamic { get; internal set; }
 
     internal MikrotikDhcpLease(MikrotikClient client)
     {

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -29,6 +30,11 @@ public sealed class EntityProxyGenerator : IIncrementalGenerator
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
             hintName: $"{Constants.GenerateAttributeName}.g.cs",
             Constants.GenerateMikrotikEntityMetadataAttribute.ToSourceText()
+        ));
+
+        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
+            hintName: $"{Constants.GenerateEnumAttributeName}.g.cs",
+            Constants.GenerateEnumMetadataAttribute.ToSourceText()
         ));
 
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
@@ -51,8 +57,20 @@ public sealed class EntityProxyGenerator : IIncrementalGenerator
 
         var bulkMetadata = entityMetadata.Collect();
 
+        var enumMetadata = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                Constants.GenerateEnumAttributeQualifiedName,
+                predicate: static (s, _) => true,
+                transform: static (ctx, _) => GetEnumMetadata(ctx.SemanticModel, ctx.TargetNode)
+            )
+            .Where(static m => m.IsInitialized);
+
+        var bulkEnumMetadata = enumMetadata.Collect();
+
         context.RegisterSourceOutput(entityMetadata, static (ctx, metadata) => Execute(metadata, ctx));
         context.RegisterSourceOutput(bulkMetadata, static (ctx, metadatas) => ExecuteBulk(metadatas, ctx));
+        context.RegisterSourceOutput(enumMetadata, static (ctx, metadata) => ExecuteEnum(metadata, ctx));
+        context.RegisterSourceOutput(bulkEnumMetadata, static (ctx, metadatas) => ExecuteEnumBulk(metadatas, ctx));
     }
 
     private static EntityMetadata GetEntityMetadata(SemanticModel model, SyntaxNode root)
@@ -107,6 +125,38 @@ public sealed class EntityProxyGenerator : IIncrementalGenerator
         return new(entityName, qualifiedName, memberMetadata, [..path]);
     }
 
+    private static EnumMetadata GetEnumMetadata(SemanticModel model, SyntaxNode root)
+    {
+        if (model.GetDeclaredSymbol(root) is not INamedTypeSymbol symbol)
+            return default;
+
+        var entityName = symbol.Name;
+        var qualifiedName = symbol.ToDisplayString(Constants.QualifiedTypeName);
+        var members = symbol.GetMembers();
+        var mappings = new Dictionary<string, string>();
+
+        foreach (var member in members)
+        {
+            if (member is not IFieldSymbol field || field.ConstantValue is null)
+                continue;
+
+            var attr = member.GetAttributes()
+                .FirstOrDefault(x => x.AttributeClass is not null
+                    && x.AttributeClass.ToDisplayString(Constants.QualifiedTypeName) == typeof(DataMemberAttribute).FullName);
+
+            if (attr is null)
+                continue;
+
+            var serializedName = attr.NamedArguments.FirstOrDefault(x => x.Key == nameof(DataMemberAttribute.Name)).Value.Value as string;
+            if (string.IsNullOrWhiteSpace(serializedName))
+                continue;
+
+            mappings.Add(field.Name, serializedName);
+        }
+
+        return new(entityName, qualifiedName, mappings);
+    }
+
     private static void Execute(in EntityMetadata metadata, SourceProductionContext context)
     {
         if (!metadata.IsInitialized)
@@ -118,11 +168,30 @@ public sealed class EntityProxyGenerator : IIncrementalGenerator
         );
     }
 
+    private static void ExecuteEnum(in EnumMetadata metadata, SourceProductionContext context)
+    {
+        if (!metadata.IsInitialized)
+            return;
+
+        context.AddSource(
+            $"{Constants.EnumProxiesClassName}.{metadata.QualifiedName}.g.cs",
+            Constants.GenerateEnumProxyStatic(metadata).ToSourceText()
+        );
+    }
+
     private static void ExecuteBulk(in ImmutableArray<EntityMetadata> metadatas, SourceProductionContext context)
     {
         context.AddSource(
             $"{Constants.EntityProxiesClassName}.pathmap.g.cs",
             Constants.GenerateEntityPathMapStatic(metadatas).ToSourceText()
+        );
+    }
+
+    private static void ExecuteEnumBulk(in ImmutableArray<EnumMetadata> metadatas, SourceProductionContext context)
+    {
+        context.AddSource(
+            $"{Constants.EnumProxiesClassName}.map.g.cs",
+            Constants.GenerateEnumMapStatic(metadatas).ToSourceText()
         );
     }
 }

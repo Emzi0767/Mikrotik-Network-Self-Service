@@ -19,38 +19,32 @@ using System.Runtime.Serialization;
 namespace Emzi0767.NetworkSelfService.Mikrotik.Types;
 
 /// <summary>
-/// Specifies the type of dynamic queue to create for a DHCP lease.
+/// Specifies how a DHCP server should respond to out-of-range requests.
 /// </summary>
 [GenerateEnumMetadata]
-public enum MikrotikDhcpQueueType
+public enum MikrotikDhcpAuthoritative
 {
-    [DataMember(Name = "default")]
-    Default,
+    /// <summary>
+    /// Specifies that requests with less than 10 seconds will be processed as no, and more will be processed as yes.
+    /// </summary>
+    [DataMember(Name = "after-10sec-delay")]
+    After10SecondDelay,
 
-    [DataMember(Name = "ethernet-default")]
-    EthernetDefault,
+    /// <summary>
+    /// Specifies that requests with less than 2 seconds will be processed as no, and more will be processed as yes.
+    /// </summary>
+    [DataMember(Name = "after-2sec-delay")]
+    After2SecondDelay,
 
-    [DataMember(Name = "multi-queue-ethernet-default")]
-    MultiQueueEthernetDefault,
+    /// <summary>
+    /// Sends a negative response to requests for unavailable addresses.
+    /// </summary>
+    [DataMember(Name = "yes")]
+    Yes,
 
-    [DataMember(Name = "pcq-download-default")]
-    PcqDownloadDefault,
-
-    [DataMember(Name = "synchronous-default")]
-    SynchronousDefault,
-
-    [DataMember(Name = "default-small")]
-    DefaultSmall,
-
-    [DataMember(Name = "hotspot-default")]
-    HotspotDefault,
-
-    [DataMember(Name = "only-hardware-queue")]
-    OnlyHardwareQueue,
-
-    [DataMember(Name = "pcq-upload-default")]
-    PcqUploadDefault,
-
-    [DataMember(Name = "wireless-default")]
-    WirelessDefault,
+    /// <summary>
+    /// Ignores requests for unavailable addresses.
+    /// </summary>
+    [DataMember(Name = "no")]
+    No
 }
