@@ -17,12 +17,15 @@
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Emzi0767.NetworkSelfService.Mikrotik.Entities;
 using Emzi0767.Types;
+using sc = System.Collections;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik;
 
@@ -324,8 +327,8 @@ internal static class MikrotikHelpers
     /// <returns>Whether the relation is true.</returns>
     public static bool IsMikrotikEntitySpecializationOf(this Type type, Type generalizedType)
         => type.IsMikrotikEntity()
-        && generalizedType.IsMikrotikEntity()
-        && generalizedType.IsAssignableFrom(type);
+           && generalizedType.IsMikrotikEntity()
+           && generalizedType.IsAssignableFrom(type);
 
     /// <summary>
     /// Serializes a given value to a Mikrotik string.
@@ -349,6 +352,9 @@ internal static class MikrotikHelpers
         if (obj is IFormattable f)
             return f.ToString(null, CultureInfo.InvariantCulture);
 
+        if (obj is sc.IEnumerable enumerable)
+            return string.Join(",", enumerable.ToObjectStream().Select(x => x.ToMikrotikString()));
+
         return obj.ToString();
     }
 
@@ -369,5 +375,20 @@ internal static class MikrotikHelpers
             return timeSpan.ToString(@"m\:ss");
 
         return timeSpan.ToString("s");
+    }
+
+    /// <summary>
+    /// Serializes a given <see cref="IEnumerable{T}"/> to a Mikrotik string.
+    /// </summary>
+    /// <param name="enumerable"><see cref="IEnumerable{T}"/> to serialize.</param>
+    /// <typeparam name="T">Type of item in the enumerable.</typeparam>
+    /// <returns>Serialized object.</returns>
+    public static string ToMikrotikString<T>(this IEnumerable<T> enumerable)
+        => string.Join(",", enumerable.Select(x => x.ToMikrotikString()));
+
+    private static IEnumerable<object> ToObjectStream(this sc.IEnumerable enumerable)
+    {
+        foreach (var obj in enumerable)
+            yield return obj;
     }
 }

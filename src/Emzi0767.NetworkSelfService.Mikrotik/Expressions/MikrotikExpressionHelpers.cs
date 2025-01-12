@@ -164,4 +164,17 @@ public static class MikrotikExpressionHelpers
 
     internal static bool IsSpanParsable<T>(this Type t)
         => typeof(T).IsSpanParsable();
+
+    internal static bool IsNullable(this Type t, out Type tType)
+    {
+        tType = null;
+        if (!t.IsGenericType || t.GetGenericTypeDefinition() != typeof(Nullable<>))
+            return false;
+
+        tType = Nullable.GetUnderlyingType(t);
+        return true;
+    }
+
+    internal static bool IsNullable<T>(out Type tType)
+        => typeof(T).IsNullable(out tType);
 }

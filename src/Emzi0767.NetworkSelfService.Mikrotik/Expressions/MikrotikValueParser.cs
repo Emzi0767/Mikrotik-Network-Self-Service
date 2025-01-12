@@ -1,4 +1,4 @@
-﻿// This file is part of Network Self-Service Project.
+// This file is part of Network Self-Service Project.
 // Copyright © 2024-2025 Mateusz Brawański <Emzi0767>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Primitives;
 
@@ -35,6 +36,10 @@ public static partial class MikrotikValueParser
     private static MethodInfo _parseParsable = ((Delegate)ParseParsable<int>).Method.GetGenericMethodDefinition();
     private static ParseDelegate _parseTimeSpan = ParseTimeSpan;
     private static MethodInfo _parseEnum = ((Delegate)ParseEnum<Result>).Method.GetGenericMethodDefinition();
+    private static MethodInfo _parseNullableParsable = ((Delegate)ParseNullableParsable<int>).Method.GetGenericMethodDefinition();
+    private static ParseDelegate _parseNullableTimeSpan = ParseNullableTimeSpan;
+    private static MethodInfo _parseNullableEnum = ((Delegate)ParseNullableEnum<Result>).Method.GetGenericMethodDefinition();
+    private static ParseDelegate _parseNullableGeneric = ParseNullableGeneric;
     private static ParseDelegate _parseGeneric = ParseGeneric;
 
     private static ConcurrentDictionary<Type, ParseListDelegate> _listConverters = new();
@@ -90,7 +95,28 @@ public static partial class MikrotikValueParser
         if (_converters.TryGetValue(type, out var parse))
             parse(type, serialized, out result);
 
-        if (type.IsEnum)
+        if (type.IsNullable(out var tNullable))
+        {
+            if (tNullable.IsEnum)
+            {
+                parse = _parseNullableEnum.MakeGenericMethod(tNullable)
+                    .CreateDelegate<ParseDelegate>();
+            }
+            else if (tNullable == typeof(TimeSpan))
+            {
+                parse = _parseNullableTimeSpan;
+            }
+            else if (tNullable.IsSpanParsable())
+            {
+                parse = _parseNullableParsable.MakeGenericMethod(tNullable)
+                    .CreateDelegate<ParseDelegate>();
+            }
+            else
+            {
+                parse = _parseNullableGeneric;
+            }
+        }
+        else if (type.IsEnum)
         {
             parse = _parseEnum.MakeGenericMethod(type)
                 .CreateDelegate<ParseDelegate>();
@@ -189,6 +215,52 @@ public static partial class MikrotikValueParser
         return parsed;
     }
 
+    private static object ParseNullableParsable<T>(Type type, StringSegment serialized, out Result result)
+        where T : ISpanParsable<T>
+    {
+        if (serialized.Length == 0)
+        {
+            result = Result.Success;
+            return null;
+        }
+
+        return ParseParsable<T>(type, serialized, out result);
+    }
+
+    private static object ParseNullableTimeSpan(Type type, StringSegment serialized, out Result result)
+    {
+        if (serialized.Length == 0)
+        {
+            result = Result.Success;
+            return null;
+        }
+
+        return ParseTimeSpan(type, serialized, out result);
+    }
+
+    private static object ParseNullableEnum<T>(Type type, StringSegment serialized, out Result result)
+        where T : Enum
+    {
+        if (serialized.Length == 0)
+        {
+            result = Result.Success;
+            return null;
+        }
+
+        return ParseEnum<T>(type, serialized, out result);
+    }
+
+    private static object ParseNullableGeneric(Type type, StringSegment serialized, out Result result)
+    {
+        if (serialized.Length == 0)
+        {
+            result = Result.Success;
+            return null;
+        }
+
+        return ParseGeneric(type, serialized, out result);
+    }
+
     private static object ParseGeneric(Type type, StringSegment serialized, out Result result)
     {
         result = Result.Failure;
@@ -207,7 +279,7 @@ public static partial class MikrotikValueParser
 
         var quote = serialized.IndexOf('"');
         var separator = serialized.IndexOf(',');
-        if (separator != -1)
+        if (separator == -1)
         {
             var obj = ParseParsableInner<T>(itemType, serialized, out result);
             return result == Result.Success
@@ -223,6 +295,8 @@ public static partial class MikrotikValueParser
                 items.Add(ParseParsableInner<T>(itemType, serialized, out result));
                 if (result != Result.Success)
                     return null;
+
+                break;
             }
 
             if (quote != -1 && separator > quote)
@@ -258,7 +332,7 @@ public static partial class MikrotikValueParser
 
         var quote = serialized.IndexOf('"');
         var separator = serialized.IndexOf(',');
-        if (separator != -1)
+        if (separator == -1)
         {
             var obj = ParseTimeSpanInner(itemType, serialized, out result);
             return result == Result.Success
@@ -274,6 +348,8 @@ public static partial class MikrotikValueParser
                 items.Add(ParseTimeSpanInner(itemType, serialized, out result));
                 if (result != Result.Success)
                     return null;
+
+                break;
             }
 
             if (quote != -1 && separator > quote)
@@ -310,7 +386,7 @@ public static partial class MikrotikValueParser
 
         var quote = serialized.IndexOf('"');
         var separator = serialized.IndexOf(',');
-        if (separator != -1)
+        if (separator == -1)
         {
             var obj = ParseEnumInner<T>(itemType, serialized, out result);
             return result == Result.Success
@@ -326,6 +402,8 @@ public static partial class MikrotikValueParser
                 items.Add(ParseEnumInner<T>(itemType, serialized, out result));
                 if (result != Result.Success)
                     return null;
+
+                break;
             }
 
             if (quote != -1 && separator > quote)
@@ -368,6 +446,6 @@ public static partial class MikrotikValueParser
         Failure,
     }
 
-    [GeneratedRegex(@"^(?:(?<days>[0-9]+)d)?(?:(?(days)\s+)(?:(?:(?<hours>[0-9]{1,2})?:)?(?<minutes>[0-9]{1,2}):)?(?<seconds>[0-9]{1,2}))?$", RegexOptions.Compiled)]
+    [GeneratedRegex(@"^(?:(?:(?<days>[0-9]+)d)?(?:(?(days)\s+)(?:(?:(?<hours>[0-9]{1,2})?:)?(?<minutes>[0-9]{1,2}):)?(?<seconds>[0-9]{1,2}))?|(?:(?<hours>[0-9]{1,2})h)?(?:(?<minutes>[0-9]{1,2})m)?(?:(?<seconds>[0-9]{1,2})s)?)$", RegexOptions.Compiled)]
     private static partial Regex TimeSpanRegex();
 }
