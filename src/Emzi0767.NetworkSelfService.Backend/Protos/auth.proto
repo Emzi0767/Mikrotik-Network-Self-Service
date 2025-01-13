@@ -21,17 +21,22 @@ message AuthenticationRequest {
 
 // Represents an authentication response.
 message AuthenticationResponse {
-    // Gets or sets the authentication token to send along all requests.
-    string token = 1;
+    message AuthenticationSuccess {
+        // Gets or sets the authentication token to send along all requests.
+        string token = 1;
 
-    // Gets or sets the token used to refresh the authentication token.
-    string refresh = 2;
+        // Gets or sets the token used to refresh the authentication token.
+        string refresh = 2;
 
-    // Gets or sets the timestamp at which the authentication token will expire.
-    google.protobuf.Timestamp expiresAt = 3;
+        // Gets or sets the timestamp at which the authentication token will expire.
+        google.protobuf.Timestamp expiresAt = 3;
 
-    // Gets or sets the timestamp at which the refresh token (and thus, the session), will expire.
-    google.protobuf.Timestamp refreshBy = 4;
+        // Gets or sets the timestamp at which the refresh token (and thus, the session), will expire.
+        google.protobuf.Timestamp refreshBy = 4;
+    };
+
+    // Gets or sets the session that resulted from the authentication attempt, if applicable.
+    optional AuthenticationSuccess session = 1;
 }
 
 // Represents a request to refresh a session.
@@ -53,5 +58,6 @@ service Authentication {
     // Attempts to refresh a session using provided refresh token.
     rpc RefreshSession(SessionRefreshRequest) returns (result.Result);
 
+    // Attempts to destroy a session and log out a user.
     rpc DestroySession(SessionDestroyRequest) returns (result.Result);
 }

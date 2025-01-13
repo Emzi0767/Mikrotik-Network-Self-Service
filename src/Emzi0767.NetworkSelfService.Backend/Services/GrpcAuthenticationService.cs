@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Threading.Tasks;
 using Emzi0767.NetworkSelfService.gRPC;
 using Grpc.Core;
+using Microsoft.Extensions.Logging;
 
 namespace Emzi0767.NetworkSelfService.Backend.Services;
 
-public sealed class AuthenticationService : Authentication.AuthenticationBase
+public sealed class GrpcAuthenticationService : Authentication.AuthenticationBase
 {
-    private readonly ILogger<AuthenticationService> _logger;
+    private readonly ILogger<GrpcAuthenticationService> _logger;
 
-    public AuthenticationService(ILogger<AuthenticationService> logger)
+    public GrpcAuthenticationService(ILogger<GrpcAuthenticationService> logger)
     {
         this._logger = logger;
     }
