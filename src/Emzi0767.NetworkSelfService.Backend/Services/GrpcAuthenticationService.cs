@@ -19,12 +19,10 @@ using Emzi0767.NetworkSelfService.gRPC;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace Emzi0767.NetworkSelfService.Backend.Services;
 
-[ValidateAntiForgeryToken]
 public sealed class GrpcAuthenticationService : Authentication.AuthenticationBase
 {
     private readonly ILogger<GrpcAuthenticationService> _logger;
@@ -46,7 +44,7 @@ public sealed class GrpcAuthenticationService : Authentication.AuthenticationBas
         return new Result { IsSuccess = result.Session is not null, Result_ = Any.Pack(result), };
     }
 
-    [Authorize(Policy = TokenPolicies.RefreshOnlyPolicy)]
+    [Authorize(TokenPolicies.RefreshOnlyPolicy)]
     public override async Task<Result> RefreshSession(SessionRefreshRequest request, ServerCallContext context)
     {
         this._logger.LogInformation("Session refresh attempt from '{username}'", context.GetHttpContext().User.GetName());

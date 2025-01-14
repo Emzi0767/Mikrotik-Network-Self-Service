@@ -35,3 +35,13 @@ postgres:               # PostgreSQL client settings
   # clientCertificate:  # Path to the file containing the certificate to authenticate with, if mutual TLS is enabled
   # clientKey:          # Path to the file containing the private key to authenticate with, if mutual TLS is enabled
   # clientKeyPassword:  # Base64-encoded bytestring containing the password to the private key of the client certificate
+
+mikrotik:                          # Mikrotik API client settings
+  hostname: demo.mt.lv             # Hostname or address to connect to
+  port: 8728                       # TCP port to use when connecting
+  username: admin                  # Username to authenticate as
+  password:                        # Password to authenticate with
+  enableTls: false                 # Whether to enable TLS encryption for API connections
+  allowObsoleteTlsVersions: false  # Whether to allow TLS 1.0 and 1.1 versions
+  enableIpv4: true                 # Whether to enable IPv4 for connections to the API
+  enableIpv6: false                # Whether to enable IPv6 for connections to the API

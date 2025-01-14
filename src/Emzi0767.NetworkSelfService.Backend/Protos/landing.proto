@@ -1,0 +1,33 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Emzi0767.NetworkSelfService.gRPC";
+
+package landing;
+
+import "result.proto";
+
+// Represents a request for landing page information.
+message LandingRequest {
+
+}
+
+// Contains all basic information about the current user and their network.
+message LandingResponse {
+    // Gets or sets the name of the authenticated user.
+    string username = 1;
+
+    // Gets or sets the base address of the user's network.
+    string networkAddress = 2;
+
+    // Gets or sets the CIDR notation netmask of the user's network.
+    int32 maskCidr = 3;
+
+    // Gets or sets the dotted notation netmask of the user's network.
+    string maskDotted = 4;
+}
+
+// Provides methods for querying basic information about the current user's network.
+service Landing {
+    // Retrieves the information about current user's network.
+    rpc GetInformation(LandingRequest) returns (result.Result);
+}

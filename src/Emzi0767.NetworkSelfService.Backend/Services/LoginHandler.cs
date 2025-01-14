@@ -77,6 +77,8 @@ public sealed class LoginHandler
     public async Task<AuthenticationResponse> RefreshTokenAsync(Guid sessionId, CancellationToken cancellationToken = default)
     {
         var session = await this._sessions.GetSessionAsync(sessionId, cancellationToken);
+        if (session is null)
+            return new();
 
         var rotateSession = (session.ExpiresAt - DateTimeOffset.UtcNow).TotalDays < 1.0;
         if (rotateSession)

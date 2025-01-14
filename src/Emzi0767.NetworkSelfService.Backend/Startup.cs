@@ -61,6 +61,10 @@ public sealed class Startup
             .Bind(this.Configuration.GetSection("Postgres"))
             .ValidateDataAnnotations();
 
+        services.AddOptions<MikrotikConfiguration>()
+            .Bind(this.Configuration.GetSection("Mikrotik"))
+            .ValidateDataAnnotations();
+
         // all other
         services.AddSingleton<TokenKeyProvider>()
             .AddTransient<TokenGenerator>()
@@ -71,13 +75,16 @@ public sealed class Startup
             .AddDbContext<NssDbContext>(ServiceLifetime.Scoped)
             .AddScoped<SessionRepository>()
             .AddScoped<UserRepository>()
-            .AddScoped<NetworkRepository>();
+            .AddScoped<NetworkRepository>()
+            .AddSingleton<MikrotikProvider>()
+            .AddHostedService(svc => svc.GetRequiredService<MikrotikProvider>());
 
         // add auth
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(this.ConfigureJwtAuthentication(this.Configuration));
 
-        services.AddAuthorization(this.ConfigureJwtAuthorization());
+        services.AddAuthorization(this.ConfigureJwtAuthorization())
+            .AddAuthorizationPolicyEvaluator();
 
         services.AddGrpc();
     }
@@ -90,8 +97,7 @@ public sealed class Startup
         }
         else
         {
-            app.UseExceptionHandler("/error")
-                .UseHsts();
+            app.UseHsts();
         }
 
         app.UseRouting()
@@ -100,6 +106,7 @@ public sealed class Startup
             .UseEndpoints(static endpoints =>
             {
                 endpoints.MapGrpcService<GrpcAuthenticationService>();
+                endpoints.MapGrpcService<GrpcLandingService>();
                 endpoints.MapGet("/", async ctx =>
                 {
                     ctx.Response.ContentType = "image/jpeg";
@@ -132,6 +139,7 @@ public sealed class Startup
                 RequireSignedTokens = true,
                 RequireExpirationTime = true,
                 ValidAlgorithms = [ config.Algorithm.ToString() ],
+                ClockSkew = TimeSpan.Zero,
             };
         }
     }

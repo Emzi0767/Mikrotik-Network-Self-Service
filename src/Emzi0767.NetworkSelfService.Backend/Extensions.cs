@@ -21,7 +21,6 @@ using System.Text;
 using Emzi0767.NetworkSelfService.gRPC;
 using Grpc.Core;
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 
 namespace Emzi0767.NetworkSelfService.Backend;
@@ -79,7 +78,7 @@ public static class Extensions
     /// <returns>Name or null.</returns>
     public static string GetName(this ClaimsPrincipal user)
     {
-        var claim = user.GetClaim(TokenClaimTypes.UserName);
+        var claim = user.GetClaim(TokenClaimTypes.UserId);
         return claim?.Value;
     }
 

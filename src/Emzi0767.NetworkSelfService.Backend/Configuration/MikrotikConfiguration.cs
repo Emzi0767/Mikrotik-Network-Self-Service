@@ -57,4 +57,14 @@ public sealed class MikrotikConfiguration
     /// Gets or sets whether to allow obsolete TLS versions.
     /// </summary>
     public bool AllowObsoleteTlsVersions { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether to enable IPv4 connectivity.
+    /// </summary>
+    public bool EnableIpv4 { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets whether to enable IPv6 connectivity.
+    /// </summary>
+    public bool EnableIpv6 { get; set; }
 }

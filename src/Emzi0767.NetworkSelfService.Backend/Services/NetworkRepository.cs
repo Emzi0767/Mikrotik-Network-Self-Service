@@ -30,6 +30,6 @@ public sealed class NetworkRepository
         this._db = db;
     }
 
-    public async Task<DbNetwork> GetNetworkAsync(DbUser user, CancellationToken cancellationToken = default)
-        => await this._db.Networks.FirstOrDefaultAsync(x => x.Name == user.Network.Name, cancellationToken);
+    public async Task<DbNetwork> GetNetworkAsync(string username, CancellationToken cancellationToken = default)
+        => await this._db.Networks.FirstOrDefaultAsync(x => x.Name == username, cancellationToken);
 }

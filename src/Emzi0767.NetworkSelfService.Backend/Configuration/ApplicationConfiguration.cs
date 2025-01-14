@@ -52,4 +52,10 @@ public sealed class ApplicationConfiguration
     /// </summary>
     [Required, NotNull]
     public PostgresConfiguration Postgres { get; set; }
+
+    /// <summary>
+    /// Gets or sets the configuration for Mikrotik API client.
+    /// </summary>
+    [Required, NotNull]
+    public MikrotikConfiguration Mikrotik { get; set; }
 }
