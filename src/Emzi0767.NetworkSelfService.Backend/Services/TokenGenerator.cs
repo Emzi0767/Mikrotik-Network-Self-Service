@@ -108,6 +108,6 @@ public sealed class TokenGenerator
     public DateTimeOffset GetExpirationDate(bool remember)
         => DateTimeOffset.UtcNow.AddSeconds(remember
             ? this._configuration.RememberExpirationSeconds
-            : this._configuration.ExpirationSeconds);
+            : this._configuration.RefreshExpirationSeconds);
 }
 

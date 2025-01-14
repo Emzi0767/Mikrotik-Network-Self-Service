@@ -15,12 +15,15 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Linq;
 using Emzi0767.NetworkSelfService.Backend.Configuration;
 using Emzi0767.NetworkSelfService.Backend.Services;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -71,13 +74,20 @@ public sealed class Startup
             .AddDbContext<NssDbContext>(ServiceLifetime.Scoped)
             .AddScoped<SessionRepository>()
             .AddScoped<UserRepository>()
-            ;//.AddScoped<NetworkRepository>();
+            .AddScoped<NetworkRepository>();
 
         // add auth
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(this.ConfigureJwtAuthentication(this.Configuration));
 
         services.AddAuthorization(this.ConfigureJwtAuthorization());
+
+        services.AddAntiforgery(opts =>
+        {
+            opts.HeaderName = "X-XSRF-TOKEN";
+            opts.Cookie.Name = "XSRF-TOKEN";
+            opts.Cookie.HttpOnly = true;
+        });
 
         services.AddGrpc();
     }
@@ -97,6 +107,7 @@ public sealed class Startup
         app.UseRouting()
             .UseAuthentication()
             .UseAuthorization()
+            .UseAntiforgery()
             .UseEndpoints(static endpoints =>
             {
                 endpoints.MapGrpcService<GrpcAuthenticationService>();

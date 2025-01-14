@@ -52,7 +52,7 @@ public sealed class NssDbContext : DbContext
     )
     {
         this._loggerFactory = loggerFactory;
-        this._logSensitive = appConfig.Value?.LogSensitive ?? false;
+        this._logSensitive = appConfig?.Value.LogSensitive ?? false;
         this._connectionString = connectionStringProvider.ConnectionString;
         this._dataSource = connectionStringProvider.DataSource;
     }

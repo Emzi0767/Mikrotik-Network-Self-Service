@@ -18,6 +18,10 @@ using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using Emzi0767.NetworkSelfService.gRPC;
+using Grpc.Core;
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 
 namespace Emzi0767.NetworkSelfService.Backend;
@@ -47,6 +51,7 @@ public static class Extensions
         // 3. Load XML configuration (see above)
         var cfgFiles = new ConfigurationBuilder()
             .AddJsonFile(cfgBoot.GetSection("Configuration:Json")?.Value ?? "config.json", optional: true)
+            .AddYamlFile(cfgBoot.GetSection("Configuration:Yaml")?.Value ?? "config.yml", optional: true)
             .AddXmlFile(cfgBoot.GetSection("Configuration:Xml")?.Value ?? "config.xml", optional: true)
             .Build();
 
@@ -126,5 +131,37 @@ public static class Extensions
     {
         var claim = user.GetClaim(TokenClaimTypes.TokenKind);
         return claim?.Value == TokenConstants.TokenKindRefresh;
+    }
+
+    /// <summary>
+    /// Fills in a failure result.
+    /// </summary>
+    /// <param name="result">Result to fill in.</param>
+    /// <param name="code">Error code to fill in.</param>
+    /// <returns>Filled in result (passthrough).</returns>
+    public static Result Failure(this Result result, ErrorCode code)
+    {
+        result.IsSuccess = false;
+        result.Error = new() { Code = code, };
+
+        return result;
+    }
+
+    /// <summary>
+    /// Adds XSRF data to the response.
+    /// </summary>
+    /// <param name="result">Result to augment.</param>
+    /// <param name="antiforgery">XSRF token generator.</param>
+    /// <param name="context">Context in which to add a token.</param>
+    /// <returns>Augmented response.</returns>
+    public static Result SetXsrf(this Result result, IAntiforgery antiforgery, ServerCallContext context)
+    {
+        var tokens = antiforgery.GetTokens(context.GetHttpContext());
+        var ctx = context.GetHttpContext();
+        if (tokens.CookieToken is not null)
+            ctx.Response.Cookies.Append("XSRF-TOKEN", tokens.CookieToken, new() { HttpOnly = true, });
+
+        result.XsrfToken = tokens.RequestToken;
+        return result;
     }
 }

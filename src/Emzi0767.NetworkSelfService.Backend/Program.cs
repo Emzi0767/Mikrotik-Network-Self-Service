@@ -32,7 +32,7 @@ public static class Program
 
         if (konfig is null || konfig.Endpoints?.Any() != true)
         {
-            kestrel.ListenAnyIP(5000, listen => listen.Protocols = HttpProtocols.Http1);
+            kestrel.ListenAnyIP(5000, listen => listen.Protocols = HttpProtocols.Http2);
             return;
         }
 
@@ -89,7 +89,7 @@ public static class Program
             }
 
             static void ConfigureHttp(ListenOptions listen)
-                => listen.Protocols = HttpProtocols.Http1;
+                => listen.Protocols = HttpProtocols.Http2;
 
             static Action<ListenOptions> ConfigureHttps(bool mutualTls, X509Certificate2 server, X509Certificate2Collection ca)
             {

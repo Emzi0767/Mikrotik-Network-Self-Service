@@ -41,8 +41,7 @@ message AuthenticationResponse {
 
 // Represents a request to refresh a session.
 message SessionRefreshRequest {
-    // Gets or sets the token used to refresh a session.
-    string refresh = 1;
+
 }
 
 // Represents a request to destroy a session.
@@ -50,8 +49,16 @@ message SessionDestroyRequest {
 
 }
 
+// Represents a request for a fresh XSRF token.
+message XsrfRequest {
+
+}
+
 // Provides methods for creating, extending, and destroying sessions.
 service Authentication {
+    // Gets a fresh XSRF token.
+    rpc GetXsrf(XsrfRequest) returns (result.Result);
+
     // Attempts to authenticate using provided credentials.
     rpc Authenticate(AuthenticationRequest) returns (result.Result);
 

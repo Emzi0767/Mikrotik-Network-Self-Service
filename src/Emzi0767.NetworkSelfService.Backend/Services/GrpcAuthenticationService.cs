@@ -16,32 +16,60 @@
 
 using System.Threading.Tasks;
 using Emzi0767.NetworkSelfService.gRPC;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace Emzi0767.NetworkSelfService.Backend.Services;
 
+[ValidateAntiForgeryToken]
 public sealed class GrpcAuthenticationService : Authentication.AuthenticationBase
 {
     private readonly ILogger<GrpcAuthenticationService> _logger;
+    private readonly UserRepository _users;
+    private readonly SessionRepository _sessions;
+    private readonly LoginHandler _loginHandler;
+    private readonly IAntiforgery _antiforgery;
 
-    public GrpcAuthenticationService(ILogger<GrpcAuthenticationService> logger)
+    public GrpcAuthenticationService(
+        ILogger<GrpcAuthenticationService> logger,
+        UserRepository users,
+        SessionRepository sessions,
+        LoginHandler loginHandler,
+        IAntiforgery antiforgery)
     {
         this._logger = logger;
+        this._users = users;
+        this._sessions = sessions;
+        this._loginHandler = loginHandler;
+        this._antiforgery = antiforgery;
     }
 
-    public override Task<Result> Authenticate(AuthenticationRequest request, ServerCallContext context)
+    [AllowAnonymous, IgnoreAntiforgeryToken]
+    public override Task<Result> GetXsrf(XsrfRequest request, ServerCallContext context)
+        => Task.FromResult(new Result().SetXsrf(this._antiforgery, context));
+
+    [AllowAnonymous]
+    public override async Task<Result> Authenticate(AuthenticationRequest request, ServerCallContext context)
     {
-        return Task.FromResult(new Result { IsSuccess = false, Error = new() { Code = ErrorCode.Unknown } });
+        var result = await this._loginHandler.LoginAsync(request, context.CancellationToken);
+        return new Result { IsSuccess = result.Session is not null, Result_ = Any.Pack(result), }.SetXsrf(this._antiforgery, context);
     }
 
-    public override Task<Result> RefreshSession(SessionRefreshRequest request, ServerCallContext context)
+    [Authorize(Policy = TokenPolicies.RefreshOnlyPolicy)]
+    public override async Task<Result> RefreshSession(SessionRefreshRequest request, ServerCallContext context)
     {
-        return Task.FromResult(new Result { IsSuccess = false, Error = new() { Code = ErrorCode.Unknown } });
+        var result = await this._loginHandler.RefreshTokenAsync(context.GetHttpContext().User.GetSessionId().Value, context.CancellationToken);
+        return new Result { IsSuccess = result.Session is not null, Result_ = Any.Pack(result), }.SetXsrf(this._antiforgery, context);
     }
 
-    public override Task<Result> DestroySession(SessionDestroyRequest request, ServerCallContext context)
+    [Authorize]
+    public override async Task<Result> DestroySession(SessionDestroyRequest request, ServerCallContext context)
     {
-        return Task.FromResult(new Result { IsSuccess = false, Error = new() { Code = ErrorCode.Unknown } });
+        await this._loginHandler.LogoutAsync(context.GetHttpContext().User.GetSessionId().Value, context.CancellationToken);
+        return new Result { IsSuccess = true }.SetXsrf(this._antiforgery, context);
     }
 }

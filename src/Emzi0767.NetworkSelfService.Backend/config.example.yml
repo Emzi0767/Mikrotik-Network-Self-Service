@@ -1,0 +1,37 @@
+﻿logSensitive: false  # Whether to enable sensitive data logging, should be set to false in production
+bcryptFactor: 10     # Work factor for BCrypt hashing algorithm; for more info, see: https://auth0.com/blog/hashing-in-action-understanding-bcrypt/
+
+http:                   # HTTP binding settings
+  endpoints:            # Can specify a list of endpoints, but must specify at least one
+  - address: 127.0.0.1  # Set to 0.0.0.0 or '[::]' to bind to all available addresses, can also specify UNIX socket path, by prefixing with unix://, e.g. unix:///tmp/carl.sock
+    port: 5000
+    enableTls: false    # Set to true to enable TLS
+    mutualTls: false    # Set to true to enable mutual TLS, requires TLS to be enabled
+    caCertificate:      # Path to CA certificate, required if mutual TLS is enabled
+    serverCertificate:  # Path to server's certificate, required it TLS is enabled
+    serverKey:          # Path to server's private key, required if TLS is enabled
+    serverKeyPassword:  # Password for the server's private key, as a base64-encoded bytestring
+
+authentication:                                               # JWT settings
+  algorithm: HS256                                            # JWT algorithm
+  symmetricKey: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=  # All-zero, replace with an actual key, used only if signature algorithm is symmetric
+  asymmetricKey:                                              # Path to asymmetric key file, if asymmetric signature algorithm is used
+  asymmetricKeyPassword:                                      # Password for the asymmetric key file, as a base64-encoded bytestring
+  issuer: http://nss2.example.com/                            # Name of the issuer for the tokens, to prevent misuse
+  audience: http://nss2.example.com/                          # Name of the audience for the tokens, to prevent misuse
+  expirationSeconds: 300                                      # Number of seconds authentication tokens are valid for
+  refreshExpirationSeconds: 43200                             # Number of seconds refresh tokens are valid for
+  rememberExpirationSeconds: 7257600                          # Number of seconds refresh tokens are valid for, if rememer me option is selected
+
+postgres:               # PostgreSQL client settings
+  hostname: localhost   # Hostname to connect to
+  port: 5432            # Port to connect to
+  database: nss2        # Database to connect to
+  username: nss2        # Username to authenticate as
+  password: hunter2     # Password to authenticate with
+  enableTls: false      # Whether to enable TLS
+  # mutualTls: false    # Whether to enable mutual TLS, that is, whether to authenticate both sides when using TLS
+  # caCertificate:      # Path to CA certificate, used to verify the server certificate, if TLS is enabled; optional
+  # clientCertificate:  # Path to the file containing the certificate to authenticate with, if mutual TLS is enabled
+  # clientKey:          # Path to the file containing the private key to authenticate with, if mutual TLS is enabled
+  # clientKeyPassword:  # Base64-encoded bytestring containing the password to the private key of the client certificate

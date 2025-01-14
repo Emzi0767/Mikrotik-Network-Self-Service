@@ -39,7 +39,7 @@ public static class TokenPolicies
     /// <param name="policyBuilder">Policy builder.</param>
     public static void AnyUser(AuthorizationPolicyBuilder policyBuilder)
         => policyBuilder
-            .RequireClaim(TokenClaimTypes.TokenKind, TokenConstants.TokenKindRefresh)
+            .RequireClaim(TokenClaimTypes.TokenKind, TokenConstants.TokenKindAuthentication)
             .RequireClaim(TokenClaimTypes.UserId)
             .RequireClaim(TokenClaimTypes.SessionId);
 

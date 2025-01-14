@@ -33,7 +33,7 @@ public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Nss
     /// <returns>Instantiated context.</returns>
     public NssDbContext CreateDbContext(string[] args)
     {
-        Environment.SetEnvironmentVariable("NSS2__CONFIGURATION__JSON", "config.dev.json");
+        Environment.SetEnvironmentVariable("NSS2__CONFIGURATION__YAML", "config.dev.yml");
 
         var pgConfig = new PostgresConfiguration();
         new ConfigurationBuilder()
