@@ -73,20 +73,6 @@ public static class Extensions
         => user.Claims.FirstOrDefault(x => x.Type == claimType);
 
     /// <summary>
-    /// Gets the claim principal's User ID.
-    /// </summary>
-    /// <param name="user">Claim principal to get ID for.</param>
-    /// <returns>ID or null.</returns>
-    public static Guid? GetId(this ClaimsPrincipal user)
-    {
-        var claim = user.GetClaim(TokenClaimTypes.UserId);
-        if (claim is null)
-            return null;
-
-        return Guid.Parse(claim.Value);
-    }
-
-    /// <summary>
     /// Gets the claim principal's username.
     /// </summary>
     /// <param name="user">Claim principal to get ID for.</param>
