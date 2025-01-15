@@ -1,0 +1,150 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Emzi0767.NetworkSelfService.gRPC";
+
+package dhcp;
+
+import "google/protobuf/empty.proto";
+import "result.proto";
+
+// Represents a DHCP lease defined on the server.
+message DhcpLease {
+    // Gets or sets the identifier of the lease.
+    string id = 1;
+
+    // Gets or sets the MAC address associated with the lease.
+    string macAddress = 2;
+
+    // Gets or sets the IP address associated with the lease.
+    string ipAddress = 3;
+
+    // Gets or sets the hostname associated with the lease.
+    string hostname = 4;
+
+    // Gets or sets whether the lease is dynamic.
+    bool isDynamic = 5;
+}
+
+// Represents IPv4 configuration of a network segment.
+message DhcpIpv4Configuration {
+    // Gets or sets the base network address.
+    string network = 1;
+
+    // Gets or sets the network mask, in dotted notation.
+    string maskDotted = 2;
+
+    // Gets or sets the network mask, as CIDR bit count.
+    int32 mask = 3;
+
+    // Gets or sets the broadcast address.
+    string broadcast = 4;
+}
+
+// Represents a range of DHCP addresses.
+message DhcpRange {
+    // Gets or sets the starting address of the DHCP range.
+    string startIp = 1;
+
+    // Gets or sets the ending address of the DHCP range.
+    string endIp = 2;
+}
+
+// Represents information about current segment's DHCP configuration.
+message DhcpInfoResponse {
+    // Gets or sets the IPv4 configuration of the current network segment.
+    DhcpIpv4Configuration configuration = 1;
+
+    // Gets or sets the address of the router (gateway).
+    string routerAddress = 2;
+
+    // Gets or sets the range of IP addresses distributed via DHCP.
+    DhcpRange dhcpRange = 3;
+
+    // Gets or sets the defined DHCP leases.
+    repeated DhcpLease leases = 4;
+}
+
+// Represents information about current segment's defined DHCP leases.
+message DhcpLeasesResponse {
+    // Gets or sets the defined DHCP leases.
+    repeated DhcpLease leases = 1;
+}
+
+// Represents information necessary to create a new DHCP lease.
+message DhcpLeaseCreateRequest {
+    // Gets or sets the MAC address of the new lease.
+    string macAddress = 1;
+
+    // Gets or sets the IP address of the new lease.
+    string ipAddress = 2;
+}
+
+// Represents a request to check whether an address can be used for a static lease.
+message DhcpAddressEligibilityQuery {
+    // Gets or sets the IP address to check.
+    string ipAddress = 1;
+
+    // Gets or sets the MAC address of the lease-to-be.
+    string macAddress = 2;
+}
+
+// Represents information about a DHCP address eligibility for static lease.
+enum DhcpAddressEligibility {
+    // Specifies that the address is ok to use.
+    OK = 0;
+
+    // Specifies that the address overlaps the DHCP range. This is a warning, which does not prevent the address from
+    // being used for static lease assignment. It is, however, unrecommended to do so.
+    DHCP_OVERLAP = 1;
+
+    // Specifies that the address is out of the network's address range.
+    OUT_OF_RANGE = 2;
+
+    // Specifies that the address conflicts with network infrastructure (usually the router).
+    INFRASTRUCTURE_CONFLICT = 3;
+
+    // Specifies that the address is the broadcast address.
+    BROADCAST_CONFLICT = 4;
+
+    // Specifies that the address is the base network address.
+    BASE_CONFLICT = 5;
+
+    // Specifies that the address conflicts with another static lease. This is a warning, which does not prevent the
+    // address from being used for static lease assignment. It is, however, unrecommended to do so.
+    STATIC_LEASE_CONFLICT = 6;
+
+    // Specifies that the address conflicts with another client with an active DHCP lease (static or dynamic). This is a
+    // warning, which does not prevent the address from being used for static lease assignment. It is, however,
+    // unrecommended to do so.
+    ACTIVE_LEASE_CONFLICT = 7;
+}
+
+// Represents information about a DHCP address' eligibility for usage in a static lease.
+message DhcpAddressEligibilityResponse {
+    // Gets or sets the eligibility flags.
+    repeated DhcpAddressEligibility flags = 1;
+}
+
+// Represents a request to delete a DHCP lease.
+message DhcpLeaseDeleteRequest {
+    // Gets or sets the identifier of the lease to delete.
+    string id = 1;
+}
+
+// Provides methods for managing DHCP leases.
+service Dhcp {
+    // Retrieves the info about the current network's DHCP configuration.
+    rpc GetInfo(google.protobuf.Empty) returns (result.Result);
+
+    // Retrieves the info about the current network's DHCP configuration.
+    rpc GetLeases(google.protobuf.Empty) returns (result.Result);
+
+    // Queries address data for eligibility for usage as a static lease.
+    rpc QueryLeaseEligibility(DhcpAddressEligibilityQuery) returns (result.Result);
+
+    // Creates a new static lease.
+    rpc CreateLease(DhcpLeaseCreateRequest) returns (result.Result);
+
+    // Deletes a static lease.
+    rpc DeleteLease(DhcpLeaseDeleteRequest) returns (result.Result);
+}

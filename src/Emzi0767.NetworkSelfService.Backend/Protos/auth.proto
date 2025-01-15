@@ -5,6 +5,7 @@ option csharp_namespace = "Emzi0767.NetworkSelfService.gRPC";
 package authentication;
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 import "result.proto";
 
 // Represents an attempt to authenticate.
@@ -39,24 +40,14 @@ message AuthenticationResponse {
     optional AuthenticationSuccess session = 1;
 }
 
-// Represents a request to refresh a session.
-message SessionRefreshRequest {
-
-}
-
-// Represents a request to destroy a session.
-message SessionDestroyRequest {
-
-}
-
 // Provides methods for creating, extending, and destroying sessions.
 service Authentication {
     // Attempts to authenticate using provided credentials.
     rpc Authenticate(AuthenticationRequest) returns (result.Result);
 
     // Attempts to refresh a session using provided refresh token.
-    rpc RefreshSession(SessionRefreshRequest) returns (result.Result);
+    rpc RefreshSession(google.protobuf.Empty) returns (result.Result);
 
     // Attempts to destroy a session and log out a user.
-    rpc DestroySession(SessionDestroyRequest) returns (result.Result);
+    rpc DestroySession(google.protobuf.Empty) returns (result.Result);
 }

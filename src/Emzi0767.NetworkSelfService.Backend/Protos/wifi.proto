@@ -1,0 +1,231 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Emzi0767.NetworkSelfService.gRPC";
+
+package wifi;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/duration.proto";
+import "result.proto";
+
+// Defines weekdays for time restrictions.
+enum WifiWeekday {
+    // Specifies monday.
+    MONDAY = 0;
+
+    // Specifies tuesday.
+    TUESDAY = 1;
+
+    // Specifies wednesday.
+    WEDNESDAY = 2;
+
+    // Specifies thursday.
+    THURSDAY = 3;
+
+    // Specifies friday.
+    FRIDAY = 4;
+
+    // Specifies saturday.
+    SATURDAY = 5;
+
+    // Specifies sunday.
+    SUNDAY = 6;
+}
+
+// Defines time restrictions for the ACL.
+message WifiTimeRestriction {
+    // Specifies the time after which the device will be accepted.
+    google.protobuf.Duration start = 1;
+
+    // Specifies the time after which the device will be rejected.
+    google.protobuf.Duration end = 2;
+
+    // Specifies the weekdays on which the device will be accepted.
+    repeated WifiWeekday days = 3;
+}
+
+// Represents a Wi-Fi ACL.
+message WifiAcl {
+    // Gets or sets the identifier of the entry.
+    string id = 1;
+
+    // Gets or sets the MAC address to match.
+    string macAddress = 2;
+
+    // Gets or sets the commend for the entry.
+    string comment = 3;
+
+    // Gets or sets whether the entry is enabled.
+    bool isEnabled = 4;
+
+    // Gets or sets the private password for this entry.
+    optional string privatePassword = 5;
+
+    // Gets or sets the time restriction for the device's access to wireless network.
+    optional WifiTimeRestriction timeRestriction = 6;
+
+    // Gets or sets whether this entry is special. A special entry's management actions will be unavailable.
+    optional bool isSpecialEntry = 7;
+}
+
+// Represents information about current network segment's Wi-Fi settings.
+message WifiConfigResponse {
+    // Gets or sets the SSID of the wireless network.
+    string ssid = 1;
+
+    // Gets or sets whether the wireless clients should be isolated.
+    bool isolateClients = 2;
+}
+
+// Represents information about current network segment's defined Wi-Fi ACLs.
+message WifiAclResponse {
+    // Gets or sets the defined ACLs.
+    repeated WifiAcl acls = 1;
+}
+
+// Gets information about recent connection attempts.
+message WifiRecentAttemptsResponse {
+    // Gets or sets the MAC addresses of recently rejected connection attemtps.
+    repeated string macAddresses = 1;
+}
+
+// Specifies the wireless band used by a device.
+enum WifiBand {
+    // Specifies the 2.4GHz band.
+    BAND_2_4_GHZ = 0;
+
+    // Specifies the 5GHz band.
+    BAND_5_GHZ = 1;
+
+    // Specifies the 6GHz band.
+    BAND_6_GHZ = 2;
+
+    // Specifies an unknown band.
+    BAND_UNKNOWN = 3;
+}
+
+// Represents information about a connected Wi-Fi device.
+message WifiConnectedDevice {
+    // Gets or sets the MAC address of the device.
+    string macAddress = 1;
+
+    // Gets or sets the comment about the device.
+    string comment = 2;
+
+    // Gets or sets the access point the device is connected to.
+    string ap = 3;
+
+    // Gets or sets the wireless band used by the device.
+    WifiBand band = 4;
+}
+
+// Represents information about devices that are currently connected.
+message WifiConnectedDevicesResponse {
+    // Gets or sets the list of connected devices.
+    repeated WifiConnectedDevice devices = 1;
+}
+
+// Represents information about current network segment's Wi-Fi configuration.
+message WifiInfoResponse {
+    // Gets or sets the configuration of the Wi-Fi network.
+    WifiConfigResponse configuration = 1;
+
+    // Gets or sets the access control information for the Wi-Fi network.
+    WifiAclResponse accessControl = 2;
+
+    // Gets or sets information about recent connection attempts.
+    WifiRecentAttemptsResponse recentAttempts = 3;
+
+    // Gets or sets information about connected devices.
+    WifiConnectedDevicesResponse connectedDevices = 4;
+}
+
+// Represents a request to update the settings of a wireless network.
+message WifiUpdateRequest {
+    // Gets or sets the new SSID for the wireless network.
+    optional string ssid = 1;
+
+    // Gets or sets the new password for the wireless network.
+    optional string password = 2;
+
+    // Gets or sets whether to isolate clients in the wireless network.
+    optional bool isolateClients = 3;
+}
+
+// Represents a request to create an ACL.
+message WifiAclCreateRequest {
+    // Gets or sets the MAC address of the device to allow in the network.
+    string macAddress = 1;
+
+    // Gets or sets the comment for the entry.
+    string comment = 2;
+
+    // Gets or sets the private password for the device.
+    optional string privatePassword = 3;
+
+    // Gets or sets the time restrictions for the device's network access.
+    optional WifiTimeRestriction timeRestriction = 4;
+}
+
+// Represents a request to delete an ACL.
+message WifiAclDeleteRequest {
+    // Gets or sets the identifier of the entry to delete.
+    string identifier = 1;
+}
+
+// Represents a request to update an ACL.
+message WifiAclUpdateRequest {
+    // Gets or sets the identifier of the entry to update.
+    string identifier = 1;
+
+    // Gets or sets the new MAC address of the entry.
+    optional string macAddress = 2;
+
+    // Gets or sets the new comment of the entry.
+    optional string comment = 3;
+
+    // Gets or sets whether the entry should be enabled.
+    optional bool isEnabled = 4;
+
+    // Gets or sets the new private password of the entry.
+    optional string privatePassword = 5;
+
+    // Gets or sets whether to remove the private password of the entry.
+    optional bool removePrivatePassword = 6;
+
+    // Gets or sets the new time restrictions for the entry.
+    optional WifiTimeRestriction timeRestriction = 7;
+
+    // Gets or sets whether to remove the time restrictions of the entry.
+    optional bool removeTimeRestriction = 8;
+}
+
+// Provides methods for managing the segment's Wi-Fi network.
+service Wifi {
+    // Retrieves the full information about the current Wi-Fi network.
+    rpc GetInfo(google.protobuf.Empty) returns (result.Result);
+
+    // Retrieves the configuration of the current Wi-Fi network.
+    rpc GetConfiguration(google.protobuf.Empty) returns (result.Result);
+
+    // Retrieves the list of ACLs defined for the current network.
+    rpc GetAcls(google.protobuf.Empty) returns (result.Result);
+
+    // Retrieves the list of recent failures to authenticate.
+    rpc GetRecentConnectionAttempts(google.protobuf.Empty) returns (result.Result);
+
+    // Retrieves the list of currently-connected devices.
+    rpc GetConnectedDevices(google.protobuf.Empty) returns (result.Result);
+
+    // Updates the configuration of the current Wi-Fi network.
+    rpc UpdateConfiguration(WifiUpdateRequest) returns (result.Result);
+
+    // Creates a new ACL entry.
+    rpc CreateAcl(WifiAclCreateRequest) returns (result.Result);
+
+    // Deletes an existing ACL entry.
+    rpc DeleteAcl(WifiAclCreateRequest) returns (result.Result);
+
+    // Updates an existing ACL entry.
+    rpc UpdateAcl(WifiAclUpdateRequest) returns (result.Result);
+}

@@ -16,6 +16,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -51,7 +52,7 @@ internal static class Program
         Console.WriteLine("! SETTLED");
 
         var address = IPAddress.Parse("10.0.1.1");
-        var countQuery = await mikrotik.Get<MikrotikCapsmanSecurityProfile>()
+        var countQuery = await mikrotik.Get<MikrotikCapsmanAcl>()
             //.AsAsyncQueryable()
             .ToListAsync();
         Console.WriteLine("! SENT INTERFACE LIST QUERY");

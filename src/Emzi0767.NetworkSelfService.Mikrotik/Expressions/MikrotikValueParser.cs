@@ -48,7 +48,7 @@ public static partial class MikrotikValueParser
     private static MethodInfo _parseEnumList = ((Delegate)ParseEnumList<Result>).Method.GetGenericMethodDefinition();
     private static ParseListDelegate _parseGenericList = ParseGenericList;
 
-    public static object Parse(Type type, StringSegment serialized, out Result result)
+    public static object Parse(Type type, ReadOnlySpan<char> serialized, out Result result)
     {
         if (type != typeof(string) && type.IsEnumerableType(out var tItem))
         {
@@ -85,11 +85,11 @@ public static partial class MikrotikValueParser
         }
         else if (type == typeof(bool))
         {
-            result = serialized == "yes" || serialized == "no" || serialized == "true" || serialized == "false"
+            result = serialized is "yes" or "no" or "true" or "false"
                 ? Result.Success
                 : Result.Failure;
 
-            return serialized == "yes" || serialized == "true";
+            return serialized is "yes" or "true";
         }
 
         if (_converters.TryGetValue(type, out var parse))
@@ -139,7 +139,7 @@ public static partial class MikrotikValueParser
         return parse(type, serialized, out result);
     }
 
-    private static object ParseParsable<T>(Type type, StringSegment serialized, out Result result)
+    private static object ParseParsable<T>(Type type, ReadOnlySpan<char> serialized, out Result result)
         where T : ISpanParsable<T>
     {
         var val = ParseParsableInner<T>(type, serialized, out result);
@@ -148,7 +148,7 @@ public static partial class MikrotikValueParser
             : null;
     }
 
-    private static T ParseParsableInner<T>(Type type, StringSegment serialized, out Result result)
+    private static T ParseParsableInner<T>(Type type, ReadOnlySpan<char> serialized, out Result result)
         where T : ISpanParsable<T>
     {
         result = Result.Failure;
@@ -161,7 +161,7 @@ public static partial class MikrotikValueParser
         return default;
     }
 
-    private static object ParseTimeSpan(Type type, StringSegment serialized, out Result result)
+    private static object ParseTimeSpan(Type type, ReadOnlySpan<char> serialized, out Result result)
     {
         var val = ParseTimeSpanInner(type, serialized, out result);
         return result == Result.Success
@@ -169,7 +169,7 @@ public static partial class MikrotikValueParser
             : null;
     }
 
-    private static TimeSpan ParseTimeSpanInner(Type type, StringSegment serialized, out Result result)
+    private static TimeSpan ParseTimeSpanInner(Type type, ReadOnlySpan<char> serialized, out Result result)
     {
         var m = _timeSpanRegex.Match(serialized.ToString());
         result = m.Success
@@ -195,7 +195,7 @@ public static partial class MikrotikValueParser
         return new(days, hours, minutes, seconds);
     }
 
-    private static object ParseEnum<T>(Type type, StringSegment serialized, out Result result)
+    private static object ParseEnum<T>(Type type, ReadOnlySpan<char> serialized, out Result result)
         where T : Enum
     {
         var val = ParseEnumInner<T>(type, serialized, out result);
@@ -204,7 +204,7 @@ public static partial class MikrotikValueParser
             : null;
     }
 
-    private static T ParseEnumInner<T>(Type type, StringSegment serialized, out Result result)
+    private static T ParseEnumInner<T>(Type type, ReadOnlySpan<char> serialized, out Result result)
         where T : Enum
     {
         var parsed = EnumProxies.MapFromSerialized<T>(serialized.ToString());
@@ -215,7 +215,7 @@ public static partial class MikrotikValueParser
         return parsed;
     }
 
-    private static object ParseNullableParsable<T>(Type type, StringSegment serialized, out Result result)
+    private static object ParseNullableParsable<T>(Type type, ReadOnlySpan<char> serialized, out Result result)
         where T : ISpanParsable<T>
     {
         if (serialized.Length == 0)
@@ -227,7 +227,7 @@ public static partial class MikrotikValueParser
         return ParseParsable<T>(type, serialized, out result);
     }
 
-    private static object ParseNullableTimeSpan(Type type, StringSegment serialized, out Result result)
+    private static object ParseNullableTimeSpan(Type type, ReadOnlySpan<char> serialized, out Result result)
     {
         if (serialized.Length == 0)
         {
@@ -238,7 +238,7 @@ public static partial class MikrotikValueParser
         return ParseTimeSpan(type, serialized, out result);
     }
 
-    private static object ParseNullableEnum<T>(Type type, StringSegment serialized, out Result result)
+    private static object ParseNullableEnum<T>(Type type, ReadOnlySpan<char> serialized, out Result result)
         where T : Enum
     {
         if (serialized.Length == 0)
@@ -250,7 +250,7 @@ public static partial class MikrotikValueParser
         return ParseEnum<T>(type, serialized, out result);
     }
 
-    private static object ParseNullableGeneric(Type type, StringSegment serialized, out Result result)
+    private static object ParseNullableGeneric(Type type, ReadOnlySpan<char> serialized, out Result result)
     {
         if (serialized.Length == 0)
         {
@@ -261,14 +261,14 @@ public static partial class MikrotikValueParser
         return ParseGeneric(type, serialized, out result);
     }
 
-    private static object ParseGeneric(Type type, StringSegment serialized, out Result result)
+    private static object ParseGeneric(Type type, ReadOnlySpan<char> serialized, out Result result)
     {
         result = Result.Failure;
         MikrotikThrowHelper.Throw_NotSupported("This type of conversion is not supported.");
         return null;
     }
 
-    private static object ParseParsableList<T>(Type itemType, StringSegment serialized, out Result result)
+    private static object ParseParsableList<T>(Type itemType, ReadOnlySpan<char> serialized, out Result result)
         where T : ISpanParsable<T>
     {
         if (serialized.Length == 0 && itemType != typeof(string))
@@ -301,19 +301,19 @@ public static partial class MikrotikValueParser
 
             if (quote != -1 && separator > quote)
             {
-                quote = serialized.IndexOf('"', quote + 1);
-                separator = serialized.IndexOf(',', quote + 1);
+                quote = serialized.NextIndexOf('"', quote + 1);
+                separator = serialized.NextIndexOf(',', quote + 1);
             }
 
-            var sub = serialized.Subsegment(0, separator);
+            var sub = serialized[..separator];
             if (quote != -1)
-                sub = serialized.Subsegment(1, serialized.Length - 2);
+                sub = serialized.Slice(1, serialized.Length - 2);
 
             items.Add(ParseParsableInner<T>(itemType, sub, out result));
             if (result != Result.Success)
                 return null;
 
-            serialized = serialized.Subsegment(separator + 1);
+            serialized = serialized[(separator + 1)..];
             quote = serialized.IndexOf('"');
             separator = serialized.IndexOf(',');
         }
@@ -322,7 +322,7 @@ public static partial class MikrotikValueParser
         return items;
     }
 
-    private static object ParseTimeSpanList(Type itemType, StringSegment serialized, out Result result)
+    private static object ParseTimeSpanList(Type itemType, ReadOnlySpan<char> serialized, out Result result)
     {
         if (serialized.Length == 0 && itemType != typeof(string))
         {
@@ -354,19 +354,19 @@ public static partial class MikrotikValueParser
 
             if (quote != -1 && separator > quote)
             {
-                quote = serialized.IndexOf('"', quote + 1);
-                separator = serialized.IndexOf(',', quote + 1);
+                quote = serialized.NextIndexOf('"', quote + 1);
+                separator = serialized.NextIndexOf(',', quote + 1);
             }
 
-            var sub = serialized.Subsegment(0, separator);
+            var sub = serialized[..separator];
             if (quote != -1)
-                sub = serialized.Subsegment(1, serialized.Length - 2);
+                sub = serialized.Slice(1, serialized.Length - 2);
 
             items.Add(ParseTimeSpanInner(itemType, sub, out result));
             if (result != Result.Success)
                 return null;
 
-            serialized = serialized.Subsegment(separator + 1);
+            serialized = serialized[(separator + 1)..];
             quote = serialized.IndexOf('"');
             separator = serialized.IndexOf(',');
         }
@@ -375,7 +375,7 @@ public static partial class MikrotikValueParser
         return items;
     }
 
-    private static object ParseEnumList<T>(Type itemType, StringSegment serialized, out Result result)
+    private static object ParseEnumList<T>(Type itemType, ReadOnlySpan<char> serialized, out Result result)
         where T : Enum
     {
         if (serialized.Length == 0)
@@ -408,19 +408,19 @@ public static partial class MikrotikValueParser
 
             if (quote != -1 && separator > quote)
             {
-                quote = serialized.IndexOf('"', quote + 1);
-                separator = serialized.IndexOf(',', quote + 1);
+                quote = serialized.NextIndexOf('"', quote + 1);
+                separator = serialized.NextIndexOf(',', quote + 1);
             }
 
-            var sub = serialized.Subsegment(0, separator);
+            var sub = serialized[..separator];
             if (quote != -1)
-                sub = serialized.Subsegment(1, serialized.Length - 2);
+                sub = serialized.Slice(1, serialized.Length - 2);
 
             items.Add(ParseEnumInner<T>(itemType, sub, out result));
             if (result != Result.Success)
                 return null;
 
-            serialized = serialized.Subsegment(separator + 1);
+            serialized = serialized[(separator + 1)..];
             quote = serialized.IndexOf('"');
             separator = serialized.IndexOf(',');
         }
@@ -429,16 +429,16 @@ public static partial class MikrotikValueParser
         return items;
     }
 
-    private static IEnumerable<object> ParseGenericList(Type itemType, StringSegment serialized, out Result result)
+    private static IEnumerable<object> ParseGenericList(Type itemType, ReadOnlySpan<char> serialized, out Result result)
     {
         result = Result.Failure;
         MikrotikThrowHelper.Throw_NotSupported("This type of conversion is not supported.");
         return null;
     }
 
-    private delegate object ParseDelegate(Type type, StringSegment serialized, out Result result);
+    private delegate object ParseDelegate(Type type, ReadOnlySpan<char> serialized, out Result result);
 
-    private delegate object ParseListDelegate(Type itemType, StringSegment serialized, out Result result);
+    private delegate object ParseListDelegate(Type itemType, ReadOnlySpan<char> serialized, out Result result);
 
     public enum Result
     {

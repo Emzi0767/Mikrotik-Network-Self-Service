@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Threading.Tasks;
 using Emzi0767.NetworkSelfService.gRPC;
 using Google.Protobuf.WellKnownTypes;
@@ -36,6 +37,9 @@ public sealed class GrpcAuthenticationService : Authentication.AuthenticationBas
         this._loginHandler = loginHandler;
     }
 
+    private Guid GetSessionId(ServerCallContext context)
+        => context.GetHttpContext().User.GetSessionId().Value;
+
     [AllowAnonymous]
     public override async Task<Result> Authenticate(AuthenticationRequest request, ServerCallContext context)
     {
@@ -45,18 +49,18 @@ public sealed class GrpcAuthenticationService : Authentication.AuthenticationBas
     }
 
     [Authorize(TokenPolicies.RefreshOnlyPolicy)]
-    public override async Task<Result> RefreshSession(SessionRefreshRequest request, ServerCallContext context)
+    public override async Task<Result> RefreshSession(Empty request, ServerCallContext context)
     {
         this._logger.LogInformation("Session refresh attempt from '{username}'", context.GetHttpContext().User.GetName());
-        var result = await this._loginHandler.RefreshTokenAsync(context.GetHttpContext().User.GetSessionId().Value, context.CancellationToken);
+        var result = await this._loginHandler.RefreshTokenAsync(this.GetSessionId(context), context.CancellationToken);
         return new Result { IsSuccess = result.Session is not null, Result_ = Any.Pack(result), };
     }
 
     [Authorize]
-    public override async Task<Result> DestroySession(SessionDestroyRequest request, ServerCallContext context)
+    public override async Task<Result> DestroySession(Empty request, ServerCallContext context)
     {
         this._logger.LogInformation("Logout request from '{username}'", context.GetHttpContext().User.GetName());
-        await this._loginHandler.LogoutAsync(context.GetHttpContext().User.GetSessionId().Value, context.CancellationToken);
+        await this._loginHandler.LogoutAsync(this.GetSessionId(context), context.CancellationToken);
         return new Result { IsSuccess = true };
     }
 }

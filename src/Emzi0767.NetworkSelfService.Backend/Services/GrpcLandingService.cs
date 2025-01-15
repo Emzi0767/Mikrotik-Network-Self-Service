@@ -45,9 +45,12 @@ public sealed class GrpcLandingService : Landing.LandingBase
         this._mikrotik = mikrotik;
     }
 
-    public override async Task<Result> GetInformation(LandingRequest request, ServerCallContext context)
+    private string GetUsername(ServerCallContext context)
+        => context.GetHttpContext().User.GetName();
+
+    public override async Task<Result> GetInformation(Empty request, ServerCallContext context)
     {
-        var username = context.GetHttpContext().User.GetName();
+        var username = this.GetUsername(context);
         this._logger.LogInformation("Get network details for '{username}'", username);
 
         var user = await this._users.FindUserByNameAsync(username, context.CancellationToken);

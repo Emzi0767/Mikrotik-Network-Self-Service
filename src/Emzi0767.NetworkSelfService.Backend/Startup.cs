@@ -107,6 +107,8 @@ public sealed class Startup
             {
                 endpoints.MapGrpcService<GrpcAuthenticationService>();
                 endpoints.MapGrpcService<GrpcLandingService>();
+                endpoints.MapGrpcService<GrpcDhcpService>();
+                endpoints.MapGrpcService<GrpcWifiService>();
                 endpoints.MapGet("/", async ctx =>
                 {
                     ctx.Response.ContentType = "image/jpeg";

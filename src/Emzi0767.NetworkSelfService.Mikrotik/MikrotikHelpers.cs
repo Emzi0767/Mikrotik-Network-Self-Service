@@ -364,18 +364,7 @@ internal static class MikrotikHelpers
     /// <param name="timeSpan"><see cref="TimeSpan"/> to serialize.</param>
     /// <returns>Serialized object.</returns>
     public static string ToMikrotikString(this TimeSpan timeSpan)
-    {
-        if (timeSpan.TotalDays >= 1)
-            return timeSpan.ToString(@"d\d hh:mm:ss");
-
-        if (timeSpan.TotalHours >= 1)
-            return timeSpan.ToString(@"h\:mm\:ss");
-
-        if (timeSpan.TotalMinutes >= 1)
-            return timeSpan.ToString(@"m\:ss");
-
-        return timeSpan.ToString("s");
-    }
+        => timeSpan.ToString(timeSpan.TotalDays >= 1 ? @"d\d hh:mm:ss" : @"h\:mm\:ss");
 
     /// <summary>
     /// Serializes a given <see cref="IEnumerable{T}"/> to a Mikrotik string.
@@ -390,5 +379,23 @@ internal static class MikrotikHelpers
     {
         foreach (var obj in enumerable)
             yield return obj;
+    }
+
+    /// <summary>
+    /// Finds the next index of a given item in the span.
+    /// </summary>
+    /// <param name="span">Span to search.</param>
+    /// <param name="item">Item to search for.</param>
+    /// <param name="index">Index to start at.</param>
+    /// <typeparam name="T">Type of item.</typeparam>
+    /// <returns>Index of the item, or -1 if not found.</returns>
+    public static int NextIndexOf<T>(this ReadOnlySpan<T> span, T item, int index)
+        where T : IEquatable<T>
+    {
+        span = span[index..];
+        var idx = span.IndexOf(item);
+        return idx < 0
+            ? -1
+            : idx + index;
     }
 }
