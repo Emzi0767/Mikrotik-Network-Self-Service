@@ -21,12 +21,14 @@ internal interface IMikrotikQuery
 
 internal enum MikrotikBinaryQueryOperator
 {
+    Invalid,
     Or,
     And,
 }
 
 internal enum MikrotikComparisonQueryOperator
 {
+    Invalid,
     Equals,
     GreaterThan,
     LessThan,

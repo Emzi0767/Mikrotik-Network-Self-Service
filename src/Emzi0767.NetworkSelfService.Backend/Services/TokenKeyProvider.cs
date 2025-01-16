@@ -65,6 +65,8 @@ public sealed class TokenKeyProvider
         };
     }
 
+    // AsymmetricAlgorithm.Create is haram, should use TAlgorithm.Create, but no static iface for it
+#pragma warning disable SYSLIB0045
     private static AsymmetricSecurityKey LoadKey<TAlgorithm, TKey>(string filePath, byte[] filePassword, Func<TAlgorithm, TKey> keyFactory)
         where TAlgorithm : AsymmetricAlgorithm
         where TKey : AsymmetricSecurityKey
@@ -78,4 +80,5 @@ public sealed class TokenKeyProvider
 
         return keyFactory(algo);
     }
+#pragma warning restore SYSLIB0045
 }

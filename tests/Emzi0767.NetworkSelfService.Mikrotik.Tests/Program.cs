@@ -52,7 +52,7 @@ internal static class Program
         Console.WriteLine("! SETTLED");
 
         var address = IPAddress.Parse("10.0.1.1");
-        var countQuery = await mikrotik.Get<MikrotikCapsmanAcl>()
+        var countQuery = await mikrotik.Get<MikrotikIPv4Pool>()
             //.AsAsyncQueryable()
             .ToListAsync();
         Console.WriteLine("! SENT INTERFACE LIST QUERY");

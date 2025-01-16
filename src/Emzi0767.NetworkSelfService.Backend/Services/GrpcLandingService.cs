@@ -53,8 +53,8 @@ public sealed class GrpcLandingService : Landing.LandingBase
         var username = this.GetUsername(context);
         this._logger.LogInformation("Get network details for '{username}'", username);
 
-        var user = await this._users.FindUserByNameAsync(username, context.CancellationToken);
-        var network = await this._networks.GetNetworkAsync(user.NetworkName, context.CancellationToken);
+        var user = await this._users.GetWithNetworkAsync(username, context.CancellationToken);
+        var network = user.Network;
         var dhcp = await this._mikrotik.Get<MikrotikDhcpServer>()
             .FirstOrDefaultAsync(x => x.Name == network.DhcpServer, context.CancellationToken);
 

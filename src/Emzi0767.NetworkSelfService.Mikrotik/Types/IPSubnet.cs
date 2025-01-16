@@ -22,6 +22,9 @@ using Microsoft.Extensions.Primitives;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik.Types;
 
+// IPAddress.Address is obsolete, but it's the best way of dealing with this stuff
+#pragma warning disable CS0618 // Type or member is obsolete
+
 /// <summary>
 /// Represents information about an IP subnet, based on CIDR notation.
 /// </summary>
@@ -66,6 +69,51 @@ public readonly struct IPSubnet : IParsable<IPSubnet>, IEquatable<IPSubnet>, ISp
         this.Mask = ToAddress(mask32);
         this.Broadcast = GetNetworkBroadcastAddress(address, mask32);
     }
+
+    /// <summary>
+    /// Checks whether this subnet contains a given address.
+    /// </summary>
+    /// <param name="address">Address to check.</param>
+    /// <returns>Whether this subnet contains the given address.</returns>
+    public bool Contains(IPAddress address)
+        => address.ToNumeric() < this.Broadcast.ToNumeric()
+        && address.ToNumeric() > this.Address.ToNumeric();
+
+    /// <summary>
+    /// Checks whether this subnet contains a given subnet.
+    /// </summary>
+    /// <param name="subnet">Subnet to check.</param>
+    /// <returns>Whether this subnet contains the given address.</returns>
+    public bool Contains(IPSubnet subnet)
+    {
+        if (this.CidrMask < subnet.CidrMask)
+            return false;
+
+        return subnet.Address.ToNumeric() >= this.Address.ToNumeric()
+            && subnet.Address.ToNumeric() < this.Broadcast.ToNumeric();
+    }
+
+    /// <summary>
+    /// Checks whether this subnet contains a given address.
+    /// </summary>
+    /// <param name="addressWithSubnet">Address to check.</param>
+    /// <returns>Whether this subnet contains the given address.</returns>
+    public bool Contains(IPAddressWithSubnet addressWithSubnet)
+    {
+        if (this.CidrMask < addressWithSubnet.CidrMask)
+            return false;
+
+        return this.Contains(addressWithSubnet.Address);
+    }
+
+    /// <summary>
+    /// Checks whether this subnet contains a given IP range.
+    /// </summary>
+    /// <param name="range">Range to check.</param>
+    /// <returns>Whether this subnet contains the given range.</returns>
+    public bool Contains(IPRange range)
+        => range.Start.ToNumeric() >= this.Address.ToNumeric()
+        && range.End.ToNumeric() <= this.Broadcast.ToNumeric();
 
     /// <inheritdoc />
     public bool Equals(IPSubnet other)
@@ -161,15 +209,12 @@ public readonly struct IPSubnet : IParsable<IPSubnet>, IEquatable<IPSubnet>, ISp
     private static IPAddress ToAddress(uint addr)
         => new IPAddress(BinaryPrimitives.ReverseEndianness(addr));
 
-    private static uint ToAddress32(IPAddress addr)
-        => BinaryPrimitives.ReverseEndianness((uint)addr.Address);
-
     private static IPAddress GetNetworkBaseAddress(IPAddress address, uint mask32)
     {
         if (address.AddressFamily != AddressFamily.InterNetwork)
             MikrotikThrowHelper.Throw_NotSupported("Only IPv4 addresses are supported.");
 
-        var addr32 = ToAddress32(address);
+        var addr32 = address.ToNumeric();
         addr32 &= mask32;
 
         var ip = ToAddress(addr32);
@@ -178,7 +223,7 @@ public readonly struct IPSubnet : IParsable<IPSubnet>, IEquatable<IPSubnet>, ISp
 
     private static IPAddress GetNetworkBroadcastAddress(IPAddress addr, uint mask32)
     {
-        var addr32 = ToAddress32(addr);
+        var addr32 = addr.ToNumeric();
         addr32 &= mask32;
         var bcast32 = uint.MaxValue & ~mask32;
         addr32 |= bcast32;
@@ -190,4 +235,7 @@ public readonly struct IPSubnet : IParsable<IPSubnet>, IEquatable<IPSubnet>, ISp
 
     public static bool operator !=(IPSubnet left, IPSubnet right)
         => !left.Equals(right);
+
+    public static implicit operator IPRange(IPSubnet subnet)
+        => new(subnet.Address, subnet.Broadcast);
 }

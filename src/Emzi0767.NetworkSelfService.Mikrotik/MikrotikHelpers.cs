@@ -20,12 +20,13 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Emzi0767.NetworkSelfService.Mikrotik.Entities;
 using Emzi0767.Types;
-using sc = System.Collections;
+using SC = System.Collections;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik;
 
@@ -346,13 +347,16 @@ internal static class MikrotikHelpers
         if (obj is bool b)
             return b ? "yes" : "no";
 
+        if (obj is string s)
+            return s;
+
         if (obj.GetType().IsEnum)
             return EnumProxies.MapToSerialized(obj.GetType(), obj);
 
         if (obj is IFormattable f)
             return f.ToString(null, CultureInfo.InvariantCulture);
 
-        if (obj is sc.IEnumerable enumerable)
+        if (obj is SC.IEnumerable enumerable)
             return string.Join(",", enumerable.ToObjectStream().Select(x => x.ToMikrotikString()));
 
         return obj.ToString();
@@ -375,7 +379,7 @@ internal static class MikrotikHelpers
     public static string ToMikrotikString<T>(this IEnumerable<T> enumerable)
         => string.Join(",", enumerable.Select(x => x.ToMikrotikString()));
 
-    private static IEnumerable<object> ToObjectStream(this sc.IEnumerable enumerable)
+    private static IEnumerable<object> ToObjectStream(this SC.IEnumerable enumerable)
     {
         foreach (var obj in enumerable)
             yield return obj;
@@ -398,4 +402,15 @@ internal static class MikrotikHelpers
             ? -1
             : idx + index;
     }
+
+// IPAddress.Address is obsolete, but it's the best way of dealing with this stuff
+#pragma warning disable CS0618 // Type or member is obsolete
+    /// <summary>
+    /// Converts an IPv4 address to a number.
+    /// </summary>
+    /// <param name="address">Address to convert.</param>
+    /// <returns>Converted address</returns>
+    public static uint ToNumeric(this IPAddress address)
+        => BinaryPrimitives.ReverseEndianness((uint)address.Address);
+#pragma warning restore CS0618 // Type or member is obsolete
 }

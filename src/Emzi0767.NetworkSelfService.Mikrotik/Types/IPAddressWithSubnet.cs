@@ -19,6 +19,9 @@ using System.Net;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik.Types;
 
+// IPAddress.Address is obsolete, but it's the best way of dealing with this stuff
+#pragma warning disable CS0618 // Type or member is obsolete
+
 /// <summary>
 /// Represents information about an IP address with a mask, in CIDR notation.
 /// </summary>

@@ -44,16 +44,42 @@ public sealed class GrpcAuthenticationService : Authentication.AuthenticationBas
     public override async Task<Result> Authenticate(AuthenticationRequest request, ServerCallContext context)
     {
         this._logger.LogInformation("Authentication attempt from '{username}'", request.Username);
-        var result = await this._loginHandler.LoginAsync(request, context.CancellationToken);
-        return new Result { IsSuccess = result.Session is not null, Result_ = Any.Pack(result), };
+        var response = await this._loginHandler.LoginAsync(request, context.CancellationToken);
+        var result = new Result
+        {
+            IsSuccess = response is not null,
+        };
+
+        if (response is not null)
+            result.Result_ = Any.Pack(response);
+        else
+            result.Error = new Error
+            {
+                Code = ErrorCode.InvalidCredentials,
+            };
+
+        return result;
     }
 
     [Authorize(TokenPolicies.RefreshOnlyPolicy)]
     public override async Task<Result> RefreshSession(Empty request, ServerCallContext context)
     {
         this._logger.LogInformation("Session refresh attempt from '{username}'", context.GetHttpContext().User.GetName());
-        var result = await this._loginHandler.RefreshTokenAsync(this.GetSessionId(context), context.CancellationToken);
-        return new Result { IsSuccess = result.Session is not null, Result_ = Any.Pack(result), };
+        var response = await this._loginHandler.RefreshTokenAsync(this.GetSessionId(context), context.CancellationToken);
+        var result = new Result
+        {
+            IsSuccess = response is not null,
+        };
+
+        if (response is not null)
+            result.Result_ = Any.Pack(response);
+        else
+            result.Error = new Error
+            {
+                Code = ErrorCode.SessionInvalidOrExpired,
+            };
+
+        return result;
     }
 
     [Authorize]

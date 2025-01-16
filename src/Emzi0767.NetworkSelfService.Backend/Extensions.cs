@@ -1,4 +1,4 @@
-﻿// This file is part of Network Self-Service Project.
+// This file is part of Network Self-Service Project.
 // Copyright © 2024-2025 Mateusz Brawański <Emzi0767>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -15,9 +15,12 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Emzi0767.NetworkSelfService.gRPC;
 using Grpc.Core;
 using Microsoft.AspNetCore.Antiforgery;
@@ -148,5 +151,21 @@ public static class Extensions
 
         result.XsrfToken = tokens.RequestToken;
         return result;
+    }
+
+    /// <summary>
+    /// Flattens the async enumerable to a list.
+    /// </summary>
+    /// <param name="source">Enumerable to flatten.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <typeparam name="T">Type of item in the list.</typeparam>
+    /// <returns>Flattened list.</returns>
+    public static async Task<List<T>> EToListAsync<T>(this IAsyncEnumerable<T> source, CancellationToken cancellationToken = default)
+    {
+        var list = new List<T>();
+        await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
+            list.Add(item);
+
+        return list;
     }
 }

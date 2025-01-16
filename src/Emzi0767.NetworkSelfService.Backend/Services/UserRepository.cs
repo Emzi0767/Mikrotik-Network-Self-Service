@@ -34,4 +34,9 @@ public sealed class UserRepository
     public async Task<DbUser> FindUserByNameAsync(string name, CancellationToken cancellationToken = default)
         => await this._db.Users
             .FirstOrDefaultAsync(x => x.Username == name, cancellationToken);
+
+    public async Task<DbUser> GetWithNetworkAsync(string name, CancellationToken cancellationToken = default)
+        => await this._db.Users
+            .Include(x => x.Network)
+            .FirstOrDefaultAsync(x => x.Username == name, cancellationToken);
 }

@@ -19,10 +19,16 @@ message DhcpLease {
     string ipAddress = 3;
 
     // Gets or sets the hostname associated with the lease.
-    string hostname = 4;
+    optional string hostname = 4;
 
     // Gets or sets whether the lease is dynamic.
     bool isDynamic = 5;
+}
+
+// Represents a list of DHCP leases.
+message DhcpLeases {
+    // Gets or sets the collection of DHCP leases.
+    repeated DhcpLease leases = 1;
 }
 
 // Represents IPv4 configuration of a network segment.

@@ -249,6 +249,7 @@ internal sealed class MikrotikExpressionParser
                     {
                         ExpressionType.GreaterThan => MikrotikComparisonQueryOperator.GreaterThan,
                         ExpressionType.LessThan => MikrotikComparisonQueryOperator.LessThan,
+                        _ => MikrotikComparisonQueryOperator.Invalid,
                     }
                 );
             }
@@ -264,6 +265,7 @@ internal sealed class MikrotikExpressionParser
                 {
                     ExpressionType.And or ExpressionType.AndAlso => MikrotikBinaryQueryOperator.And,
                     ExpressionType.Or or ExpressionType.OrElse => MikrotikBinaryQueryOperator.Or,
+                    _ => MikrotikBinaryQueryOperator.Invalid
                 };
 
                 return new MikrotikBinaryQuery(qLeft, qRight, @operator);
@@ -276,11 +278,11 @@ internal sealed class MikrotikExpressionParser
         static void _validateCombo(Expression _l, Expression _r, out MemberExpression _ll, out object _rr)
         {
             (_ll, _rr) = (null, null);
-            if (_l is MemberExpression { Member: PropertyInfo })
+            if (_l is MemberExpression { Member: PropertyInfo, Expression: ParameterExpression })
             {
                 _ll = _l as MemberExpression;
             }
-            else if (_r is MemberExpression { Member: PropertyInfo })
+            else if (_r is MemberExpression { Member: PropertyInfo, Expression: ParameterExpression })
             {
                 _ll = _r as MemberExpression;
             }
@@ -312,8 +314,43 @@ internal sealed class MikrotikExpressionParser
                 _rr = field2.GetValue(val);
                 return;
             }
+            else if (_ll != _l && _l is MemberExpression)
+            {
+                _rr = _resolveValue(_l);
+                return;
+            }
+            else if (_ll != _r && _r is MemberExpression)
+            {
+                _rr = _resolveValue(_r);
+                return;
+            }
 
             MikrotikThrowHelper.Throw_NotSupported("For comparison operators, one side has to be property access, while other has to be a constant.");
+        }
+
+        static object _resolveValue(Expression expression)
+        {
+            switch (expression)
+            {
+                case ConstantExpression @const:
+                    return @const.Value;
+
+                case MemberExpression member:
+                {
+                    var @base = _resolveValue(member.Expression);
+                    if (member.Member is FieldInfo field)
+                        return field.GetValue(@base);
+                    else if (member.Member is PropertyInfo property)
+                        return property.GetValue(@base);
+
+                    MikrotikThrowHelper.Throw_NotSupported("Unable to resolve value for expression.");
+                    return null;
+                }
+
+                default:
+                    MikrotikThrowHelper.Throw_NotSupported("Unable to resolve value for expression.");
+                    return null;
+            }
         }
 
         static string _mapProperty(PropertyInfo _p, ref MikrotikExpressionParserState _s)

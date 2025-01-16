@@ -147,6 +147,8 @@ public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
         }
     }
 
+    // obsolete TLS version warning - I am aware of this, it is not me who uses it
+#pragma warning disable SYSLIB0039
     private async Task ConnectAsync(IPEndPoint endpoint, string hostname, CancellationToken cancellationToken = default)
     {
         this._client = new TcpClient();
@@ -171,6 +173,7 @@ public sealed class MikrotikApiClient : IDisposable, IAsyncDisposable
             this._stream = tls;
         }
     }
+#pragma warning restore SYSLIB0039
 
     /// <summary>
     /// Attempts to disconnect from the API.

@@ -146,6 +146,12 @@ public class MikrotikDhcpLease : IMikrotikEntity, IMikrotikDeletableEntity
     public bool UseSourceMac { get; internal set; }
 
     /// <summary>
+    /// Gets the hostname associated with the lease.
+    /// </summary>
+    [DataMember(Name = "host-name")]
+    public string Hostname { get; internal set; }
+
+    /// <summary>
     /// Gets whether the lease is dynamic.
     /// </summary>
     [DataMember(Name = "dynamic")]
