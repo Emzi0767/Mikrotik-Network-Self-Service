@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,7 +28,7 @@ internal sealed class MikrotikResponseEnumerable : IAsyncEnumerable<MikrotikSent
 {
     private ImmutableArray<MikrotikSentence> _buffer = ImmutableArray<MikrotikSentence>.Empty;
 
-    private readonly object _syncRoot = new();
+    private readonly Lock _syncRoot = new();
     private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly CancellationToken _cancellationToken;
     private readonly ManualResetEventSlim _feedEvent = new(false);
@@ -47,62 +48,49 @@ internal sealed class MikrotikResponseEnumerable : IAsyncEnumerable<MikrotikSent
 
     public void Feed(MikrotikSentence sentence)
     {
-        lock (this._syncRoot)
-        {
-            this._buffer = this._buffer.Add(sentence);
+        using var _ = this._syncRoot.EnterScope();
+        this._buffer = this._buffer.Add(sentence);
 
-            var first = sentence.Words.First();
-            if (first is MikrotikReplyWord { IsFinal: true })
-                this.IsCompleted = true;
+        var first = sentence.Words.First();
+        if (first is MikrotikReplyWord { IsFinal: true })
+            this.IsCompleted = true;
 
-            if (this._feedEventTask.IsValueCreated && !this.IsCompleted)
-                this._feedEventTask = new(this.CreateFeedEventTask);
+        if (this._feedEventTask.IsValueCreated && !this.IsCompleted)
+            this._feedEventTask = new(this.CreateFeedEventTask);
 
-            this._feedEvent.Set();
-        }
+        this._feedEvent.Set();
     }
 
     public void Terminate()
     {
         try
         {
-            lock (this._syncRoot)
-            {
-                this._cancellationTokenSource.Cancel();
-                this._feedEvent.Set();
-            }
+            using var _ = this._syncRoot.EnterScope();
+            this._cancellationTokenSource.Cancel();
+            this._feedEvent.Set();
         }
         catch { }
     }
 
-    public ValueTask<bool> WaitForNextItemAsync(int currentIndex, CancellationToken cancellationToken = default)
-    {
-        var l = this._buffer.Length;
-        if (currentIndex < l)
-            return ValueTask.FromResult(true);
-
-        if (this.IsCompleted && currentIndex >= l)
-            return ValueTask.FromResult(false);
-
-        var t = _waitForItem(this._feedEventTask.Value);
-        return new ValueTask<bool>(t);
-
-        static async Task<bool> _waitForItem(Task _t)
-        {
-            try
-            {
-                await _t;
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-    }
-
     public IAsyncEnumerator<MikrotikSentence> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-        => new MikrotikResponseEnumerator(this, cancellationToken);
+        => this.EnumerateAsync(cancellationToken).GetAsyncEnumerator(cancellationToken);
+
+    private async IAsyncEnumerable<MikrotikSentence> EnumerateAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var idx = 0;
+        while (idx < this._buffer.Length)
+            yield return this._buffer[idx++];
+
+        while (!this.IsCompleted || cancellationToken.IsCancellationRequested)
+        {
+            await this._feedEventTask.Value.WaitAsync(cancellationToken);
+            while (idx < this._buffer.Length)
+                yield return this._buffer[idx++];
+        }
+
+        while (idx < this._buffer.Length)
+            yield return this._buffer[idx++];
+    }
 
     public void Dispose()
     {

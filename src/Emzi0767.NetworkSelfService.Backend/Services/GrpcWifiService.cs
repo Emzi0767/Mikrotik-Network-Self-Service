@@ -17,6 +17,8 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Emzi0767.NetworkSelfService.Backend.Data;
 using Emzi0767.NetworkSelfService.gRPC;
@@ -28,6 +30,7 @@ using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
+using Enum = System.Enum;
 
 namespace Emzi0767.NetworkSelfService.Backend.Services;
 
@@ -57,81 +60,89 @@ public sealed class GrpcWifiService : Wifi.WifiBase
     private string GetUsername(ServerCallContext context)
         => context.GetHttpContext().User.GetName();
 
-    private async Task<WifiInfo> GetWifiInfoAsync(ServerCallContext context)
+    private async Task<WifiBasicInfo> GetBasicsAsync(ServerCallContext context)
     {
         var user = await this._users.GetWithNetworkAsync(this.GetUsername(context), context.CancellationToken);
         var network = user.Network;
         var apMap = await this._apMappings.GetMappingDictionaryAsync(context.CancellationToken);
+        return new(user, network, apMap);
+    }
 
-        var configurations = await this._mikrotikProvider.Get<MikrotikCapsmanInterfaceConfiguration>()
-            .Where(x => x.InterfaceListName == network.WirelessInterfaceList)
+    private async Task<List<MikrotikCapsmanInterfaceConfiguration>> GetConfigurationsAsync(string interfaceList, ServerCallContext context)
+        => await this._mikrotikProvider.Get<MikrotikCapsmanInterfaceConfiguration>()
+            .Where(x => x.InterfaceListName == interfaceList)
             .AsAsyncQueryable()
             .ToListAsync(context.CancellationToken);
 
-        var radios = await this._mikrotikProvider.Get<MikrotikCapsmanRadio>()
-            .ToListAsync(context.CancellationToken);
+    private async Task<MikrotikCapsmanDatapath> GetDatapathAsync(string interfaceList, ServerCallContext context)
+        => await this._mikrotikProvider.Get<MikrotikCapsmanDatapath>()
+            .FirstOrDefaultAsync(x => x.InterfaceList == interfaceList, context.CancellationToken);
 
-        var ifaces = configurations.Select(x => x.MasterInterfaceName ?? x.Name).ToArray();
-        var registrations = await this._mikrotikProvider.Get<MikrotikCapsmanRegistration>()
-            .WhereIn(x => x.InterfaceName, ifaces)
-            .AsAsyncQueryable()
-            .ToListAsync(context.CancellationToken);
+    private async IAsyncEnumerable<WifiAcl> GetAclsAsync(string interfaceList, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        await foreach (var acl in this._mikrotikProvider.Get<MikrotikCapsmanAcl>()
+            .Where(x => x.InterfaceList == interfaceList)
+            .AsAsyncQueryable())
+            yield return MakeAcl(acl);
+    }
 
-        var radioMap = radios.ToDictionary(x => x.InterfaceName, x => x.Identity);
-        var ifaceApMap = configurations
-            .Select(x => x.MasterInterfaceName ?? x.Name)
-            .ToDictionary(x => x, x => radioMap[x]);
-
-        var bandMap = configurations.ToDictionary(x => x.Name, x => x.WirelessBand switch
-            {
-                MikrotikWirelessBand.B_2_4GHz
-                    or MikrotikWirelessBand.BG_2_4GHz
-                    or MikrotikWirelessBand.BGN_2_4GHz
-                    or MikrotikWirelessBand.GN_2_4GHz
-                    or MikrotikWirelessBand.G_2_4GHz
-                    or MikrotikWirelessBand.N_2_4GHz
-                    => WifiBand.Band24Ghz,
-
-                MikrotikWirelessBand.A_5GHz
-                    or MikrotikWirelessBand.AN_5GHz
-                    or MikrotikWirelessBand.ANAC_5GHz
-                    or MikrotikWirelessBand.NAC_5GHz
-                    or MikrotikWirelessBand.AC_5GHz
-                    or MikrotikWirelessBand.N_5GHz
-                    => WifiBand.Band5Ghz,
-
-                _ => WifiBand.BandUnknown,
-            });
-
-        var datapath = await this._mikrotikProvider.Get<MikrotikCapsmanDatapath>()
-            .FirstOrDefaultAsync(x => x.InterfaceList == network.WirelessInterfaceList, context.CancellationToken);
-
-        var config = new WifiConfigResponse
-        {
-            Ssid = configurations.First().Ssid,
-            IsolateClients = datapath.EnableLocalForwarding && datapath.EnableClientToClientForwarding,
-        };
-
-        var acls = await this._mikrotikProvider.Get<MikrotikCapsmanAcl>()
-            .Where(x => x.InterfaceList == network.WirelessInterfaceList)
-            .AsAsyncQueryable()
-            .ToListAsync(context.CancellationToken);
-
-        var wifiAcls = acls.Select(MakeAcl)
-            .ToArray();
-
+    private async Task<WifiRecentAttemptsResponse> GetRecentAttemptsAsync(IReadOnlyDictionary<string, string> ifaceApMap, ServerCallContext context)
+    {
         var log = (await this._mikrotikProvider.Get<MikrotikLogEntry>()
-            .ToListAsync(context.CancellationToken))
+                .ToListAsync(context.CancellationToken))
             .Where(x => x.Topics.SequenceEqual([ "caps", "info" ]) && x.Message.EndsWith("rejected, forbidden by access-list"))
             .DistinctBy(x => x.Message)
             .Select(x => WifiLoggedAttempt.Parse(x.Message))
             .Where(x => ifaceApMap.ContainsKey(x.Interface))
+            .DistinctBy(x => x.Address)
             .Select(x => x.Address.ToString());
 
         var recentAttempts = new WifiRecentAttemptsResponse();
         recentAttempts.MacAddresses.AddRange(log);
 
-        var connected = registrations.Select(x => new WifiConnectedDevice
+        return recentAttempts;
+    }
+
+    private async Task<IReadOnlyDictionary<string, string>> GetInterfaceApMapAsync(IReadOnlyDictionary<string, string> apMap, IEnumerable<MikrotikCapsmanInterfaceConfiguration> configurations, ServerCallContext context)
+    {
+        var radios = await this._mikrotikProvider.Get<MikrotikCapsmanRadio>()
+            .ToListAsync(context.CancellationToken);
+
+        var radioMap = radios.ToDictionary(x => x.InterfaceName, x => x.Identity);
+        return configurations
+            .ToDictionary(x => x.Name, x => apMap[radioMap[x.MasterInterfaceName ?? x.Name]]);
+    }
+
+    private async Task<IEnumerable<WifiConnectedDevice>> GetConnectedDevicesAsync(IEnumerable<MikrotikCapsmanInterfaceConfiguration> configurations, IReadOnlyDictionary<string, string> ifaceApMap, ServerCallContext context)
+    {
+        var ifaces = configurations.Select(x => x.Name).ToArray();
+        var registrations = await this._mikrotikProvider.Get<MikrotikCapsmanRegistration>()
+            .WhereIn(x => x.InterfaceName, ifaces)
+            .AsAsyncQueryable()
+            .ToListAsync(context.CancellationToken);
+
+        var bandMap = configurations.ToDictionary(x => x.Name, x => x.WirelessBand switch
+        {
+            MikrotikWirelessBand.B_2_4GHz
+                or MikrotikWirelessBand.BG_2_4GHz
+                or MikrotikWirelessBand.BGN_2_4GHz
+                or MikrotikWirelessBand.GN_2_4GHz
+                or MikrotikWirelessBand.G_2_4GHz
+                or MikrotikWirelessBand.N_2_4GHz
+                => WifiBand.Band24Ghz,
+
+            MikrotikWirelessBand.A_5GHz
+                or MikrotikWirelessBand.AN_5GHz
+                or MikrotikWirelessBand.ANAC_5GHz
+                or MikrotikWirelessBand.NAC_5GHz
+                or MikrotikWirelessBand.AC_5GHz
+                or MikrotikWirelessBand.N_5GHz
+                => WifiBand.Band5Ghz,
+
+            _ => WifiBand.BandUnknown,
+        });
+
+        return registrations.Select(x => new WifiConnectedDevice
             {
                 MacAddress = x.MacAddress.ToString(),
                 Ap = ifaceApMap[x.InterfaceName],
@@ -139,6 +150,24 @@ public sealed class GrpcWifiService : Wifi.WifiBase
                 Band = bandMap[x.InterfaceName],
             })
             .ToArray();
+    }
+
+    private async Task<WifiInfo> GetWifiInfoAsync(ServerCallContext context)
+    {
+        var (user, network, apMap) = await this.GetBasicsAsync(context);
+        var configurations = await this.GetConfigurationsAsync(network.WirelessInterfaceList, context);
+        var datapath = await this.GetDatapathAsync(network.WirelessInterfaceList, context);
+        var ifaceApMap = await this.GetInterfaceApMapAsync(apMap, configurations, context);
+
+        var config = new WifiConfigResponse
+        {
+            Ssid = configurations.First().Ssid,
+            IsolateClients = !(datapath.EnableLocalForwarding && datapath.EnableClientToClientForwarding),
+        };
+
+        var wifiAcls = await this.GetAclsAsync(network.WirelessInterfaceList).EToListAsync(context.CancellationToken);
+        var recentAttempts = await this.GetRecentAttemptsAsync(ifaceApMap, context);
+        var connected = await this.GetConnectedDevicesAsync(configurations, ifaceApMap, context);
 
         return new(
             user,
@@ -150,10 +179,23 @@ public sealed class GrpcWifiService : Wifi.WifiBase
             connected);
     }
 
+    private async Task<WifiConfigResponse> GetWifiConfigurationAsync(ServerCallContext context)
+    {
+        var (user, network, apMap) = await this.GetBasicsAsync(context);
+        var configurations = await this.GetConfigurationsAsync(network.WirelessInterfaceList, context);
+        var datapath = await this.GetDatapathAsync(network.WirelessInterfaceList, context);
+
+        return new()
+        {
+            Ssid = configurations.First().Ssid,
+            IsolateClients = !(datapath.EnableLocalForwarding && datapath.EnableClientToClientForwarding),
+        };
+    }
+
     public override async Task<Result> GetInfo(Empty request, ServerCallContext context)
     {
         var info = await this.GetWifiInfoAsync(context);
-        this._logger.LogInformation("Get DHCP info for '{username}'", info.User.Username);
+        this._logger.LogInformation("Get Wi-Fi info for '{username}'", info.User.Username);
 
         var response = new WifiInfoResponse
         {
@@ -171,22 +213,43 @@ public sealed class GrpcWifiService : Wifi.WifiBase
 
     public override async Task<Result> GetConfiguration(Empty request, ServerCallContext context)
     {
-        return new() { IsSuccess = false };
+        this._logger.LogInformation("Get Wi-Fi configuration for '{username}'", this.GetUsername(context));
+        var config = await this.GetWifiConfigurationAsync(context);
+
+        return new() { IsSuccess = true, Result_ = Any.Pack(config), };
     }
 
     public override async Task<Result> GetAcls(Empty request, ServerCallContext context)
     {
-        return new() { IsSuccess = false };
+        var (_, network, _) = await this.GetBasicsAsync(context);
+        this._logger.LogInformation("Get Wi-Fi configuration for '{username}'", this.GetUsername(context));
+        var wifiAcls = await this.GetAclsAsync(network.WirelessInterfaceList).EToListAsync(context.CancellationToken);
+        var acls = new WifiAclResponse();
+        acls.Acls.AddRange(wifiAcls);
+
+        return new() { IsSuccess = true, Result_ = Any.Pack(acls), };
     }
 
     public override async Task<Result> GetRecentConnectionAttempts(Empty request, ServerCallContext context)
     {
-        return new() { IsSuccess = false };
+        var (_, network, apMap) = await this.GetBasicsAsync(context);
+        var configurations = await this.GetConfigurationsAsync(network.WirelessInterfaceList, context);
+        var ifaceApMap = await this.GetInterfaceApMapAsync(apMap, configurations, context);
+        var recents = await this.GetRecentAttemptsAsync(ifaceApMap, context);
+
+        return new() { IsSuccess = true, Result_ = Any.Pack(recents), };
     }
 
     public override async Task<Result> GetConnectedDevices(Empty request, ServerCallContext context)
     {
-        return new() { IsSuccess = false };
+        var (_, network, apMap) = await this.GetBasicsAsync(context);
+        var configurations = await this.GetConfigurationsAsync(network.WirelessInterfaceList, context);
+        var ifaceApMap = await this.GetInterfaceApMapAsync(apMap, configurations, context);
+        var connected = await this.GetConnectedDevicesAsync(configurations, ifaceApMap, context);
+        var ret = new WifiConnectedDevicesResponse();
+        ret.Devices.AddRange(connected);
+
+        return new() { IsSuccess = true, Result_ = Any.Pack(ret), };
     }
 
     public override async Task<Result> UpdateConfiguration(WifiUpdateRequest request, ServerCallContext context)
@@ -208,6 +271,11 @@ public sealed class GrpcWifiService : Wifi.WifiBase
     {
         return new() { IsSuccess = false };
     }
+
+    private readonly record struct WifiBasicInfo(
+        DbUser User,
+        DbNetwork Network,
+        IReadOnlyDictionary<string, string> ApMap);
 
     private readonly record struct WifiInfo(
         DbUser User,
@@ -247,7 +315,7 @@ public sealed class GrpcWifiService : Wifi.WifiBase
         };
 
         restriction.Days.AddRange(
-            System.Enum.GetValues<MikrotikWeekday>()
+            Enum.GetValues<MikrotikWeekday>()
                 .Where(x => x != MikrotikWeekday.None && range.Weekdays.HasFlag(x))
                 .Select(x => x switch
                 {
