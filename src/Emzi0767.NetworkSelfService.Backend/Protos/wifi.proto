@@ -30,6 +30,9 @@ enum WifiWeekday {
 
     // Specifies sunday.
     SUNDAY = 6;
+
+    // Specifies ???.
+    UNKNOWN = 7;
 }
 
 // Defines time restrictions for the ACL.
@@ -50,7 +53,7 @@ message WifiAcl {
     string id = 1;
 
     // Gets or sets the MAC address to match.
-    string macAddress = 2;
+    optional string macAddress = 2;
 
     // Gets or sets the commend for the entry.
     string comment = 3;

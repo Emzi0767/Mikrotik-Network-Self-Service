@@ -76,6 +76,7 @@ public sealed class Startup
             .AddScoped<SessionRepository>()
             .AddScoped<UserRepository>()
             .AddScoped<NetworkRepository>()
+            .AddScoped<ApMappingRepository>()
             .AddSingleton<MikrotikProvider>()
             .AddHostedService(svc => svc.GetRequiredService<MikrotikProvider>());
 

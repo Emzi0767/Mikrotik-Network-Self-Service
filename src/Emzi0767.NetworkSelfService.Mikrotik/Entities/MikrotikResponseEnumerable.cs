@@ -32,9 +32,9 @@ internal sealed class MikrotikResponseEnumerable : IAsyncEnumerable<MikrotikSent
     private readonly CancellationToken _cancellationToken;
     private readonly ManualResetEventSlim _feedEvent = new(false);
     private Lazy<Task> _feedEventTask;
-    
+
     public bool IsCompleted { get; private set; }
-    
+
     public MikrotikSentence this[int index]
         => this._buffer[index];
 
@@ -44,12 +44,13 @@ internal sealed class MikrotikResponseEnumerable : IAsyncEnumerable<MikrotikSent
         this._cancellationToken = this._cancellationTokenSource.Token;
         this._feedEventTask = new(this.CreateFeedEventTask);
     }
-    
+
     public void Feed(MikrotikSentence sentence)
     {
         lock (this._syncRoot)
         {
             this._buffer = this._buffer.Add(sentence);
+
             var first = sentence.Words.First();
             if (first is MikrotikReplyWord { IsFinal: true })
                 this.IsCompleted = true;
@@ -76,8 +77,12 @@ internal sealed class MikrotikResponseEnumerable : IAsyncEnumerable<MikrotikSent
 
     public ValueTask<bool> WaitForNextItemAsync(int currentIndex, CancellationToken cancellationToken = default)
     {
-        if (currentIndex < this._buffer.Length)
+        var l = this._buffer.Length;
+        if (currentIndex < l)
             return ValueTask.FromResult(true);
+
+        if (this.IsCompleted && currentIndex >= l)
+            return ValueTask.FromResult(false);
 
         var t = _waitForItem(this._feedEventTask.Value);
         return new ValueTask<bool>(t);
@@ -95,7 +100,7 @@ internal sealed class MikrotikResponseEnumerable : IAsyncEnumerable<MikrotikSent
             }
         }
     }
-    
+
     public IAsyncEnumerator<MikrotikSentence> GetAsyncEnumerator(CancellationToken cancellationToken = default)
         => new MikrotikResponseEnumerator(this, cancellationToken);
 

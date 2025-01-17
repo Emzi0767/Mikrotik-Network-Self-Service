@@ -35,9 +35,11 @@ public static partial class MikrotikValueParser
     private static ConcurrentDictionary<Type, ParseDelegate> _converters = new();
     private static MethodInfo _parseParsable = ((Delegate)ParseParsable<int>).Method.GetGenericMethodDefinition();
     private static ParseDelegate _parseTimeSpan = ParseTimeSpan;
+    private static ParseDelegate _parseDateTimeOffset = ParseDateTimeOffset;
     private static MethodInfo _parseEnum = ((Delegate)ParseEnum<Result>).Method.GetGenericMethodDefinition();
     private static MethodInfo _parseNullableParsable = ((Delegate)ParseNullableParsable<int>).Method.GetGenericMethodDefinition();
     private static ParseDelegate _parseNullableTimeSpan = ParseNullableTimeSpan;
+    private static ParseDelegate _parseNullableDateTimeOffset = ParseNullableDateTimeOffset;
     private static MethodInfo _parseNullableEnum = ((Delegate)ParseNullableEnum<Result>).Method.GetGenericMethodDefinition();
     private static ParseDelegate _parseNullableGeneric = ParseNullableGeneric;
     private static ParseDelegate _parseGeneric = ParseGeneric;
@@ -45,6 +47,7 @@ public static partial class MikrotikValueParser
     private static ConcurrentDictionary<Type, ParseListDelegate> _listConverters = new();
     private static MethodInfo _parseParsableList = ((Delegate)ParseParsableList<int>).Method.GetGenericMethodDefinition();
     private static ParseListDelegate _parseTimeSpanList = ParseTimeSpanList;
+    private static ParseListDelegate _parseDateTimeOffsetList = ParseDateTimeOffsetList;
     private static MethodInfo _parseEnumList = ((Delegate)ParseEnumList<Result>).Method.GetGenericMethodDefinition();
     private static ParseListDelegate _parseGenericList = ParseGenericList;
 
@@ -63,6 +66,10 @@ public static partial class MikrotikValueParser
             else if (type == typeof(TimeSpan))
             {
                 listParse = _parseTimeSpanList;
+            }
+            else if (type == typeof(DateTimeOffset) || type == typeof(DateTime))
+            {
+                listParse = _parseDateTimeOffsetList;
             }
             else if (tItem.IsSpanParsable())
             {
@@ -106,6 +113,10 @@ public static partial class MikrotikValueParser
             {
                 parse = _parseNullableTimeSpan;
             }
+            else if (tNullable == typeof(DateTimeOffset) || tNullable == typeof(DateTime))
+            {
+                parse = _parseNullableDateTimeOffset;
+            }
             else if (tNullable.IsSpanParsable())
             {
                 parse = _parseNullableParsable.MakeGenericMethod(tNullable)
@@ -124,6 +135,10 @@ public static partial class MikrotikValueParser
         else if (type == typeof(TimeSpan))
         {
             parse = _parseTimeSpan;
+        }
+        else if (type == typeof(DateTimeOffset) || type == typeof(DateTime))
+        {
+            parse = _parseDateTimeOffset;
         }
         else if (type.IsSpanParsable())
         {
@@ -195,6 +210,34 @@ public static partial class MikrotikValueParser
         return new(days, hours, minutes, seconds);
     }
 
+    private static object ParseDateTimeOffset(Type type, ReadOnlySpan<char> serialized, out Result result)
+    {
+        var val = ParseDateTimeOffsetInner(type, serialized, out result);
+        if (result != Result.Success)
+            return null;
+
+        if (type == typeof(DateTimeOffset))
+            return val;
+
+        return val.DateTime;
+    }
+
+    private static DateTimeOffset ParseDateTimeOffsetInner(Type type, ReadOnlySpan<char> serialized, out Result result)
+    {
+        if (!DateTimeOffset.TryParseExact(serialized,
+            ["yyyy-MM-dd HH:mm:ss", "MM-dd HH:mm:ss", "HH:mm:ss",],
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeLocal,
+            out var dateTimeOffset))
+        {
+            result = Result.Failure;
+            return default;
+        }
+
+        result = Result.Success;
+        return dateTimeOffset;
+    }
+
     private static object ParseEnum<T>(Type type, ReadOnlySpan<char> serialized, out Result result)
         where T : Enum
     {
@@ -238,6 +281,17 @@ public static partial class MikrotikValueParser
         return ParseTimeSpan(type, serialized, out result);
     }
 
+    private static object ParseNullableDateTimeOffset(Type type, ReadOnlySpan<char> serialized, out Result result)
+    {
+        if (serialized.Length == 0)
+        {
+            result = Result.Success;
+            return null;
+        }
+
+        return ParseDateTimeOffset(type, serialized, out result);
+    }
+
     private static object ParseNullableEnum<T>(Type type, ReadOnlySpan<char> serialized, out Result result)
         where T : Enum
     {
@@ -270,113 +324,24 @@ public static partial class MikrotikValueParser
 
     private static object ParseParsableList<T>(Type itemType, ReadOnlySpan<char> serialized, out Result result)
         where T : ISpanParsable<T>
-    {
-        if (serialized.Length == 0 && itemType != typeof(string))
-        {
-            result = Result.Success;
-            return Array.Empty<T>();
-        }
-
-        var quote = serialized.IndexOf('"');
-        var separator = serialized.IndexOf(',');
-        if (separator == -1)
-        {
-            var obj = ParseParsableInner<T>(itemType, serialized, out result);
-            return result == Result.Success
-                ? new[] { obj }
-                : null;
-        }
-
-        var items = new List<T>();
-        while (serialized.Length > 0)
-        {
-            if (separator == -1)
-            {
-                items.Add(ParseParsableInner<T>(itemType, serialized, out result));
-                if (result != Result.Success)
-                    return null;
-
-                break;
-            }
-
-            if (quote != -1 && separator > quote)
-            {
-                quote = serialized.NextIndexOf('"', quote + 1);
-                separator = serialized.NextIndexOf(',', quote + 1);
-            }
-
-            var sub = serialized[..separator];
-            if (quote != -1)
-                sub = serialized.Slice(1, serialized.Length - 2);
-
-            items.Add(ParseParsableInner<T>(itemType, sub, out result));
-            if (result != Result.Success)
-                return null;
-
-            serialized = serialized[(separator + 1)..];
-            quote = serialized.IndexOf('"');
-            separator = serialized.IndexOf(',');
-        }
-
-        result = Result.Success;
-        return items;
-    }
+        => ParseListInner<T>(itemType, serialized, ParseParsable<T>, out result);
 
     private static object ParseTimeSpanList(Type itemType, ReadOnlySpan<char> serialized, out Result result)
-    {
-        if (serialized.Length == 0 && itemType != typeof(string))
-        {
-            result = Result.Success;
-            return Array.Empty<TimeSpan>();
-        }
+        => ParseListInner<TimeSpan>(itemType, serialized, ParseTimeSpan, out result);
 
-        var quote = serialized.IndexOf('"');
-        var separator = serialized.IndexOf(',');
-        if (separator == -1)
-        {
-            var obj = ParseTimeSpanInner(itemType, serialized, out result);
-            return result == Result.Success
-                ? new[] { obj }
-                : null;
-        }
-
-        var items = new List<TimeSpan>();
-        while (serialized.Length > 0)
-        {
-            if (separator == -1)
-            {
-                items.Add(ParseTimeSpanInner(itemType, serialized, out result));
-                if (result != Result.Success)
-                    return null;
-
-                break;
-            }
-
-            if (quote != -1 && separator > quote)
-            {
-                quote = serialized.NextIndexOf('"', quote + 1);
-                separator = serialized.NextIndexOf(',', quote + 1);
-            }
-
-            var sub = serialized[..separator];
-            if (quote != -1)
-                sub = serialized.Slice(1, serialized.Length - 2);
-
-            items.Add(ParseTimeSpanInner(itemType, sub, out result));
-            if (result != Result.Success)
-                return null;
-
-            serialized = serialized[(separator + 1)..];
-            quote = serialized.IndexOf('"');
-            separator = serialized.IndexOf(',');
-        }
-
-        result = Result.Success;
-        return items;
-    }
+    private static object ParseDateTimeOffsetList(Type itemType, ReadOnlySpan<char> serialized, out Result result)
+        => itemType == typeof(DateTimeOffset)
+        ? ParseListInner<DateTimeOffset>(itemType, serialized, ParseDateTimeOffset, out result)
+        : ParseListInner<DateTime>(itemType, serialized, ParseDateTimeOffset, out result);
 
     private static object ParseEnumList<T>(Type itemType, ReadOnlySpan<char> serialized, out Result result)
         where T : Enum
+        => ParseListInner<T>(itemType, serialized, ParseEnum<T>, out result);
+
+    private static object ParseGenericList(Type itemType, ReadOnlySpan<char> serialized, out Result result)
+        => ParseListInner<object>(itemType, serialized, ParseGeneric, out result);
+
+    private static object ParseListInner<T>(Type itemType, ReadOnlySpan<char> serialized, ParseDelegate innerParse, out Result result)
     {
         if (serialized.Length == 0)
         {
@@ -388,9 +353,9 @@ public static partial class MikrotikValueParser
         var separator = serialized.IndexOf(',');
         if (separator == -1)
         {
-            var obj = ParseEnumInner<T>(itemType, serialized, out result);
+            var obj = innerParse(itemType, serialized, out result);
             return result == Result.Success
-                ? new[] { obj }
+                ? new[] { (T)obj }
                 : null;
         }
 
@@ -399,7 +364,7 @@ public static partial class MikrotikValueParser
         {
             if (separator == -1)
             {
-                items.Add(ParseEnumInner<T>(itemType, serialized, out result));
+                items.Add((T)innerParse(itemType, serialized, out result));
                 if (result != Result.Success)
                     return null;
 
@@ -416,7 +381,7 @@ public static partial class MikrotikValueParser
             if (quote != -1)
                 sub = serialized.Slice(1, serialized.Length - 2);
 
-            items.Add(ParseEnumInner<T>(itemType, sub, out result));
+            items.Add((T)innerParse(itemType, sub, out result));
             if (result != Result.Success)
                 return null;
 
@@ -427,13 +392,6 @@ public static partial class MikrotikValueParser
 
         result = Result.Success;
         return items;
-    }
-
-    private static IEnumerable<object> ParseGenericList(Type itemType, ReadOnlySpan<char> serialized, out Result result)
-    {
-        result = Result.Failure;
-        MikrotikThrowHelper.Throw_NotSupported("This type of conversion is not supported.");
-        return null;
     }
 
     private delegate object ParseDelegate(Type type, ReadOnlySpan<char> serialized, out Result result);

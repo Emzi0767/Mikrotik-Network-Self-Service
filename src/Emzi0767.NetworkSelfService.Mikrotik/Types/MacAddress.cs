@@ -27,6 +27,11 @@ namespace Emzi0767.NetworkSelfService.Mikrotik.Types;
 /// </summary>
 public readonly partial struct MacAddress : IEquatable<MacAddress>, IParsable<MacAddress>, ISpanParsable<MacAddress>
 {
+    /// <summary>
+    /// Gets the zero (00:00:00:00:00:00) MAC address.
+    /// </summary>
+    public static MacAddress Zero { get; } = new([0, 0, 0, 0, 0, 0]);
+
     private static Regex MacRegex { get; } = MacRegexGen();
 
     private readonly byte[] _bytes;

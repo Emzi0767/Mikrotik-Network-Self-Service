@@ -259,6 +259,9 @@ internal static class MikrotikHelpers
     /// <returns>A task which allows for asynchronous waiting for the wait handle.</returns>
     public static Task WaitAsync(this WaitHandle handle, TimeSpan timeout, CancellationToken cancellationToken = default)
     {
+        if (handle.WaitOne(0))
+            return Task.CompletedTask;
+
         var registration = default(CancellationTokenRegistration);
         var source = new TaskCompletionSource();
         var wait = ThreadPool.RegisterWaitForSingleObject(
