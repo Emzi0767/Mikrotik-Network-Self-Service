@@ -17,6 +17,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using System.Threading;
@@ -167,5 +169,40 @@ public static class Extensions
             list.Add(item);
 
         return list;
+    }
+
+    /// <summary>
+    /// Constructs a <see cref="Queryable.Where{TSource}(System.Linq.IQueryable{TSource},System.Linq.Expressions.Expression{System.Func{TSource,bool}})"/>
+    /// expression that matches any item in the enumerable.
+    /// </summary>
+    /// <param name="source">Queryable to match.</param>
+    /// <param name="propertySelector">Property to match.</param>
+    /// <param name="values">Items to match against.</param>
+    /// <typeparam name="TItem">Type of item in the queryable.</typeparam>
+    /// <typeparam name="TProp">Type of property to match.</typeparam>
+    /// <returns>Queryable with appended constructed expression.</returns>
+    public static IQueryable<TItem> WhereIn<TItem, TProp>(this IQueryable<TItem> source, Expression<Func<TItem, TProp>> propertySelector, IEnumerable<TProp> values)
+    {
+        if (propertySelector is not { Body: MemberExpression { Member: PropertyInfo } member })
+        {
+            ThrowHelper.Argument(nameof(propertySelector), "Property selector body must be a property access.");
+            return null;
+        }
+
+        if (!values.Any())
+            return source;
+
+        var param = Expression.Parameter(typeof(TItem), "x");
+        var body = default(Expression);
+        foreach (var val in values)
+        {
+            var comparison = Expression.Equal(member, Expression.Constant(val));
+            body = body is not null
+                ? Expression.MakeBinary(ExpressionType.OrElse, body, comparison)
+                : comparison;
+        }
+
+        var expr = Expression.Lambda<Func<TItem, bool>>(body, [ param ]);
+        return source.Where(expr);
     }
 }

@@ -28,6 +28,7 @@ public sealed class NssDbContext : DbContext
     public DbSet<DbUser> Users { get; set; }
     public DbSet<DbSession> Sessions { get; set; }
     public DbSet<DbNetwork> Networks { get; set; }
+    public DbSet<DbApMap> ApMappings { get; set; }
 
     private readonly ILoggerFactory _loggerFactory;
     private readonly bool _logSensitive;
@@ -195,6 +196,29 @@ public sealed class NssDbContext : DbContext
 
             e.HasIndex(m => m.Name)
                 .HasDatabaseName("ix_network_name");
+        });
+
+        modelBuilder.Entity<DbApMap>(e =>
+        {
+            e.ToTable("ap_mappings");
+
+            e.Property(m => m.Identity)
+                .IsRequired()
+                .HasMaxLength(128)
+                .ValueGeneratedNever()
+                .HasColumnName("identity");
+
+            e.Property(m => m.Comment)
+                .IsRequired()
+                .HasMaxLength(256)
+                .ValueGeneratedNever()
+                .HasColumnName("comment");
+
+            e.HasKey(m => m.Identity)
+                .HasName("pkey_mapping_identity");
+
+            e.HasIndex(m => m.Identity)
+                .HasDatabaseName("ix_mapping_identity");
         });
     }
 }
