@@ -73,7 +73,7 @@ internal sealed class MikrotikResponseEnumerable : IAsyncEnumerable<MikrotikSent
     }
 
     public IAsyncEnumerator<MikrotikSentence> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-        => this.EnumerateAsync(cancellationToken).GetAsyncEnumerator(cancellationToken);
+        => this.EnumerateAsync().GetAsyncEnumerator(cancellationToken);
 
     private async IAsyncEnumerable<MikrotikSentence> EnumerateAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
