@@ -78,7 +78,7 @@ internal sealed class MikrotikResponseEnumerable : IAsyncEnumerable<MikrotikSent
     private async IAsyncEnumerable<MikrotikSentence> EnumerateAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var idx = 0;
-        while (idx < this._buffer.Length)
+        while (idx < this._buffer.Length && !cancellationToken.IsCancellationRequested)
             yield return this._buffer[idx++];
 
         while (!this.IsCompleted && !cancellationToken.IsCancellationRequested)
@@ -88,7 +88,7 @@ internal sealed class MikrotikResponseEnumerable : IAsyncEnumerable<MikrotikSent
                 yield return this._buffer[idx++];
         }
 
-        while (idx < this._buffer.Length)
+        while (idx < this._buffer.Length && !cancellationToken.IsCancellationRequested)
             yield return this._buffer[idx++];
     }
 
