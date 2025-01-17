@@ -81,7 +81,7 @@ internal sealed class MikrotikResponseEnumerable : IAsyncEnumerable<MikrotikSent
         while (idx < this._buffer.Length)
             yield return this._buffer[idx++];
 
-        while (!this.IsCompleted || cancellationToken.IsCancellationRequested)
+        while (!this.IsCompleted && !cancellationToken.IsCancellationRequested)
         {
             await this._feedEventTask.Value.WaitAsync(cancellationToken);
             while (idx < this._buffer.Length)
