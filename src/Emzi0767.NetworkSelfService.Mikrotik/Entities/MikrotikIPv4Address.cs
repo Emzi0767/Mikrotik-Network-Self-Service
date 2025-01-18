@@ -33,7 +33,7 @@ public sealed class MikrotikIPv4Address : IMikrotikEntity
     /// <summary>
     /// Gets the unique identifier of this entity.
     /// </summary>
-    [DataMember(Name = ".id")]
+    [DataMember(Name = ".id"), MikrotikReadonlyProperty]
     public string Id { get; internal set; }
 
     /// <summary>
@@ -57,7 +57,7 @@ public sealed class MikrotikIPv4Address : IMikrotikEntity
     /// <summary>
     /// Gets the actual interface the address is on.
     /// </summary>
-    [DataMember(Name = "actual-interface")]
+    [DataMember(Name = "actual-interface"), MikrotikReadonlyProperty]
     public string ActualInterface { get; internal set; }
 
     internal MikrotikIPv4Address(MikrotikClient client)

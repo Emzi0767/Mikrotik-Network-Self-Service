@@ -32,37 +32,37 @@ public sealed class MikrotikCapsmanRegistration : IMikrotikEntity
     /// <summary>
     /// Gets the unique identifier of this entity.
     /// </summary>
-    [DataMember(Name = ".id")]
+    [DataMember(Name = ".id"), MikrotikReadonlyProperty]
     public string Id { get; internal set; }
 
     /// <summary>
     /// Gets the name of the CAP interface this device is associated with.
     /// </summary>
-    [DataMember(Name = "interface")]
+    [DataMember(Name = "interface"), MikrotikReadonlyProperty]
     public string InterfaceName { get; internal set; }
 
     /// <summary>
     /// Gets the SSID the device associated with.
     /// </summary>
-    [DataMember(Name = "ssid")]
+    [DataMember(Name = "ssid"), MikrotikReadonlyProperty]
     public string Ssid { get; internal set; }
 
     /// <summary>
     /// Gets the MAC address of the device.
     /// </summary>
-    [DataMember(Name = "mac-address")]
+    [DataMember(Name = "mac-address"), MikrotikReadonlyProperty]
     public MacAddress MacAddress { get; internal set; }
 
     /// <summary>
     /// Gets the comment for this entry.
     /// </summary>
-    [DataMember(Name = "comment")]
+    [DataMember(Name = "comment"), MikrotikReadonlyProperty]
     public string Comment { get; internal set; }
 
     /// <summary>
     /// Gets the EAP identity of this device, if applicable.
     /// </summary>
-    [DataMember(Name = "eap-identity")]
+    [DataMember(Name = "eap-identity"), MikrotikReadonlyProperty]
     public string EapIdentity { get; internal set; }
 
     internal MikrotikCapsmanRegistration(MikrotikClient client)

@@ -33,25 +33,25 @@ public sealed class MikrotikLogEntry : IMikrotikEntity
     /// <summary>
     /// Gets the unique identifier of this entity.
     /// </summary>
-    [DataMember(Name = ".id")]
+    [DataMember(Name = ".id"), MikrotikReadonlyProperty]
     public string Id { get; internal set; }
 
     /// <summary>
     /// Gets the timestamp of the log entry.
     /// </summary>
-    [DataMember(Name = "time")]
+    [DataMember(Name = "time"), MikrotikReadonlyProperty]
     public DateTimeOffset Timestamp { get; internal set; }
 
     /// <summary>
     /// Gets the log topics for this message.
     /// </summary>
-    [DataMember(Name = "topics")]
+    [DataMember(Name = "topics"), MikrotikReadonlyProperty]
     public IEnumerable<string> Topics { get; internal set; }
 
     /// <summary>
     /// Gets the contents of the log message.
     /// </summary>
-    [DataMember(Name = "message")]
+    [DataMember(Name = "message"), MikrotikReadonlyProperty]
     public string Message { get; internal set; }
 
     internal MikrotikLogEntry(MikrotikClient client)

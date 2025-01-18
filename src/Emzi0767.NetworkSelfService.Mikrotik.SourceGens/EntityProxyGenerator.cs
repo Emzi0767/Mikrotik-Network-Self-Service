@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis;
@@ -105,21 +106,24 @@ public sealed class EntityProxyGenerator : IIncrementalGenerator
             if (member is not IPropertySymbol { SetMethod.DeclaredAccessibility: Accessibility.Internal, GetMethod.DeclaredAccessibility: Accessibility.Public } property)
                 continue;
 
-            var attr = member.GetAttributes()
-                .FirstOrDefault(x => x.AttributeClass is not null
-                    && x.AttributeClass.ToDisplayString(Constants.QualifiedTypeName) == typeof(DataMemberAttribute).FullName);
+            var serializedName = default(string);
+            var isReadOnly = false;
+            foreach (var attr in member.GetAttributes())
+            {
+                if (attr.AttributeClass.ToDisplayString(Constants.QualifiedTypeName) == typeof(DataMemberAttribute).FullName)
+                    serializedName = attr.NamedArguments.FirstOrDefault(x => x.Key == nameof(DataMemberAttribute.Name)).Value.Value as string;
 
-            if (attr is null)
-                continue;
+                else if (attr.AttributeClass.ToDisplayString(Constants.QualifiedTypeName) == Constants.ReadonlyAttributeQualifiedName)
+                    isReadOnly = true;
+            }
 
-            var serializedName = attr.NamedArguments.FirstOrDefault(x => x.Key == nameof(DataMemberAttribute.Name)).Value.Value as string;
             if (string.IsNullOrWhiteSpace(serializedName))
                 continue;
 
             var type = property.Type;
             var typeName = type.ToDisplayString(Constants.QualifiedTypeName);
 
-            memberMetadata = memberMetadata.Add(new(member.Name, typeName, serializedName));
+            memberMetadata = memberMetadata.Add(new(member.Name, typeName, serializedName, isReadOnly));
         }
 
         return new(entityName, qualifiedName, memberMetadata, [..path]);

@@ -32,7 +32,7 @@ public sealed class MikrotikCapsmanConfiguration : IMikrotikEntity
     /// <summary>
     /// Gets the unique identifier of this entity.
     /// </summary>
-    [DataMember(Name = ".id")]
+    [DataMember(Name = ".id"), MikrotikReadonlyProperty]
     public string Id { get; internal set; }
 
     /// <summary>

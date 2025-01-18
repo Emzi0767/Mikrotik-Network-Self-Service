@@ -28,6 +28,11 @@ public interface IMikrotikEntityModifier<T>
     where T : class, IMikrotikEntity
 {
     /// <summary>
+    /// Gets the extra properties for this request.
+    /// </summary>
+    IMikrotikExtraProperties<T> Extras { get; }
+
+    /// <summary>
     /// Begins modifying the entity.
     /// </summary>
     /// <param name="propertySelector">Selector of the property to modify.</param>
@@ -35,9 +40,9 @@ public interface IMikrotikEntityModifier<T>
     /// <typeparam name="TProp">Type of the selected property.</typeparam>
     /// <returns>A modifier which allows for further changes to be made, or queued changes to be executed.</returns>
     IMikrotikEntityModifier<T> Set<TProp>(Expression<Func<T, TProp>> propertySelector, TProp newValue);
-    
+
     /// <summary>
-    /// Asynchronously executes scheduled changes to the entity. 
+    /// Asynchronously executes scheduled changes to the entity.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A task representing the operation.</returns>

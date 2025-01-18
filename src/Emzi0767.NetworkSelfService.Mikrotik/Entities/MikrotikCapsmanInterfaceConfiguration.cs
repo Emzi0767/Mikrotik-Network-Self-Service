@@ -32,55 +32,55 @@ public sealed class MikrotikCapsmanInterfaceConfiguration : IMikrotikEntity
     /// <summary>
     /// Gets the unique identifier of this entity.
     /// </summary>
-    [DataMember(Name = ".id")]
+    [DataMember(Name = ".id"), MikrotikReadonlyProperty]
     public string Id { get; internal set; }
 
     /// <summary>
     /// Gets the name of this interface.
     /// </summary>
-    [DataMember(Name = "name")]
+    [DataMember(Name = "name"), MikrotikReadonlyProperty]
     public string Name { get; internal set; }
 
     /// <summary>
     /// Gets the name of the master interface.
     /// </summary>
-    [DataMember(Name = "master-interface")]
+    [DataMember(Name = "master-interface"), MikrotikReadonlyProperty]
     public string MasterInterfaceName { get; internal set; }
 
     /// <summary>
     /// Gets the MAC address of this interface.
     /// </summary>
-    [DataMember(Name = "mac-address")]
+    [DataMember(Name = "mac-address"), MikrotikReadonlyProperty]
     public MacAddress MacAddress { get; internal set; }
 
     /// <summary>
     /// Gets the MAC address of the radio. This is non-zero for slave interfaces.
     /// </summary>
-    [DataMember(Name = "radio-mac")]
+    [DataMember(Name = "radio-mac"), MikrotikReadonlyProperty]
     public MacAddress RadioMacAddress { get; internal set; }
 
     /// <summary>
     /// Gets the layer 2 MTU of this interface.
     /// </summary>
-    [DataMember(Name = "l2mtu")]
+    [DataMember(Name = "l2mtu"), MikrotikReadonlyProperty]
     public int Layer2Mtu { get; internal set; }
 
     /// <summary>
     /// Gets the wireless band of this interface.
     /// </summary>
-    [DataMember(Name = "channel.band")]
+    [DataMember(Name = "channel.band"), MikrotikReadonlyProperty]
     public MikrotikWirelessBand WirelessBand { get; internal set; }
 
     /// <summary>
     /// Gets the name of the interface list this interface is attached to.
     /// </summary>
-    [DataMember(Name = "datapath.interface-list")]
+    [DataMember(Name = "datapath.interface-list"), MikrotikReadonlyProperty]
     public string InterfaceListName { get; internal set; }
 
     /// <summary>
     /// Gets the SSID of the broadcasted wireless network.
     /// </summary>
-    [DataMember(Name = "configuration.ssid")]
+    [DataMember(Name = "configuration.ssid"), MikrotikReadonlyProperty]
     public string Ssid { get; internal set; }
 
     internal MikrotikCapsmanInterfaceConfiguration(MikrotikClient client)

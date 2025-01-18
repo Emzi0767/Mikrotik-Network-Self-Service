@@ -14,20 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Runtime.Serialization;
+
 namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 
-/// <summary>
-/// Represents a Mikrotik API entity.
-/// </summary>
-public interface IMikrotikEntity
+internal sealed class MikrotikExtraProperties<T> : IMikrotikExtraProperties<T>
+    where T : class, IMikrotikEntity
 {
-    /// <summary>
-    /// Gets the API client this entity is associated with.
-    /// </summary>
-    public MikrotikClient Client { get; }
+    [DataMember(Name = "place-before")]
+    public T PlaceBefore { get => this._before; set { this._before = value; this._after = null; } }
 
-    /// <summary>
-    /// Gets the identitfier of the entity.
-    /// </summary>
-    public string Id { get; }
+    [DataMember(Name = "place-after")]
+    public T PlaceAfter { get => this._after; set { this._after = value; this._before = null; } }
+
+    private T _before, _after;
+
+    public MikrotikExtraProperties()
+    {
+        this._before = null;
+        this._after = null;
+    }
 }

@@ -14,20 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
+using System;
+
+namespace Emzi0767.NetworkSelfService.Mikrotik.Attributes;
 
 /// <summary>
-/// Represents a Mikrotik API entity.
+/// Marks a property as read-only.
 /// </summary>
-public interface IMikrotikEntity
-{
-    /// <summary>
-    /// Gets the API client this entity is associated with.
-    /// </summary>
-    public MikrotikClient Client { get; }
-
-    /// <summary>
-    /// Gets the identitfier of the entity.
-    /// </summary>
-    public string Id { get; }
-}
+[AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+public sealed class MikrotikReadonlyPropertyAttribute : Attribute
+{ }

@@ -89,4 +89,14 @@ public sealed class GrpcAuthenticationService : Authentication.AuthenticationBas
         await this._loginHandler.LogoutAsync(this.GetSessionId(context), context.CancellationToken);
         return new Result { IsSuccess = true };
     }
+
+    [Authorize]
+    public override async Task<Result> ChangePassword(PasswordUpdateRequest request, ServerCallContext context)
+    {
+        this._logger.LogInformation("Changing password for '{username}'", context.GetHttpContext().User.GetName());
+        var result = await this._loginHandler.UpdateUserAsync(context.GetHttpContext().User.GetName(), request, context.CancellationToken);
+        return result
+            ? new Result { IsSuccess = true }
+            : new Result { IsSuccess = false, Error = new Error { Code = ErrorCode.InvalidCredentials } };
+    }
 }

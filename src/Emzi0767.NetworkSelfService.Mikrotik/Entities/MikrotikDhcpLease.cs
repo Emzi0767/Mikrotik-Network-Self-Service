@@ -37,7 +37,7 @@ public class MikrotikDhcpLease : IMikrotikEntity, IMikrotikDeletableEntity
     /// <summary>
     /// Gets the unique identifier of this entity.
     /// </summary>
-    [DataMember(Name = ".id")]
+    [DataMember(Name = ".id"), MikrotikReadonlyProperty]
     public string Id { get; internal set; }
 
     /// <summary>
@@ -148,13 +148,13 @@ public class MikrotikDhcpLease : IMikrotikEntity, IMikrotikDeletableEntity
     /// <summary>
     /// Gets the hostname associated with the lease.
     /// </summary>
-    [DataMember(Name = "host-name")]
+    [DataMember(Name = "host-name"), MikrotikReadonlyProperty]
     public string Hostname { get; internal set; }
 
     /// <summary>
     /// Gets whether the lease is dynamic.
     /// </summary>
-    [DataMember(Name = "dynamic")]
+    [DataMember(Name = "dynamic"), MikrotikReadonlyProperty]
     public bool IsDynamic { get; internal set; }
 
     internal MikrotikDhcpLease(MikrotikClient client)

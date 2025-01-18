@@ -37,15 +37,22 @@ public readonly struct EntityMemberMetadata
     public string SerializedName { get; }
 
     /// <summary>
+    /// Gets whether a member is read-only.
+    /// </summary>
+    public bool IsReadOnly { get; }
+
+    /// <summary>
     /// Creates new entity member metadata.
     /// </summary>
     /// <param name="name">Name of the property.</param>
     /// <param name="type">Fully qualified name of the property's type.</param>
     /// <param name="serializedName">Name of the property in serialized data.</param>
-    public EntityMemberMetadata(string name, string type, string serializedName)
+    /// <param name="isReadOnly">Whether the member is read-only.</param>
+    public EntityMemberMetadata(string name, string type, string serializedName, bool isReadOnly)
     {
         this.Name = name;
         this.Type = type;
         this.SerializedName = serializedName;
+        this.IsReadOnly = isReadOnly;
     }
 }

@@ -16,18 +16,10 @@
 
 namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 
-/// <summary>
-/// Represents a Mikrotik API entity.
-/// </summary>
-public interface IMikrotikEntity
+internal sealed class MikrotikEntityCreateBuilder<T> : MikrotikEntityBuilder<T>
+    where T : class, IMikrotikEntity
 {
-    /// <summary>
-    /// Gets the API client this entity is associated with.
-    /// </summary>
-    public MikrotikClient Client { get; }
-
-    /// <summary>
-    /// Gets the identitfier of the entity.
-    /// </summary>
-    public string Id { get; }
+    public MikrotikEntityCreateBuilder(MikrotikClient client)
+        : base(client)
+    { }
 }

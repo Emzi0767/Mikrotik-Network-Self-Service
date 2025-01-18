@@ -17,17 +17,19 @@
 namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 
 /// <summary>
-/// Represents a Mikrotik API entity.
+/// Represents extra properties for a given entity create/modify action.
 /// </summary>
-public interface IMikrotikEntity
+/// <typeparam name="T">Type of entity.</typeparam>
+public interface IMikrotikExtraProperties<T>
+    where T : class, IMikrotikEntity
 {
     /// <summary>
-    /// Gets the API client this entity is associated with.
+    /// Gets or sets the entity to place the created/modified entity before.
     /// </summary>
-    public MikrotikClient Client { get; }
+    T PlaceBefore { get; set; }
 
     /// <summary>
-    /// Gets the identitfier of the entity.
+    /// Gets or sets the entity to place the created/modified entity after.
     /// </summary>
-    public string Id { get; }
+    T PlaceAfter { get; set; }
 }

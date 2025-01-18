@@ -120,7 +120,7 @@ public sealed class MikrotikClient : IDisposable
     /// <returns>An interactive builder instance, which allows for building the entity.</returns>
     public IMikrotikEntityModifier<T> Create<T>()
         where T : class, IMikrotikEntity
-        => throw new NotImplementedException();
+        => new MikrotikEntityCreateBuilder<T>(this);
 
     internal MikrotikRequest CreateRequest(IEnumerable<IMikrotikWord> words)
     {

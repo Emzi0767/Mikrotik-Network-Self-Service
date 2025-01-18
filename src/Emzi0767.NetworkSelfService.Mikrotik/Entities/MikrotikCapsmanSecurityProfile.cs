@@ -32,6 +32,12 @@ public sealed class MikrotikCapsmanSecurityProfile : IMikrotikEntity
     public MikrotikClient Client { get; }
 
     /// <summary>
+    /// Gets the unique identifier of this entity.
+    /// </summary>
+    [DataMember(Name = ".id"), MikrotikReadonlyProperty]
+    public string Id { get; internal set; }
+
+    /// <summary>
     /// Gets the name of the profile.
     /// </summary>
     [DataMember(Name = "name")]

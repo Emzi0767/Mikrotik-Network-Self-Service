@@ -32,6 +32,12 @@ public sealed class MikrotikDhcpServer : IMikrotikEntity
     public MikrotikClient Client { get; }
 
     /// <summary>
+    /// Gets the unique identifier of this entity.
+    /// </summary>
+    [DataMember(Name = ".id"), MikrotikReadonlyProperty]
+    public string Id { get; internal set; }
+
+    /// <summary>
     /// Gets whether to add ARP entry for every lease.
     /// </summary>
     [DataMember(Name = "add-arp")]

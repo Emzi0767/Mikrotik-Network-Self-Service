@@ -40,6 +40,18 @@ message AuthenticationResponse {
     optional AuthenticationSuccess session = 1;
 }
 
+// Represents a request to change password.
+message PasswordUpdateRequest {
+    // Gets or sets the current password.
+    string currentPassword = 1;
+
+    // Gets or sets the new password.
+    string newPassword = 2;
+
+    // Gets or sets the confirmation for the new password.
+    string confirmPassword = 3;
+}
+
 // Provides methods for creating, extending, and destroying sessions.
 service Authentication {
     // Attempts to authenticate using provided credentials.
@@ -50,4 +62,7 @@ service Authentication {
 
     // Attempts to destroy a session and log out a user.
     rpc DestroySession(google.protobuf.Empty) returns (result.Result);
+
+    // Attempts to update the current user's password.
+    rpc ChangePassword(PasswordUpdateRequest) returns (result.Result);
 }

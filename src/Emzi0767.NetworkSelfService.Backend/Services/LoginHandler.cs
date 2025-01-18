@@ -111,4 +111,22 @@ public sealed class LoginHandler
 
         return result;
     }
+
+    public async Task<bool> UpdateUserAsync(string username, PasswordUpdateRequest passwordUpdateRequest, CancellationToken cancellationToken = default)
+    {
+        if (passwordUpdateRequest.NewPassword != passwordUpdateRequest.ConfirmPassword)
+            return false;
+
+        var user = await this._users.FindUserByNameAsync(username, cancellationToken);
+        if (user is null)
+            return false;
+
+        if (!this._passwordHashProvider.Verify(passwordUpdateRequest.CurrentPassword, user.PasswordHash))
+            return false;
+
+        var hash = this._passwordHashProvider.Hash(passwordUpdateRequest.NewPassword);
+        user.PasswordHash = hash;
+        await this._users.UpdateAsync(user, cancellationToken);
+        return true;
+    }
 }

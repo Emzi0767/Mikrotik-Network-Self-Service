@@ -16,18 +16,18 @@
 
 namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 
-/// <summary>
-/// Represents a Mikrotik API entity.
-/// </summary>
-public interface IMikrotikEntity
+internal sealed class MikrotikEntityModifyBuilder<T> : MikrotikEntityBuilder<T>
+    where T : class, IMikrotikEntity
 {
-    /// <summary>
-    /// Gets the API client this entity is associated with.
-    /// </summary>
-    public MikrotikClient Client { get; }
+    private readonly T _entity;
 
-    /// <summary>
-    /// Gets the identitfier of the entity.
-    /// </summary>
-    public string Id { get; }
+    public MikrotikEntityModifyBuilder(MikrotikClient client, T entity)
+        : base(client)
+    {
+        if (entity is null)
+            MikrotikThrowHelper.Throw_ArgumentNull(nameof(entity), "Entity cannot be null.");
+
+        this._entity = entity;
+        this.AddExtraWord(MikrotikQueryWord.PropertyEquals(EntityProxies.MapToSerialized<T>(nameof(this._entity.Id)), this._entity.Id));
+    }
 }

@@ -39,4 +39,11 @@ public sealed class UserRepository
         => await this._db.Users
             .Include(x => x.Network)
             .FirstOrDefaultAsync(x => x.Username == name, cancellationToken);
+
+    public async Task<DbUser> UpdateAsync(DbUser user, CancellationToken cancellationToken = default)
+    {
+        this._db.Users.Update(user);
+        await this._db.SaveChangesAsync(cancellationToken);
+        return user;
+    }
 }

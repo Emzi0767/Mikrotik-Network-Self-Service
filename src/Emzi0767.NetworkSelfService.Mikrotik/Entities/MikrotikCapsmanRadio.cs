@@ -32,37 +32,37 @@ public sealed class MikrotikCapsmanRadio : IMikrotikEntity
     /// <summary>
     /// Gets the unique identifier of this entity.
     /// </summary>
-    [DataMember(Name = ".id")]
+    [DataMember(Name = ".id"), MikrotikReadonlyProperty]
     public string Id { get; internal set; }
 
     /// <summary>
     /// Gets whether the radio is provisioned.
     /// </summary>
-    [DataMember(Name = "provisioned")]
+    [DataMember(Name = "provisioned"), MikrotikReadonlyProperty]
     public bool IsProvisioned { get; internal set; }
 
     /// <summary>
     /// Gets the MAC address of the radio.
     /// </summary>
-    [DataMember(Name = "radio-mac")]
+    [DataMember(Name = "radio-mac"), MikrotikReadonlyProperty]
     public MacAddress MacAddress { get; internal set; }
 
     /// <summary>
     /// Gets the authenticated name of the CAP.
     /// </summary>
-    [DataMember(Name = "remote-cap-name")]
+    [DataMember(Name = "remote-cap-name"), MikrotikReadonlyProperty]
     public string Name { get; internal set; }
 
     /// <summary>
     /// Gets the identity of the CAP.
     /// </summary>
-    [DataMember(Name = "remote-cap-identity")]
+    [DataMember(Name = "remote-cap-identity"), MikrotikReadonlyProperty]
     public string Identity { get; internal set; }
 
     /// <summary>
     /// Gets the master CAP interface corresponding to this radio.
     /// </summary>
-    [DataMember(Name = "interface")]
+    [DataMember(Name = "interface"), MikrotikReadonlyProperty]
     public string InterfaceName { get; internal set; }
 
     internal MikrotikCapsmanRadio(MikrotikClient client)
