@@ -67,4 +67,14 @@ public sealed class MikrotikConfiguration
     /// Gets or sets whether to enable IPv6 connectivity.
     /// </summary>
     public bool EnableIpv6 { get; set; }
+
+    /// <summary>
+    /// Gets or sets the required minimum signal strength for Wi-Fi ACLs.
+    /// </summary>
+    public int? SignalRangeLow { get; set; }
+
+    /// <summary>
+    /// Gets or sets the required maximum signal strength for Wi-Fi ACLs.
+    /// </summary>
+    public int? SignalRangeHigh { get; set; }
 }
