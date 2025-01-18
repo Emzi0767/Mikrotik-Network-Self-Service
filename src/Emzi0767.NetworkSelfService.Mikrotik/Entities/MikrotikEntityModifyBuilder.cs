@@ -31,7 +31,7 @@ internal sealed class MikrotikEntityModifyBuilder<T> : MikrotikEntityBuilder<T>
 
         this._entity = entity;
         this.AddExtraWord(
-            MikrotikQueryWord.PropertyEquals(
+            new MikrotikAttributeWord(
                 EntityProxies.MapToSerialized<T>(nameof(this._entity.Id)),
                 this._entity.Id));
     }
