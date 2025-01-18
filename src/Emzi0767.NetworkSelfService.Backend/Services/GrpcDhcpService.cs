@@ -95,14 +95,20 @@ public sealed class GrpcDhcpService : Dhcp.DhcpBase
             .AsAsyncQueryable();
 
         await foreach (var lease in leases.WithCancellation(context.CancellationToken).ConfigureAwait(false))
-            yield return new()
+        {
+            var mtLease = new DhcpLease()
             {
                 Id = lease.Id,
                 MacAddress = lease.MacAddress.ToString(),
                 IpAddress = lease.Address.ToString(),
-                Hostname = lease.Hostname,
                 IsDynamic = lease.IsDynamic,
             };
+
+            if (lease.Hostname is not null)
+                mtLease.Hostname = lease.Hostname;
+
+            yield return mtLease;
+        }
     }
 
     private async Task<IEnumerable<MikrotikDhcpLease>> GetLeaseInfosAsync(MikrotikDhcpServer server, ServerCallContext context)
@@ -214,12 +220,42 @@ public sealed class GrpcDhcpService : Dhcp.DhcpBase
 
     public override async Task<Result> CreateLease(DhcpLeaseCreateRequest request, ServerCallContext context)
     {
-        return new() { IsSuccess = false };
+        var info = await this.GetDhcpInfoAsync(context);
+        this._logger.LogInformation("Create lease of '{ip}' for '{username}'", request.IpAddress, info.User.Username);
+
+        var subnet = info.IpAddress.Address.AsSubnet();
+
+        var address = IPAddress.Parse(request.IpAddress);
+        var mac = MacAddress.Parse(request.MacAddress, CultureInfo.InvariantCulture);
+
+        if (!subnet.Contains(address) || address.Equals(subnet.Address) || address.Equals(subnet.Broadcast))
+            return new() { IsSuccess = false, };
+
+        if (address.Equals(info.IpAddress.Address.Address))
+            return new() { IsSuccess = false, };
+
+        await this._mikrotikProvider.Create<MikrotikDhcpLease>()
+            .Set(x => x.Server, info.Network.DhcpServer)
+            .Set(x => x.Address, address)
+            .Set(x => x.MacAddress, mac)
+            .CommitAsync(context.CancellationToken);
+
+        return new() { IsSuccess = true };
     }
 
     public override async Task<Result> DeleteLease(DhcpLeaseDeleteRequest request, ServerCallContext context)
     {
-        return new() { IsSuccess = false };
+        var info = await this.GetDhcpInfoAsync(context);
+        this._logger.LogInformation("Create lease '{id}' for '{username}'", request.Id, info.User.Username);
+
+        var lease = await this._mikrotikProvider.Get<MikrotikDhcpLease>()
+            .FirstOrDefaultAsync(x => x.Server == info.Network.DhcpServer && x.Id == request.Id, context.CancellationToken);
+
+        if (lease is null)
+            return new() { IsSuccess = false, };
+
+        await lease.DeleteAsync(context.CancellationToken);
+        return new() { IsSuccess = true };
     }
 
     private readonly record struct DhcpInfo(

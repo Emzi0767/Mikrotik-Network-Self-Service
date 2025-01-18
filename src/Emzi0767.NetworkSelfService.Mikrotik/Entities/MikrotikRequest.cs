@@ -48,9 +48,12 @@ internal sealed class MikrotikRequest : IDisposable
         {
             var firstWord = response.Words.First();
             if (firstWord is MikrotikReplyWord { IsFinal: true })
+            {
+                response.ThrowIfError();
                 return;
+            }
         }
-        
+
         MikrotikThrowHelper.Throw_RequestTerminatedEarly();
     }
 

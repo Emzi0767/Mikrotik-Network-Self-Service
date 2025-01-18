@@ -163,26 +163,5 @@ internal sealed class MikrotikQueryable<T> : MikrotikQueryable, IAsyncQueryable<
     }
 
     private void ParseAndThrow(in MikrotikSentence sentence)
-    {
-        var category = MikrotikApiErrorCategory.Unknown;
-        var message = "";
-        foreach (var word in sentence.Words)
-        {
-            if (word is not MikrotikAttributeWord attr)
-                continue;
-
-            switch (attr.Name)
-            {
-                case "category":
-                    category = (MikrotikApiErrorCategory)int.Parse(attr.Value);
-                    break;
-
-                case "message":
-                    message = attr.Value;
-                    break;
-            }
-        }
-
-        MikrotikThrowHelper.Throw_MikrotikApi(message, category);
-    }
+        => sentence.ThrowIfError();
 }

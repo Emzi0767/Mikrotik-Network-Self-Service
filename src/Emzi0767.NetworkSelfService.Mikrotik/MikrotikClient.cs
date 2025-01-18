@@ -135,6 +135,15 @@ public sealed class MikrotikClient : IDisposable
         return new(reqId, sentence);
     }
 
+    internal MikrotikRequest CreateDeleteRequest<T>(T entity)
+        where T : class, IMikrotikEntity
+    {
+        var cmd = new MikrotikCommandWord([ ..EntityProxies.GetPath<T>(), "remove" ]);
+        var id = new MikrotikAttributeWord(EntityProxies.MapToSerialized<T>(nameof(entity.Id)), entity.Id);
+
+        return this.CreateRequest([ cmd, id, MikrotikStopWord.Instance, ]);
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {

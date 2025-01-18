@@ -17,10 +17,16 @@
 namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 
 /// <summary>
+/// Non-generic base for extra properties.
+/// </summary>
+public interface IMikrotikExtraProperties
+{ }
+
+/// <summary>
 /// Represents extra properties for a given entity create/modify action.
 /// </summary>
 /// <typeparam name="T">Type of entity.</typeparam>
-public interface IMikrotikExtraProperties<T>
+public interface IMikrotikExtraProperties<T> : IMikrotikExtraProperties
     where T : class, IMikrotikEntity
 {
     /// <summary>

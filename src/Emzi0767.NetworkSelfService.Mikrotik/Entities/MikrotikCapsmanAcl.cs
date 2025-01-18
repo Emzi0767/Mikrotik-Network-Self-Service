@@ -16,6 +16,8 @@
 
 using System;
 using System.Runtime.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 using Emzi0767.NetworkSelfService.Mikrotik.Attributes;
 using Emzi0767.NetworkSelfService.Mikrotik.Types;
 
@@ -25,7 +27,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 /// Represents a Mikrotik CAPsMAN ACL entry.
 /// </summary>
 [GenerateMikrotikEntityMetadata, MikrotikEntity("caps-man", "access-list")]
-public sealed class MikrotikCapsmanAcl : IMikrotikEntity
+public sealed class MikrotikCapsmanAcl : IMikrotikEntity, IMikrotikModifiableEntity<MikrotikCapsmanAcl>, IMikrotikDeletableEntity
 {
     /// <inheritdoc />
     public MikrotikClient Client { get; }
@@ -142,4 +144,16 @@ public sealed class MikrotikCapsmanAcl : IMikrotikEntity
     {
         this.Client = client;
     }
+
+    /// <inheritdoc />
+    public async Task DeleteAsync(CancellationToken cancellationToken = default)
+    {
+        var req = this.Client.CreateDeleteRequest(this);
+        await this.Client.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        await req.AwaitCompletionAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public IMikrotikEntityModifier<MikrotikCapsmanAcl> Modify()
+        => new MikrotikEntityModifyBuilder<MikrotikCapsmanAcl>(this);
 }

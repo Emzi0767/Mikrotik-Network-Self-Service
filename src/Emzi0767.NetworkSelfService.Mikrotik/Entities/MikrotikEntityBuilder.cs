@@ -29,8 +29,13 @@ internal abstract class MikrotikEntityBuilder<T> : IMikrotikEntityModifier<T>
     private IList<IMikrotikWord> _extraWords = new List<IMikrotikWord>();
     private readonly MikrotikClient _client;
 
+    protected abstract string Command { get; }
+
     public MikrotikEntityBuilder(MikrotikClient client)
     {
+        if (client is null)
+            MikrotikThrowHelper.Throw_ArgumentNull(nameof(client), "Client cannot be null.");
+
         this._client = client;
     }
 
@@ -52,20 +57,18 @@ internal abstract class MikrotikEntityBuilder<T> : IMikrotikEntityModifier<T>
     public async Task CommitAsync(CancellationToken cancellationToken = default)
     {
         var words = new List<IMikrotikWord>(this._setValues.Count + this._extraWords.Count + 2);
-        var cmd = new MikrotikCommandWord([ ..EntityProxies.GetPath<T>(), "add" ]);
+        var cmd = new MikrotikCommandWord([ ..EntityProxies.GetPath<T>(), this.Command ]);
         words.Add(cmd);
         words.AddRange(this._extraWords);
 
         foreach (var (k, v) in this._setValues)
-            words.Add(new MikrotikAttributeWord(
-                EntityProxies.MapToSerialized<T>(k),
-                v.ToMikrotikString()
-            ));
+            words.Add(new MikrotikAttributeWord(k, v.ToMikrotikString()));
 
         words.Add(MikrotikStopWord.Instance);
 
         var req = this._client.CreateRequest(words);
-        await req.AwaitCompletionAsync(cancellationToken);
+        await this._client.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        await req.AwaitCompletionAsync(cancellationToken).ConfigureAwait(false);
     }
 
     protected void AddExtraWord(IMikrotikWord word)

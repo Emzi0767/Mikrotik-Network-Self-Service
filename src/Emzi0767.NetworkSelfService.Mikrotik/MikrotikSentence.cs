@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Emzi0767.NetworkSelfService.Mikrotik.Exceptions;
 using Emzi0767.Types;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik;
@@ -56,12 +57,39 @@ public readonly struct MikrotikSentence
         {
             if (!((long)word.Length).TryEncodeLength(destination))
                 return false;
-            
+
             if (!word.TryEncode(destination))
                 return false;
         }
 
         return true;
+    }
+
+    internal void ThrowIfError()
+    {
+        if (this.Words.First() is not MikrotikReplyWord { IsError: true })
+            return;
+
+        var category = MikrotikApiErrorCategory.Unknown;
+        var message = "";
+        foreach (var word in this.Words)
+        {
+            if (word is not MikrotikAttributeWord attr)
+                continue;
+
+            switch (attr.Name)
+            {
+                case "category":
+                    category = (MikrotikApiErrorCategory)int.Parse(attr.Value);
+                    break;
+
+                case "message":
+                    message = attr.Value;
+                    break;
+            }
+        }
+
+        MikrotikThrowHelper.Throw_MikrotikApi(message, category);
     }
 
     /// <summary>

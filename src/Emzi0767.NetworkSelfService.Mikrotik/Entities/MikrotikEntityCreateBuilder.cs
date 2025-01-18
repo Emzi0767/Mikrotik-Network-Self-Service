@@ -19,6 +19,8 @@ namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 internal sealed class MikrotikEntityCreateBuilder<T> : MikrotikEntityBuilder<T>
     where T : class, IMikrotikEntity
 {
+    protected override string Command { get; } = "add";
+
     public MikrotikEntityCreateBuilder(MikrotikClient client)
         : base(client)
     { }

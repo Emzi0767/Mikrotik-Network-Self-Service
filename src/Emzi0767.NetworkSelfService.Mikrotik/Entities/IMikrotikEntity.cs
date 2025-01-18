@@ -27,7 +27,7 @@ public interface IMikrotikEntity
     public MikrotikClient Client { get; }
 
     /// <summary>
-    /// Gets the identitfier of the entity.
+    /// Gets the identifier of the entity.
     /// </summary>
     public string Id { get; }
 }

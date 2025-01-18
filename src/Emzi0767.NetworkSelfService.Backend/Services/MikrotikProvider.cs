@@ -61,6 +61,10 @@ public sealed class MikrotikProvider : IHostedService
         where T : class, IMikrotikEntity
         => this._client.Get<T>();
 
+    public IMikrotikEntityModifier<T> Create<T>()
+        where T : class, IMikrotikEntity
+        => this._client.Create<T>();
+
     public async Task StartAsync(CancellationToken cancellationToken)
         => await this._client.ConnectAsync(new DnsEndPoint(this._config.Hostname, this._config.Port), this._addressFamilies, cancellationToken);
 

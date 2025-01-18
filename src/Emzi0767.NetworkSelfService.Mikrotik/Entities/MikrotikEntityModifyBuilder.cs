@@ -19,15 +19,20 @@ namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 internal sealed class MikrotikEntityModifyBuilder<T> : MikrotikEntityBuilder<T>
     where T : class, IMikrotikEntity
 {
+    protected override string Command { get; } = "set";
+
     private readonly T _entity;
 
-    public MikrotikEntityModifyBuilder(MikrotikClient client, T entity)
-        : base(client)
+    public MikrotikEntityModifyBuilder(T entity)
+        : base(entity?.Client)
     {
         if (entity is null)
             MikrotikThrowHelper.Throw_ArgumentNull(nameof(entity), "Entity cannot be null.");
 
         this._entity = entity;
-        this.AddExtraWord(MikrotikQueryWord.PropertyEquals(EntityProxies.MapToSerialized<T>(nameof(this._entity.Id)), this._entity.Id));
+        this.AddExtraWord(
+            MikrotikQueryWord.PropertyEquals(
+                EntityProxies.MapToSerialized<T>(nameof(this._entity.Id)),
+                this._entity.Id));
     }
 }

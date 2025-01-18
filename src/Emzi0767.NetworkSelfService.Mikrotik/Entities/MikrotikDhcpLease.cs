@@ -163,8 +163,10 @@ public class MikrotikDhcpLease : IMikrotikEntity, IMikrotikDeletableEntity
     }
 
     /// <inheritdoc />
-    public Task DeleteAsync(CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(CancellationToken cancellationToken = default)
     {
-        throw new System.NotImplementedException();
+        var req = this.Client.CreateDeleteRequest(this);
+        await this.Client.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        await req.AwaitCompletionAsync(cancellationToken).ConfigureAwait(false);
     }
 }
