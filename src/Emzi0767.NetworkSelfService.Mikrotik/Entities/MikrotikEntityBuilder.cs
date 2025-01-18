@@ -64,6 +64,17 @@ internal abstract class MikrotikEntityBuilder<T> : IMikrotikEntityModifier<T>
         foreach (var (k, v) in this._setValues)
             words.Add(new MikrotikAttributeWord(k, v.ToMikrotikString()));
 
+        var extras = this.Extras as MikrotikExtraProperties;
+        var proxy = extras.GetProxy();
+        foreach (var prop in extras.GetProperties())
+        {
+            var val = proxy.Get(prop);
+            if (val is null)
+                continue;
+
+            words.Add(new MikrotikAttributeWord(ObjectProxies.MapToSerialized<MikrotikExtraProperties>(prop), val.ToMikrotikString()));
+        }
+
         words.Add(MikrotikStopWord.Instance);
 
         var req = this._client.CreateRequest(words);

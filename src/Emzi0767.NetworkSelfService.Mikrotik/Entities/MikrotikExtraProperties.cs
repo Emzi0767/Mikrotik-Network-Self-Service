@@ -18,14 +18,29 @@ using System.Runtime.Serialization;
 
 namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 
-internal sealed class MikrotikExtraProperties<T> : IMikrotikExtraProperties<T>
-    where T : class, IMikrotikEntity
+[GenerateObjectMetadata]
+internal abstract class MikrotikExtraProperties
 {
     [DataMember(Name = "place-before")]
-    public T PlaceBefore { get => this._before; set { this._before = value; this._after = null; } }
+    internal string PlaceBeforeId { get => this._before; set { this._before = value; this._after = null; } }
 
     [DataMember(Name = "place-after")]
-    public T PlaceAfter { get => this._after; set { this._after = value; this._before = null; } }
+    internal string PlaceAfterId { get => this._after; set { this._after = value; this._before = null; } }
+
+    private string _before, _after;
+
+    public MikrotikExtraProperties()
+    {
+        this._before = null;
+        this._after = null;
+    }
+}
+
+internal sealed class MikrotikExtraProperties<T> : MikrotikExtraProperties, IMikrotikExtraProperties<T>
+    where T : class, IMikrotikEntity
+{
+    public T PlaceBefore { get => this._before; set { this._before = value; this.PlaceBeforeId = value.Id; this._after = null; } }
+    public T PlaceAfter { get => this._after; set { this._after = value; this.PlaceAfterId = value.Id; this._before = null; } }
 
     private T _before, _after;
 

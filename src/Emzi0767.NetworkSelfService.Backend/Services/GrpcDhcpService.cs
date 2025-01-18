@@ -246,7 +246,7 @@ public sealed class GrpcDhcpService : Dhcp.DhcpBase
     public override async Task<Result> DeleteLease(DhcpLeaseDeleteRequest request, ServerCallContext context)
     {
         var info = await this.GetDhcpInfoAsync(context);
-        this._logger.LogInformation("Create lease '{id}' for '{username}'", request.Id, info.User.Username);
+        this._logger.LogInformation("Delete lease '{id}' for '{username}'", request.Id, info.User.Username);
 
         var lease = await this._mikrotikProvider.Get<MikrotikDhcpLease>()
             .FirstOrDefaultAsync(x => x.Server == info.Network.DhcpServer && x.Id == request.Id, context.CancellationToken);

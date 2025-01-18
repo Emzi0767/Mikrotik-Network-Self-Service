@@ -39,8 +39,18 @@ public sealed class EntityProxyGenerator : IIncrementalGenerator
         ));
 
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
+            hintName: $"{Constants.GenerateObjectAttributeName}.g.cs",
+            Constants.GenerateObjectMetadataAttribute.ToSourceText()
+        ));
+
+        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
             hintName: $"{Constants.ProxyInterfaceName}.g.cs",
             Constants.MikrotikEntityProxyImplementation.ToSourceText()
+        ));
+
+        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
+            hintName: $"{Constants.ObjectProxyInterfaceName}.g.cs",
+            Constants.ObjectProxyImplementation.ToSourceText()
         ));
 
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
@@ -68,10 +78,22 @@ public sealed class EntityProxyGenerator : IIncrementalGenerator
 
         var bulkEnumMetadata = enumMetadata.Collect();
 
+        var objectMetadata = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                Constants.GenerateObjectAttributeQualifiedName,
+                predicate: static (s, _) => true,
+                transform: static (ctx, _) => GetObjectMetadata(ctx.SemanticModel, ctx.TargetNode)
+            )
+            .Where(static m => m.IsInitialized);
+
+        var bulkObjectMetadata = objectMetadata.Collect();
+
         context.RegisterSourceOutput(entityMetadata, static (ctx, metadata) => Execute(metadata, ctx));
         context.RegisterSourceOutput(bulkMetadata, static (ctx, metadatas) => ExecuteBulk(metadatas, ctx));
         context.RegisterSourceOutput(enumMetadata, static (ctx, metadata) => ExecuteEnum(metadata, ctx));
         context.RegisterSourceOutput(bulkEnumMetadata, static (ctx, metadatas) => ExecuteEnumBulk(metadatas, ctx));
+        context.RegisterSourceOutput(objectMetadata, static (ctx, metadata) => ExecuteObject(metadata, ctx));
+        context.RegisterSourceOutput(bulkObjectMetadata, static (ctx, metadatas) => ExecuteObjectBulk(metadatas, ctx));
     }
 
     private static EntityMetadata GetEntityMetadata(SemanticModel model, SyntaxNode root)
@@ -161,6 +183,40 @@ public sealed class EntityProxyGenerator : IIncrementalGenerator
         return new(entityName, qualifiedName, mappings);
     }
 
+    private static ObjectMetadata GetObjectMetadata(SemanticModel model, SyntaxNode root)
+    {
+        if (model.GetDeclaredSymbol(root) is not INamedTypeSymbol symbol)
+            return default;
+
+        var entityName = symbol.Name;
+        var qualifiedName = symbol.ToDisplayString(Constants.QualifiedTypeName);
+        var members = symbol.GetMembers();
+        var memberMetadata = ImmutableArray<ObjectMemberMetadata>.Empty;
+
+        foreach (var member in members)
+        {
+            if (member is not IPropertySymbol { GetMethod: not null } property)
+                continue;
+
+            var serializedName = default(string);
+            foreach (var attr in member.GetAttributes())
+            {
+                if (attr.AttributeClass.ToDisplayString(Constants.QualifiedTypeName) == typeof(DataMemberAttribute).FullName)
+                    serializedName = attr.NamedArguments.FirstOrDefault(x => x.Key == nameof(DataMemberAttribute.Name)).Value.Value as string;
+            }
+
+            if (string.IsNullOrWhiteSpace(serializedName))
+                continue;
+
+            var type = property.Type;
+            var typeName = type.ToDisplayString(Constants.QualifiedTypeName);
+
+            memberMetadata = memberMetadata.Add(new(member.Name, typeName, serializedName));
+        }
+
+        return new(entityName, qualifiedName, memberMetadata);
+    }
+
     private static void Execute(in EntityMetadata metadata, SourceProductionContext context)
     {
         if (!metadata.IsInitialized)
@@ -183,6 +239,17 @@ public sealed class EntityProxyGenerator : IIncrementalGenerator
         );
     }
 
+    private static void ExecuteObject(in ObjectMetadata metadata, SourceProductionContext context)
+    {
+        if (!metadata.IsInitialized)
+            return;
+
+        context.AddSource(
+            $"{Constants.ObjectProxiesClassName}.{metadata.QualifiedName}.g.cs",
+            Constants.GenerateObjectProxyStatic(metadata).ToSourceText()
+        );
+    }
+
     private static void ExecuteBulk(in ImmutableArray<EntityMetadata> metadatas, SourceProductionContext context)
     {
         context.AddSource(
@@ -196,6 +263,14 @@ public sealed class EntityProxyGenerator : IIncrementalGenerator
         context.AddSource(
             $"{Constants.EnumProxiesClassName}.map.g.cs",
             Constants.GenerateEnumMapStatic(metadatas).ToSourceText()
+        );
+    }
+
+    private static void ExecuteObjectBulk(in ImmutableArray<ObjectMetadata> metadatas, SourceProductionContext context)
+    {
+        context.AddSource(
+            $"{Constants.ObjectProxiesClassName}.pathmap.g.cs",
+            Constants.GenerateObjectMapStatic(metadatas).ToSourceText()
         );
     }
 }
