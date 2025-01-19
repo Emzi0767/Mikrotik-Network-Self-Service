@@ -20,7 +20,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 /// Represents a Mikrotik API entity that can be modified.
 /// </summary>
 public interface IMikrotikModifiableEntity<T>
-    where T : class, IMikrotikEntity
+    where T : class, IMikrotikEntity, IMikrotikModifiableEntity<T>
 {
     /// <summary>
     /// Begins modifying the entity.

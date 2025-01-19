@@ -1,4 +1,4 @@
-﻿// This file is part of Network Self-Service Project.
+// This file is part of Network Self-Service Project.
 // Copyright © 2024-2025 Mateusz Brawański <Emzi0767>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -254,22 +255,159 @@ public sealed class GrpcWifiService : Wifi.WifiBase
 
     public override async Task<Result> UpdateConfiguration(WifiUpdateRequest request, ServerCallContext context)
     {
-        return new() { IsSuccess = false };
+        if (!request.HasSsid && !request.HasPassword && !request.HasIsolateClients)
+            return new() { IsSuccess = true, };
+
+        var (_, network, _) = await this.GetBasicsAsync(context);
+        var datapath = await this._mikrotikProvider.Get<MikrotikCapsmanDatapath>()
+            .FirstOrDefaultAsync(x => x.InterfaceList == network.WirelessInterfaceList, context.CancellationToken);
+
+        var configurations = await this._mikrotikProvider.Get<MikrotikCapsmanConfiguration>()
+            .Where(x => x.DatapathName == datapath.Name)
+            .AsAsyncQueryable()
+            .ToListAsync(context.CancellationToken);
+
+        if (request.HasSsid)
+        {
+            await Task.WhenAll(configurations.Select(c => c.Modify()
+                .Set(x => x.Ssid, request.Ssid)
+                .CommitAsync(context.CancellationToken)));
+        }
+
+        if (request.HasPassword)
+        {
+            var securityProfileName = configurations.First().SecurityProfileName;
+            var securityProfile = await this._mikrotikProvider.Get<MikrotikCapsmanSecurityProfile>()
+                .FirstOrDefaultAsync(x => x.Name == securityProfileName, context.CancellationToken);
+
+            await securityProfile.Modify()
+                .Set(x => x.Password, request.Password)
+                .CommitAsync(context.CancellationToken);
+        }
+
+        if (request.HasIsolateClients)
+        {
+            await datapath.Modify()
+                .Set(x => x.EnableClientToClientForwarding, !request.IsolateClients)
+                .Set(x => x.EnableLocalForwarding, !request.IsolateClients)
+                .CommitAsync(context.CancellationToken);
+        }
+
+        return new() { IsSuccess = true, };
     }
 
     public override async Task<Result> CreateAcl(WifiAclCreateRequest request, ServerCallContext context)
     {
-        return new() { IsSuccess = false };
+        var (_, network, _) = await this.GetBasicsAsync(context);
+
+        var mac = MacAddress.Parse(request.MacAddress, CultureInfo.InvariantCulture);
+
+        var baseAcl = await this._mikrotikProvider.Get<MikrotikCapsmanAcl>()
+            .LastOrDefaultAsync(x => x.Action == MikrotikCapsmanAclAction.Reject && x.InterfaceList == "any", context.CancellationToken);
+
+        var acl = this._mikrotikProvider.Create<MikrotikCapsmanAcl>()
+            .Set(x => x.InterfaceList, network.WirelessInterfaceList)
+            .Set(x => x.Address, mac)
+            .Set(x => x.InterfaceList, network.WirelessInterfaceList)
+            .Set(x => x.AllowSignalOutOfRange, TimeSpan.FromSeconds(10))
+            .Set(x => x.Action, MikrotikCapsmanAclAction.Accept)
+            .Set(x => x.EnableRadiusAccounting, false)
+            .Set(x => x.Comment, request.Comment);
+
+        if (request.HasPrivatePassword)
+            acl = acl.Set(x => x.PrivatePassword, request.PrivatePassword);
+
+        if (request.TimeRestriction is not null)
+        {
+            var timeRestriction = new MikrotikTimeRange(
+                request.TimeRestriction.Start.ToTimeSpan(),
+                request.TimeRestriction.End.ToTimeSpan(),
+                request.TimeRestriction.Days.Select(x => x switch
+                    {
+                        WifiWeekday.Monday => MikrotikWeekday.Monday,
+                        WifiWeekday.Tuesday => MikrotikWeekday.Tuesday,
+                        WifiWeekday.Wednesday => MikrotikWeekday.Wednesday,
+                        WifiWeekday.Thursday => MikrotikWeekday.Thursday,
+                        WifiWeekday.Friday => MikrotikWeekday.Friday,
+                        WifiWeekday.Saturday => MikrotikWeekday.Saturday,
+                        WifiWeekday.Sunday => MikrotikWeekday.Sunday,
+                        _ => MikrotikWeekday.None,
+                    })
+                    .Aggregate(MikrotikWeekday.None, (c, n) => c | n));
+
+            acl = acl.Set(x => x.Time, timeRestriction);
+        }
+
+        acl.Extras.PlaceBefore = baseAcl;
+        await acl.CommitAsync(context.CancellationToken);
+        return new() { IsSuccess = true, };
     }
 
-    public override async Task<Result> DeleteAcl(WifiAclCreateRequest request, ServerCallContext context)
+    public override async Task<Result> DeleteAcl(WifiAclDeleteRequest request, ServerCallContext context)
     {
-        return new() { IsSuccess = false };
+        var (_, network, _) = await this.GetBasicsAsync(context);
+
+        var acl = await this._mikrotikProvider.Get<MikrotikCapsmanAcl>()
+            .FirstOrDefaultAsync(x => x.InterfaceList == network.WirelessInterfaceList && x.Id == request.Identifier, context.CancellationToken);
+
+        if (acl is null)
+            return new() { IsSuccess = false, };
+
+        await acl.DeleteAsync(context.CancellationToken);
+        return new() { IsSuccess = true, };
     }
 
     public override async Task<Result> UpdateAcl(WifiAclUpdateRequest request, ServerCallContext context)
     {
-        return new() { IsSuccess = false };
+        var (_, network, _) = await this.GetBasicsAsync(context);
+        var acl = await this._mikrotikProvider.Get<MikrotikCapsmanAcl>()
+            .FirstOrDefaultAsync(x => x.InterfaceList == network.WirelessInterfaceList && x.Id == request.Identifier, context.CancellationToken);
+
+        var aclMod = acl.Modify();
+        if (request.HasMacAddress)
+        {
+            var mac = MacAddress.Parse(request.MacAddress, CultureInfo.InvariantCulture);
+            aclMod = aclMod.Set(x => x.Address, mac);
+        }
+
+        if (request.HasComment)
+            aclMod = aclMod.Set(x => x.Comment, request.Comment);
+
+        if (request.HasPrivatePassword)
+            aclMod = aclMod.Set(x => x.PrivatePassword, request.PrivatePassword);
+
+        if (request.HasRemovePrivatePassword && request.RemovePrivatePassword)
+            aclMod = aclMod.Set(x => x.PrivatePassword, null);
+
+        if (request.TimeRestriction is not null)
+        {
+            var timeRestriction = new MikrotikTimeRange(
+                request.TimeRestriction.Start.ToTimeSpan(),
+                request.TimeRestriction.End.ToTimeSpan(),
+                request.TimeRestriction.Days.Select(x => x switch
+                    {
+                        WifiWeekday.Monday => MikrotikWeekday.Monday,
+                        WifiWeekday.Tuesday => MikrotikWeekday.Tuesday,
+                        WifiWeekday.Wednesday => MikrotikWeekday.Wednesday,
+                        WifiWeekday.Thursday => MikrotikWeekday.Thursday,
+                        WifiWeekday.Friday => MikrotikWeekday.Friday,
+                        WifiWeekday.Saturday => MikrotikWeekday.Saturday,
+                        WifiWeekday.Sunday => MikrotikWeekday.Sunday,
+                        _ => MikrotikWeekday.None,
+                    })
+                    .Aggregate(MikrotikWeekday.None, (c, n) => c | n));
+
+            aclMod = aclMod.Set(x => x.Time, timeRestriction);
+        }
+
+        if (request.HasRemoveTimeRestriction && request.RemoveTimeRestriction)
+            aclMod = aclMod.Set(x => x.Time, null);
+
+        if (request.HasIsEnabled)
+            aclMod = aclMod.Set(x => x.Disabled, !request.IsEnabled);
+
+        await aclMod.CommitAsync(context.CancellationToken);
+        return new() { IsSuccess = true, };
     }
 
     private readonly record struct WifiBasicInfo(

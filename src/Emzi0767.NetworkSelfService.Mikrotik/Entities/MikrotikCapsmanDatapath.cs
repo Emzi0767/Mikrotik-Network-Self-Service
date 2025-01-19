@@ -24,7 +24,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 /// Represents a CAPsMAN datapath.
 /// </summary>
 [GenerateMikrotikEntityMetadata, MikrotikEntity("caps-man", "datapath")]
-public sealed class MikrotikCapsmanDatapath : IMikrotikEntity
+public sealed class MikrotikCapsmanDatapath : IMikrotikEntity, IMikrotikModifiableEntity<MikrotikCapsmanDatapath>
 {
     /// <inheritdoc />
     public MikrotikClient Client { get; }
@@ -81,4 +81,8 @@ public sealed class MikrotikCapsmanDatapath : IMikrotikEntity
     {
         this.Client = client;
     }
+
+    /// <inheritdoc />
+    public IMikrotikEntityModifier<MikrotikCapsmanDatapath> Modify()
+        => new MikrotikEntityModifyBuilder<MikrotikCapsmanDatapath>(this);
 }

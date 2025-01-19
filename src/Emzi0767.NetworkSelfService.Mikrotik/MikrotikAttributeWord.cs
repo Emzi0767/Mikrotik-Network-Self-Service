@@ -36,6 +36,11 @@ public sealed class MikrotikAttributeWord : IMikrotikWord
     public const string Separator = "=";
 
     /// <summary>
+    /// Gets the prefix for unsets.
+    /// </summary>
+    public const string UnsetPrefix = "!";
+
+    /// <summary>
     /// Gets the key for property list.
     /// </summary>
     public const string KeyPropertyList = ".proplist";
@@ -63,15 +68,13 @@ public sealed class MikrotikAttributeWord : IMikrotikWord
         if (string.IsNullOrWhiteSpace(name))
             MikrotikThrowHelper.Throw_ArgumentNull(nameof(name), "Name must be non-null and cannot be all-whitespace.");
 
-        if (value is null)
-            MikrotikThrowHelper.Throw_ArgumentNull(nameof(value), "Value must be non-null.");
-
         this.Name = name;
         this.Value = value;
         this.Length = Prefix.ComputeEncodedLength()
             + this.Name.ComputeEncodedLength()
             + Separator.ComputeEncodedLength()
-            + this.Value.ComputeEncodedLength();
+            + (this.Value?.ComputeEncodedLength() ?? 0)
+            + (this.Value is null ? UnsetPrefix.Length : 0);
     }
 
     /// <inheritdoc />
@@ -80,13 +83,16 @@ public sealed class MikrotikAttributeWord : IMikrotikWord
         if (!Prefix.TryEncodeTo(destination))
             return false;
 
+        if (this.Value is null && !UnsetPrefix.TryEncodeTo(destination))
+            return false;
+
         if (!this.Name.TryEncodeTo(destination))
             return false;
 
         if (!Separator.TryEncodeTo(destination))
             return false;
 
-        if (!this.Value.TryEncodeTo(destination))
+        if (this.Value is not null && !this.Value.TryEncodeTo(destination))
             return false;
 
         return true;

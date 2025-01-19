@@ -26,7 +26,7 @@ namespace Emzi0767.NetworkSelfService.Mikrotik.Entities;
 /// Represents a Mikrotik CAPsMAN security profile.
 /// </summary>
 [GenerateMikrotikEntityMetadata, MikrotikEntity("caps-man", "security")]
-public sealed class MikrotikCapsmanSecurityProfile : IMikrotikEntity
+public sealed class MikrotikCapsmanSecurityProfile : IMikrotikEntity, IMikrotikModifiableEntity<MikrotikCapsmanSecurityProfile>
 {
     /// <inheritdoc />
     public MikrotikClient Client { get; }
@@ -101,4 +101,8 @@ public sealed class MikrotikCapsmanSecurityProfile : IMikrotikEntity
     {
         this.Client = client;
     }
+
+    /// <inheritdoc />
+    public IMikrotikEntityModifier<MikrotikCapsmanSecurityProfile> Modify()
+        => new MikrotikEntityModifyBuilder<MikrotikCapsmanSecurityProfile>(this);
 }

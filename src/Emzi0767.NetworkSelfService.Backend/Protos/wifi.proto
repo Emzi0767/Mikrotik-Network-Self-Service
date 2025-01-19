@@ -227,7 +227,7 @@ service Wifi {
     rpc CreateAcl(WifiAclCreateRequest) returns (result.Result);
 
     // Deletes an existing ACL entry.
-    rpc DeleteAcl(WifiAclCreateRequest) returns (result.Result);
+    rpc DeleteAcl(WifiAclDeleteRequest) returns (result.Result);
 
     // Updates an existing ACL entry.
     rpc UpdateAcl(WifiAclUpdateRequest) returns (result.Result);

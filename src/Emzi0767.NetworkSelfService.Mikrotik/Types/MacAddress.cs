@@ -30,7 +30,12 @@ public readonly partial struct MacAddress : IEquatable<MacAddress>, IParsable<Ma
     /// <summary>
     /// Gets the zero (00:00:00:00:00:00) MAC address.
     /// </summary>
-    public static MacAddress Zero { get; } = new([0, 0, 0, 0, 0, 0]);
+    public static MacAddress Zero { get; } = new([ 0, 0, 0, 0, 0, 0 ]);
+
+    /// <summary>
+    /// Gets the high (FF:FF:FF:FF:FF:FF) MAC address.
+    /// </summary>
+    public static MacAddress High { get; } = new([ 255, 255, 255, 255, 255, 255 ]);
 
     private static Regex MacRegex { get; } = MacRegexGen();
 
