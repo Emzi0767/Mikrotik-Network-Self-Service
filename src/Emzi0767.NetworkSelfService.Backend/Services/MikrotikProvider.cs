@@ -80,7 +80,10 @@ public sealed class MikrotikProvider : IHostedService
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
-        => await this._client.DisconnectAsync(cancellationToken);
+    {
+        if (this._status != 0)
+            await this._client.DisconnectAsync(cancellationToken);
+    }
 
     public async Task TriggerTimeoutAsync()
     {
