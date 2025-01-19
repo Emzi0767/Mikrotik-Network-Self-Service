@@ -24,18 +24,25 @@ using Emzi0767.NetworkSelfService.Backend.Configuration;
 using Emzi0767.NetworkSelfService.Mikrotik;
 using Emzi0767.NetworkSelfService.Mikrotik.Entities;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Emzi0767.NetworkSelfService.Backend.Services;
 
 public sealed class MikrotikProvider : IHostedService
 {
+    private readonly ILogger<MikrotikProvider> _logger;
     private readonly MikrotikClient _client;
     private readonly MikrotikConfiguration _config;
     private readonly IEnumerable<AddressFamily> _addressFamilies;
 
-    public MikrotikProvider(IOptions<MikrotikConfiguration> opts)
+    private int _requestCounter = 0;
+    private int _status = 0;
+    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+
+    public MikrotikProvider(IOptions<MikrotikConfiguration> opts, ILogger<MikrotikProvider> logger)
     {
+        this._logger = logger;
         this._config = opts.Value;
         this._client = new(new()
         {
@@ -66,8 +73,51 @@ public sealed class MikrotikProvider : IHostedService
         => this._client.Create<T>();
 
     public async Task StartAsync(CancellationToken cancellationToken)
-        => await this._client.ConnectAsync(new DnsEndPoint(this._config.Hostname, this._config.Port), this._addressFamilies, cancellationToken);
+    {
+        Interlocked.Exchange(ref this._status, 1);
+        await this._client.ConnectAsync(new DnsEndPoint(this._config.Hostname, this._config.Port), this._addressFamilies, cancellationToken);
+        _ = this.TriggerTimeoutAsync();
+    }
 
     public async Task StopAsync(CancellationToken cancellationToken)
         => await this._client.DisconnectAsync(cancellationToken);
+
+    public async Task TriggerTimeoutAsync()
+    {
+        await Task.Delay(TimeSpan.FromMinutes(5));
+        if (Interlocked.Exchange(ref this._requestCounter, 0) == 0)
+        {
+            this._logger.LogInformation("Mikrotik client shutting down after inactivity");
+            await this._client.DisconnectAsync();
+            Interlocked.Exchange(ref this._status, 0);
+        }
+        else
+        {
+            _ = this.TriggerTimeoutAsync();
+        }
+    }
+
+    public void MarkRequest()
+        => Interlocked.Increment(ref this._requestCounter);
+
+    public async Task RestartAsync(CancellationToken cancellationToken)
+    {
+        if (this._status == 1)
+            return;
+
+        if (await this._semaphore.WaitAsync(0, cancellationToken)) // lock, if it did not work immediately, means someone else is already doing this
+        {
+            this._logger.LogInformation("Mikrotik client restarting");
+            await this._client.ConnectAsync(new DnsEndPoint(this._config.Hostname, this._config.Port), this._addressFamilies, cancellationToken);
+            Interlocked.Exchange(ref this._status, 1);
+            _ = this.TriggerTimeoutAsync();
+        }
+        else
+        {
+            this._logger.LogInformation("Mikrotik client is being restarted from another context");
+            await this._semaphore.WaitAsync(cancellationToken);
+        }
+
+        this._semaphore.Release();
+    }
 }

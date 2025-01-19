@@ -315,7 +315,12 @@ public sealed class GrpcWifiService : Wifi.WifiBase
             .Set(x => x.Comment, request.Comment);
 
         if (request.HasPrivatePassword)
+        {
+            if (request.PrivatePassword.Length is < 8 or > 63)
+                return new() { IsSuccess = false, };
+
             acl = acl.Set(x => x.PrivatePassword, request.PrivatePassword);
+        }
 
         if (request.TimeRestriction is not null)
         {
@@ -374,7 +379,12 @@ public sealed class GrpcWifiService : Wifi.WifiBase
             aclMod = aclMod.Set(x => x.Comment, request.Comment);
 
         if (request.HasPrivatePassword)
+        {
+            if (request.PrivatePassword.Length is < 8 or > 63)
+                return new() { IsSuccess = false, };
+
             aclMod = aclMod.Set(x => x.PrivatePassword, request.PrivatePassword);
+        }
 
         if (request.HasRemovePrivatePassword && request.RemovePrivatePassword)
             aclMod = aclMod.Set(x => x.PrivatePassword, null);

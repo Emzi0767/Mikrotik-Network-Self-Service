@@ -104,6 +104,14 @@ public sealed class Startup
         app.UseRouting()
             .UseAuthentication()
             .UseAuthorization()
+            .Use(async (ctx, next) =>
+            {
+                var mikrotik = ctx.RequestServices.GetService<MikrotikProvider>();
+                mikrotik.MarkRequest();
+                await mikrotik.RestartAsync(ctx.RequestAborted);
+
+                await next(ctx);
+            })
             .UseEndpoints(static endpoints =>
             {
                 endpoints.MapGrpcService<GrpcAuthenticationService>();

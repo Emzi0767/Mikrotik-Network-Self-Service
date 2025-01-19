@@ -102,7 +102,15 @@ public sealed class MikrotikClient : IDisposable
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     public async Task DisconnectAsync(CancellationToken cancellationToken = default)
-        => await this._api.DisconnectAsync(cancellationToken);
+    {
+        await this._api.DisconnectAsync(cancellationToken);
+        Interlocked.Exchange(ref this._requestCounter, 0);
+
+        foreach (var (_, request) in this._outstandingRequests)
+            request.TerminateEarly();
+
+        this._outstandingRequests.Clear();
+    }
 
     /// <summary>
     /// Retrieves specified entities from the API.
@@ -174,6 +182,6 @@ public sealed class MikrotikClient : IDisposable
     private string AssignRequestId()
     {
         var id = Interlocked.Increment(ref this._requestCounter);
-        return $"emzi-mikrotik-request-{id:x}";
+        return $"emzireq-{id:x}";
     }
 }
