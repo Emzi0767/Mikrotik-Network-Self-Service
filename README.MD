@@ -9,6 +9,12 @@ previously written [a similar tool][0], using PHP. Back then, I did that to solv
 in the process. This time, I set out to learn integrating gRPC with ASP.NET and Angular, but in the process discovered
 some new grounds to tread too.
 
+## The goal
+To let users perform some basic administration tasks in their own network segments, without having to go to the proper
+administrator, and without giving them full access to the underlying management tools. This is both because they would
+offer too much functionality, and they're too complicated. The idea is that people are used to consumer-grade management
+tools, and this aims to be close in terms of both UI, UX, and functionality.
+
 ## Contents
 The project consists of 3 main parts:
 - High-level Mikrotik API wrapper
@@ -63,11 +69,16 @@ repository. If you have any problems with the project, feel free to express it, 
 even write me an angry email, if you're so inclined, as long as it's constructive. You can even suggest changes, but I
 ask that you explain them. This way, I can learn.
 
+## "Your code sucks!"
+So? Give me something constructive, or contribute an improvement. I can't exactly act on your feelings or laconic
+statements. I'd like it to be a lesson. Maybe for you, certainly for me.
+
 ## Resources
 Here's some cool and useful links I used when working on the project.
 
 - [Mikrotik's website][1] - they make some cool hardware, and it's the reason this project exists in the first place
 - [Mikrotik's API documentation][2] - this documents just the protocol, for functionality, it's the same as CLI
+- [Angular gRPC framework][5] - I used that in this project
 - [Not a rick roll][3]
 - [Cat video][4]
 
@@ -77,3 +88,4 @@ Here's some cool and useful links I used when working on the project.
 [2]: https://help.mikrotik.com/docs/spaces/ROS/pages/47579160/API
 [3]: https://youtu.be/dQw4w9WgXcQ
 [4]: https://youtu.be/h3XXlYbdzdU
+[5]: https://github.com/smnbbrv/ngx-grpc
