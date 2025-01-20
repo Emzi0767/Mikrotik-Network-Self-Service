@@ -79,7 +79,6 @@ export class ThemeTypeProviderService {
         map((q: MediaQueryList) => q.matches),
         map(r => r ? ThemeType.DARK : ThemeType.LIGHT),
         map(t => {
-          console.log('THEME UPDATE:', t);
           const saved = this.getSavedPreference();
           if (saved === InternalThemeType.DEFAULT)
             return t;

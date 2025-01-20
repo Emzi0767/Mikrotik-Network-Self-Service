@@ -1,14 +1,13 @@
 import { Component, HostBinding, Signal } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
-import { MatToolbarModule } from "@angular/material/toolbar";
 import { CommonModule } from "@angular/common";
-import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { FormsModule } from "@angular/forms";
-
-import { ThemeTypeProviderService } from "./services/theme-type-provider.service";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
-import { map } from "rxjs";
+import { map, tap } from "rxjs";
 import { toSignal } from "@angular/core/rxjs-interop";
+
+import { MATERIAL_IMPORTS } from "./common-imports";
+import { ThemeType, ThemeTypeProviderService } from "./services/theme-type-provider.service";
 import { GrpcModule } from "./grpc.module";
 
 @Component({
@@ -16,11 +15,10 @@ import { GrpcModule } from "./grpc.module";
   standalone: true,
   imports: [
     RouterOutlet,
-    MatToolbarModule,
-    MatSlideToggleModule,
     CommonModule,
     FormsModule,
     GrpcModule,
+    ...MATERIAL_IMPORTS,
   ],
   providers: [
     GrpcModule,
@@ -51,9 +49,15 @@ export class AppComponent {
     public breakpointObserver: BreakpointObserver
   ) {
     this.isTinyDisplay = toSignal(
-      this.breakpointObserver.observe(Breakpoints.XSmall)
-        .pipe(map(x => x.matches)),
+      this.breakpointObserver.observe([ Breakpoints.Small, Breakpoints.XSmall ])
+        .pipe(tap(console.log), map(x => x.matches)),
       { initialValue: false }
+    );
+  }
+
+  toggleDarkMode(): void {
+    this.themeTypeProvider.prefersDarkTheme.set(
+      !this.themeTypeProvider.prefersDarkTheme()
     );
   }
 }

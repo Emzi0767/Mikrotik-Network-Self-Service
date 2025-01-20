@@ -1,26 +1,66 @@
 <mat-toolbar>
-    @if (isTinyDisplay()) {
-        <ng-container>
-            <mat-toolbar-row>
-                <span>Network Administration</span>
-            </mat-toolbar-row>
-            <mat-toolbar-row>
-                <ng-container *ngTemplateOutlet="navDarkModeToggle"></ng-container>
-            </mat-toolbar-row>
-        </ng-container>
-    } @else {
-        <ng-container>
-            <span>Self-Service Network Administration Panel</span>
-            <ng-container *ngTemplateOutlet="navDarkModeToggle"></ng-container>
-        </ng-container>
-    }
-    
-    <ng-template #navDarkModeToggle>
+  @if (isTinyDisplay()) {
+    <ng-container>
+      <mat-toolbar-row>
+        <button mat-icon-button aria-label="Open navigation menu" (click)="drawer.toggle()">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <span>Network Administration</span>
+      </mat-toolbar-row>
+    </ng-container>
+  } @else {
+    <ng-container>
+      <mat-toolbar-row>
+        <span>Self-Service Network Administration Panel</span>
         <span class="spacer">&nbsp;</span>
-        <mat-slide-toggle [(ngModel)]="prefersDarkTheme">Dark Mode</mat-slide-toggle>
-    </ng-template>
+        <button
+          mat-icon-button
+          [attr.aria-label]="'Switch to ' + (prefersDarkTheme() ? 'light mode' : 'dark mode')"
+          (click)="toggleDarkMode()">
+          <mat-icon>
+            {{ prefersDarkTheme() ? "light_mode" : "dark_mode" }}
+          </mat-icon>
+        </button>
+        &nbsp;
+        <button
+          mat-icon-button
+          aria-label="Log out">
+          <mat-icon>logout</mat-icon>
+        </button>
+      </mat-toolbar-row>
+      <mat-toolbar-row>
+        <nav mat-tab-nav-bar mat-align-tabs="center" [tabPanel]="tabPanel">
+          <a href="#" mat-tab-link active="true"><mat-icon>home</mat-icon>&nbsp;Landing</a>
+          <a href="#" mat-tab-link><mat-icon>hub</mat-icon>&nbsp;DHCP</a>
+          <a href="#" mat-tab-link><mat-icon>wifi</mat-icon>&nbsp;Wi-Fi</a>
+          <a href="#" mat-tab-link><mat-icon>account_circle</mat-icon>&nbsp;User settings</a>
+        </nav>
+      </mat-toolbar-row>
+    </ng-container>
+  }
+
 </mat-toolbar>
 
-<h1>goddamn toolbar</h1>
+<mat-drawer-container [hasBackdrop]="true" class="nav-drawer" autosize>
+  <mat-drawer #drawer [mode]="'over'">
+    <mat-nav-list>
+      <a href="#" mat-list-item><mat-icon matListItemIcon>home</mat-icon> Landing</a>
+      <a href="#" mat-list-item><mat-icon matListItemIcon>hub</mat-icon> DHCP</a>
+      <a href="#" mat-list-item><mat-icon matListItemIcon>wifi</mat-icon> Wi-Fi</a>
+      <a href="#" mat-list-item><mat-icon matListItemIcon>account_circle</mat-icon> User settings</a>
+      <a href="#" mat-list-item (click)="toggleDarkMode()">
+        <mat-icon matListItemIcon>{{ prefersDarkTheme() ? "light_mode" : "dark_mode" }}</mat-icon>
+        Switch to {{ prefersDarkTheme() ? "light mode" : "dark mode" }}
+      </a>
+      <a href="#" mat-list-item><mat-icon matListItemIcon>logout</mat-icon> Log out</a>
+    </mat-nav-list>
+  </mat-drawer>
+  <mat-drawer-content>
+    <mat-tab-nav-panel #tabPanel>
+      <div [ngClass]="{ 'fixed-width': !this.isTinyDisplay() }">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-tab-nav-panel>
+  </mat-drawer-content>
+</mat-drawer-container>
 
-<router-outlet />
