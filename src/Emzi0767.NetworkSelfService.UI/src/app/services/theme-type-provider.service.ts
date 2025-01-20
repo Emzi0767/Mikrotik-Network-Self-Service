@@ -1,7 +1,6 @@
-import { computed, effect, Injectable, linkedSignal, Signal, signal, WritableSignal } from '@angular/core';
+import { effect, Injectable, signal, WritableSignal } from '@angular/core';
 import { StorageService } from './storage.service';
 import { fromEvent, map, Observable, startWith } from 'rxjs';
-import { toObservable } from '@angular/core/rxjs-interop';
 
 enum InternalThemeType {
   DEFAULT,

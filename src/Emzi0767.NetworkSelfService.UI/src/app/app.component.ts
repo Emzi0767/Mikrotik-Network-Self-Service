@@ -6,8 +6,8 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { FormsModule } from "@angular/forms";
 
 import { ThemeTypeProviderService } from "./services/theme-type-provider.service";
-import { BreakpointObserver, Breakpoints, BreakpointState } from "@angular/cdk/layout";
-import { map, startWith } from "rxjs";
+import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { map } from "rxjs";
 import { toSignal } from "@angular/core/rxjs-interop";
 
 @Component({
