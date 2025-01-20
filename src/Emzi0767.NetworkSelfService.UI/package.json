@@ -5,7 +5,9 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "watch": "ng build --watch --configuration development"
+    "watch": "ng build --watch --configuration development",
+    "proto:generate": "protoc --plugin=protoc-gen-ng=$(which protoc-gen-ng) --ng_out=./src/app/proto -I ../Emzi0767.NetworkSelfService.Backend/Protos $(find ../Emzi0767.NetworkSelfService.Backend/Protos -iname \"*.proto\")",
+    "proto:generate:win": "for /f %G in ('dir /b ..\\Emzi0767.NetworkSelfService.Backend\\Protos\\*.proto') do @node_modules\\.bin\\grpc_tools_node_protoc --plugin=protoc-gen-ng=.\\node_modules\\.bin\\protoc-gen-ng.cmd --ng_out=.\\src\\app\\proto -I ..\\Emzi0767.NetworkSelfService.Backend\\Protos ..\\Emzi0767.NetworkSelfService.Backend\\Protos\\%G"
   },
   "private": true,
   "dependencies": {
@@ -19,6 +21,12 @@
     "@angular/platform-browser": "^19.1.2",
     "@angular/platform-browser-dynamic": "^19.1.2",
     "@angular/router": "^19.1.2",
+    "@ngx-grpc/common": "^3.1.2",
+    "@ngx-grpc/core": "^3.1.2",
+    "@ngx-grpc/grpc-web-client": "^3.1.2",
+    "@ngx-grpc/well-known-types": "^3.1.2",
+    "google-protobuf": "^3.21.4",
+    "grpc-web": "^1.5.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
@@ -27,6 +35,9 @@
     "@angular-devkit/build-angular": "^19.0.4",
     "@angular/cli": "^19.0.4",
     "@angular/compiler-cli": "^19.1.2",
+    "@ngx-grpc/protoc-gen-ng": "^3.1.2",
+    "@types/google-protobuf": "^3.15.12",
+    "grpc-tools": "^1.12.4",
     "typescript": "~5.6.2"
   }
 }

@@ -9,15 +9,21 @@ import { ThemeTypeProviderService } from "./services/theme-type-provider.service
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map } from "rxjs";
 import { toSignal } from "@angular/core/rxjs-interop";
+import { GrpcModule } from "./grpc.module";
 
 @Component({
   selector: "app-root",
+  standalone: true,
   imports: [
     RouterOutlet,
     MatToolbarModule,
     MatSlideToggleModule,
     CommonModule,
     FormsModule,
+    GrpcModule,
+  ],
+  providers: [
+    GrpcModule,
   ],
   templateUrl: "app.template.html",
   styleUrl: "app.component.scss",
