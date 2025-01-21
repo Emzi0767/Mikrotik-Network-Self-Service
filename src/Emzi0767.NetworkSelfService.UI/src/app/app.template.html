@@ -21,21 +21,25 @@
             {{ prefersDarkTheme() ? "light_mode" : "dark_mode" }}
           </mat-icon>
         </button>
-        &nbsp;
-        <button
-          mat-icon-button
-          aria-label="Log out">
-          <mat-icon>logout</mat-icon>
-        </button>
+        @if (isAuthenticated()) {
+          &nbsp;
+          <button
+            mat-icon-button
+            aria-label="Log out">
+            <mat-icon>logout</mat-icon>
+          </button>
+        }
       </mat-toolbar-row>
-      <mat-toolbar-row>
-        <nav mat-tab-nav-bar mat-align-tabs="center" [tabPanel]="tabPanel">
-          <a href="#" mat-tab-link active="true"><mat-icon>home</mat-icon>&nbsp;Landing</a>
-          <a href="#" mat-tab-link><mat-icon>hub</mat-icon>&nbsp;DHCP</a>
-          <a href="#" mat-tab-link><mat-icon>wifi</mat-icon>&nbsp;Wi-Fi</a>
-          <a href="#" mat-tab-link><mat-icon>account_circle</mat-icon>&nbsp;User settings</a>
-        </nav>
-      </mat-toolbar-row>
+      @if (isAuthenticated()) {
+        <mat-toolbar-row>
+          <nav mat-tab-nav-bar mat-align-tabs="center" [tabPanel]="tabPanel">
+            <a href="#" mat-tab-link active="true"><mat-icon>home</mat-icon>&nbsp;Landing</a>
+            <a href="#" mat-tab-link><mat-icon>hub</mat-icon>&nbsp;DHCP</a>
+            <a href="#" mat-tab-link><mat-icon>wifi</mat-icon>&nbsp;Wi-Fi</a>
+            <a href="#" mat-tab-link><mat-icon>account_circle</mat-icon>&nbsp;User settings</a>
+          </nav>
+        </mat-toolbar-row>
+      }
     </ng-container>
   }
 
@@ -44,15 +48,22 @@
 <mat-drawer-container [hasBackdrop]="true" class="nav-drawer" autosize>
   <mat-drawer #drawer [mode]="'over'">
     <mat-nav-list>
-      <a href="#" mat-list-item><mat-icon matListItemIcon>home</mat-icon> Landing</a>
-      <a href="#" mat-list-item><mat-icon matListItemIcon>hub</mat-icon> DHCP</a>
-      <a href="#" mat-list-item><mat-icon matListItemIcon>wifi</mat-icon> Wi-Fi</a>
-      <a href="#" mat-list-item><mat-icon matListItemIcon>account_circle</mat-icon> User settings</a>
-      <a href="#" mat-list-item (click)="toggleDarkMode()">
-        <mat-icon matListItemIcon>{{ prefersDarkTheme() ? "light_mode" : "dark_mode" }}</mat-icon>
-        Switch to {{ prefersDarkTheme() ? "light mode" : "dark mode" }}
-      </a>
-      <a href="#" mat-list-item><mat-icon matListItemIcon>logout</mat-icon> Log out</a>
+      @if (isAuthenticated()) {
+        <a href="#" mat-list-item><mat-icon matListItemIcon>home</mat-icon> Landing</a>
+        <a href="#" mat-list-item><mat-icon matListItemIcon>hub</mat-icon> DHCP</a>
+        <a href="#" mat-list-item><mat-icon matListItemIcon>wifi</mat-icon> Wi-Fi</a>
+        <a href="#" mat-list-item><mat-icon matListItemIcon>account_circle</mat-icon> User settings</a>
+        <a href="#" mat-list-item (click)="toggleDarkMode()">
+          <mat-icon matListItemIcon>{{ prefersDarkTheme() ? "light_mode" : "dark_mode" }}</mat-icon>
+          Switch to {{ prefersDarkTheme() ? "light mode" : "dark mode" }}
+        </a>
+        <a href="#" mat-list-item><mat-icon matListItemIcon>logout</mat-icon> Log out</a>
+      } @else {
+        <a href="#" mat-list-item (click)="toggleDarkMode()">
+          <mat-icon matListItemIcon>{{ prefersDarkTheme() ? "light_mode" : "dark_mode" }}</mat-icon>
+          Switch to {{ prefersDarkTheme() ? "light mode" : "dark mode" }}
+        </a>
+      }
     </mat-nav-list>
   </mat-drawer>
   <mat-drawer-content>

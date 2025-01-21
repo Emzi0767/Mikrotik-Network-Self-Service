@@ -1,14 +1,15 @@
 import { Component, HostBinding, Signal } from "@angular/core";
-import { RouterOutlet } from "@angular/router";
-import { CommonModule } from "@angular/common";
-import { FormsModule } from "@angular/forms";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map, tap } from "rxjs";
 import { toSignal } from "@angular/core/rxjs-interop";
+import { RouterOutlet } from "@angular/router";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 
 import { MATERIAL_IMPORTS } from "./common-imports";
-import { ThemeType, ThemeTypeProviderService } from "./services/theme-type-provider.service";
+import { ThemeTypeProviderService } from "./services/theme-type-provider.service";
 import { GrpcModule } from "./grpc.module";
+import { AuthenticationProviderService } from "./services/authentication-provider.service";
 
 @Component({
   selector: "app-root",
@@ -42,15 +43,20 @@ export class AppComponent {
     return this.themeTypeProvider.prefersDarkTheme;
   }
 
+  get isAuthenticated(): Signal<boolean> {
+    return this.authentication.isAuthenticated;
+  }
+
   public isTinyDisplay: Signal<boolean>;
 
   constructor(
-    public themeTypeProvider: ThemeTypeProviderService,
-    public breakpointObserver: BreakpointObserver
+    private themeTypeProvider: ThemeTypeProviderService,
+    private breakpointObserver: BreakpointObserver,
+    private authentication: AuthenticationProviderService,
   ) {
     this.isTinyDisplay = toSignal(
       this.breakpointObserver.observe([ Breakpoints.Small, Breakpoints.XSmall ])
-        .pipe(tap(console.log), map(x => x.matches)),
+        .pipe(map(x => x.matches)),
       { initialValue: false }
     );
   }
