@@ -1,0 +1,47 @@
+<p>
+  @switch (type) {
+    @case ('TEXT') {
+      <mat-form-field [appearance]="'fill'" [formGroup]="form">
+        <mat-label>{{ title }}</mat-label>
+        <input matInput type="text" [formControlName]="controlName">
+        <ng-container *ngTemplateOutlet="errors"></ng-container>
+      </mat-form-field>
+    }
+
+    @case ('PASSWORD') {
+      <mat-form-field [appearance]="'fill'" [formGroup]="form">
+        <mat-label>{{ title }}</mat-label>
+        <input matInput type="password" [formControlName]="controlName">
+        <ng-container *ngTemplateOutlet="errors"></ng-container>
+      </mat-form-field>
+    }
+
+    @case ('NUMBER') {
+      <mat-form-field [appearance]="'fill'" [formGroup]="form">
+        <mat-label>{{ title }}</mat-label>
+        <input matInput type="number" [formControlName]="controlName">
+        <ng-container *ngTemplateOutlet="errors"></ng-container>
+      </mat-form-field>
+    }
+
+    @case ('CHECKBOX') {
+      <section [formGroup]="form">
+        <mat-checkbox [formControlName]="controlName">{{ title }}</mat-checkbox>
+        <ng-container *ngTemplateOutlet="errors"></ng-container>
+      </section>
+    }
+
+    @case ('TOGGLE') {
+      <section [formGroup]="form">
+        <mat-slide-toggle [formControlName]="controlName">{{ title }}</mat-slide-toggle>
+        <ng-container *ngTemplateOutlet="errors"></ng-container>
+      </section>
+    }
+  }
+</p>
+
+<ng-template #errors>
+  <mat-error *ngIf="control.touched && control.invalid">
+    <span *ngIf="control.errors?.['required']">This field is mandatory.</span>
+  </mat-error>
+</ng-template>

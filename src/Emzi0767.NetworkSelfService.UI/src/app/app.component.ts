@@ -1,28 +1,17 @@
 import { Component, HostBinding, Signal } from "@angular/core";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
-import { map, tap } from "rxjs";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { RouterOutlet } from "@angular/router";
-import { CommonModule } from "@angular/common";
-import { FormsModule } from "@angular/forms";
+import { map } from "rxjs";
 
-import { MATERIAL_IMPORTS } from "./common-imports";
 import { ThemeTypeProviderService } from "./services/theme-type-provider.service";
-import { GrpcModule } from "./grpc.module";
 import { AuthenticationProviderService } from "./services/authentication-provider.service";
+import { CoreModule } from "./core.module";
 
 @Component({
   selector: "app-root",
   standalone: true,
   imports: [
-    RouterOutlet,
-    CommonModule,
-    FormsModule,
-    GrpcModule,
-    ...MATERIAL_IMPORTS,
-  ],
-  providers: [
-    GrpcModule,
+    CoreModule,
   ],
   templateUrl: "app.template.html",
   styleUrl: "app.component.scss",
