@@ -1,0 +1,7 @@
+<h1>Change password</h1>
+<form [formGroup]="passwordUpdateForm" (submit)="submit()">
+  <app-form-input [form]="passwordUpdateForm" [type]="'PASSWORD'" controlName="current" title="Current password"></app-form-input>
+  <app-form-input [form]="passwordUpdateForm" [type]="'PASSWORD'" controlName="update" title="New password"></app-form-input>
+  <app-form-input [form]="passwordUpdateForm" [type]="'PASSWORD'" controlName="confirm" title="Confirm password"></app-form-input>
+  <button mat-flat-button type="submit" [disabled]="passwordUpdateForm.disabled">Update password</button>
+</form>
