@@ -1,7 +1,7 @@
-import { Component, HostBinding, signal, Signal, WritableSignal } from "@angular/core";
+import { Component, HostBinding, Renderer2, signal, Signal, WritableSignal } from "@angular/core";
 import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
-import { toSignal } from "@angular/core/rxjs-interop";
+import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { filter, map, switchMap } from "rxjs";
 
 import { ThemeTypeProviderService } from "./services/theme-type-provider.service";
@@ -19,16 +19,6 @@ import { RouteCategory } from "./types/route-category.enum";
   styleUrl: "app.component.scss",
 })
 export class AppComponent {
-
-  @HostBinding("class.dark-theme")
-  get useDarkTheme(): boolean {
-    return this.themeTypeProvider.prefersDarkTheme();
-  }
-
-  @HostBinding("class.light-theme")
-  get useLightTheme(): boolean {
-    return !this.themeTypeProvider.prefersDarkTheme();
-  }
 
   get prefersDarkTheme(): Signal<boolean> {
     return this.themeTypeProvider.prefersDarkTheme;
@@ -53,6 +43,7 @@ export class AppComponent {
     private authentication: AuthenticationProviderService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
+    private renderer: Renderer2,
   ) {
     this.isTinyDisplay = toSignal(
       this.breakpointObserver.observe([ Breakpoints.Small, Breakpoints.XSmall ])
@@ -67,6 +58,17 @@ export class AppComponent {
       switchMap(r => r.data),
       map(d => d["category"] as RouteCategory)
     ).subscribe(x => this._currentRouteCategory.set(x));
+
+    toObservable(this.prefersDarkTheme)
+      .subscribe(x => {
+        if (x) {
+          this.renderer.addClass(document.body, "dark-theme");
+          this.renderer.removeClass(document.body, "light-theme");
+        } else {
+          this.renderer.removeClass(document.body, "dark-theme");
+          this.renderer.addClass(document.body, "light-theme");
+        }
+      });
   }
 
   toggleDarkMode(): void {

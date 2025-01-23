@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
-import { CoreModule } from '../../../core.module';
 import { ActivatedRoute } from '@angular/router';
+
+import { CoreModule } from '../../../core.module';
 import { LandingResponse } from '../../../proto/landing.pb';
 
 @Component({
