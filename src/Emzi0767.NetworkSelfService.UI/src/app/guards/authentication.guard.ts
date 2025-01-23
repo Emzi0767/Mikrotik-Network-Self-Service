@@ -17,11 +17,14 @@ export const authenticationGuard: CanActivateFn = (route, state) => {
     return false;
   }
 
+  console.log("NEED REFRESH");
   const authClient = inject(AuthenticationClientService);
   return authClient.refreshSession(authProvider.refreshToken!)
     .pipe(
-      tap(console.log),
-      tap(x => authProvider.updateSession(x)),
+      tap(x => {
+        if (x.session !== null && x.session !== undefined)
+          authProvider.updateSession(x.session);
+      }),
       map(x => true),
       catchError((err, caught) => of(false)),
     );

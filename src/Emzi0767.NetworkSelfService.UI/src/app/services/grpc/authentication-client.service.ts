@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { GrpcMessagePool, GrpcMetadata } from '@ngx-grpc/common';
 
 import { AuthenticationClient } from '../../proto/auth.pbsc';
-import { AuthenticationRequest, AuthenticationResponse } from '../../proto/auth.pb';
-import { Error, ErrorCode } from '../../proto/result.pb';
+import { AuthenticationRequest, AuthenticationResponse, PasswordUpdateRequest } from '../../proto/auth.pb';
+import { Error, ErrorCode, Result } from '../../proto/result.pb';
 import { Empty } from '@ngx-grpc/well-known-types';
 import { extractNullOrThrow, makeExtractor } from '../../types/grpc-unpacker';
 
@@ -55,6 +55,15 @@ export class AuthenticationClientService {
     return resp.pipe(
       catchError((err, caught) => throwError(() => new Error({ code: ErrorCode.UNKNOWN }))),
       switchMap(extractNullOrThrow),
+    );
+  }
+
+  updatePassword(token: string, req: PasswordUpdateRequest): Observable<Result> {
+    const resp = this.authentication.changePassword(req, new GrpcMetadata({ "Authorization": `Bearer ${token}` }));
+
+    return resp.pipe(
+      switchMap(x => x.isSuccess ? of(x) : throwError(() => new Error({ code: ErrorCode.UNKNOWN }))),
+      catchError((err, caught) => throwError(() => new Error({ code: ErrorCode.UNKNOWN }))),
     );
   }
 }

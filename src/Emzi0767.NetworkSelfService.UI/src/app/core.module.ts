@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { MATERIAL_IMPORTS } from './common-imports';
+import { FormInputComponent } from './components/partial/form-input/form-input.component';
 
 const CORE_MODULES = [
   CommonModule,

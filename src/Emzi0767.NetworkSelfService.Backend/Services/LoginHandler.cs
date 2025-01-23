@@ -80,18 +80,12 @@ public sealed class LoginHandler
         if (session is null)
             return null;
 
-        var rotateSession = (session.ExpiresAt - DateTimeOffset.UtcNow).TotalDays < 1.0;
+        var rotateSession = (session.ExpiresAt - DateTimeOffset.UtcNow).TotalMinutes < 1;
         if (rotateSession)
-        {
-            session = await this._sessions.CreateSessionAsync(new()
-            {
-                Username = session.Username,
-                IsRemembered = session.IsRemembered,
-                ExpiresAt = this._tokenGenerator.GetExpirationDate(session.IsRemembered),
-                CreatedAt = DateTimeOffset.UtcNow,
-            }, cancellationToken);
-            await this._sessions.DeleteSessionAsync(sessionId, cancellationToken);
-        }
+            session = await this._sessions.UpdateSessionAsync(
+                sessionId,
+                this._tokenGenerator.GetExpirationDate(session.IsRemembered),
+                cancellationToken);
 
         var user = await this._users.FindUserByNameAsync(session.Username, cancellationToken);
         var tokens = this._tokenGenerator.GenerateTokenPair(user, session, rotateSession);

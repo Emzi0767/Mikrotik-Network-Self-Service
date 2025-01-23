@@ -7,6 +7,7 @@ import { InputType } from '../../../types/input-type.enum';
 
 @Component({
   selector: 'app-form-input',
+  standalone: true,
   imports: [
     CoreModule,
   ],

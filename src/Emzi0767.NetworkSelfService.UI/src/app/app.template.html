@@ -34,10 +34,10 @@
       @if (isAuthenticated()) {
         <mat-toolbar-row>
           <nav mat-tab-nav-bar mat-align-tabs="center" [tabPanel]="tabPanel">
-            <a href="#" mat-tab-link active="true"><mat-icon>home</mat-icon>&nbsp;Landing</a>
-            <a href="#" mat-tab-link><mat-icon>hub</mat-icon>&nbsp;DHCP</a>
-            <a href="#" mat-tab-link><mat-icon>wifi</mat-icon>&nbsp;Wi-Fi</a>
-            <a href="#" mat-tab-link><mat-icon>account_circle</mat-icon>&nbsp;User settings</a>
+            <a [routerLink]="['/']" mat-tab-link [active]="currentRouteCategory() == RouteCategory.LANDING"><mat-icon>home</mat-icon>&nbsp;Landing</a>
+            <a [routerLink]="['/dhcp']" href="#" mat-tab-link [active]="currentRouteCategory() == RouteCategory.DHCP"><mat-icon>hub</mat-icon>&nbsp;DHCP</a>
+            <a [routerLink]="['/wifi']" href="#" mat-tab-link [active]="currentRouteCategory() == RouteCategory.WIFI"><mat-icon>wifi</mat-icon>&nbsp;Wi-Fi</a>
+            <a [routerLink]="['/user']" href="#" mat-tab-link [active]="currentRouteCategory() == RouteCategory.USER_SETTINGS"><mat-icon>account_circle</mat-icon>&nbsp;User settings</a>
           </nav>
         </mat-toolbar-row>
       }
@@ -50,17 +50,17 @@
   <mat-drawer #drawer [mode]="'over'">
     <mat-nav-list>
       @if (isAuthenticated()) {
-        <a href="#" mat-list-item><mat-icon matListItemIcon>home</mat-icon> Landing</a>
-        <a href="#" mat-list-item><mat-icon matListItemIcon>hub</mat-icon> DHCP</a>
-        <a href="#" mat-list-item><mat-icon matListItemIcon>wifi</mat-icon> Wi-Fi</a>
-        <a href="#" mat-list-item><mat-icon matListItemIcon>account_circle</mat-icon> User settings</a>
-        <a href="#" mat-list-item (click)="toggleDarkMode()">
+        <a [routerLink]="['/']" mat-list-item [activated]="currentRouteCategory() == RouteCategory.LANDING"><mat-icon matListItemIcon>home</mat-icon> Landing</a>
+        <a [routerLink]="['/dhcp']" mat-list-item [activated]="currentRouteCategory() == RouteCategory.DHCP"><mat-icon matListItemIcon>hub</mat-icon> DHCP</a>
+        <a [routerLink]="['/wifi']" mat-list-item [activated]="currentRouteCategory() == RouteCategory.WIFI"><mat-icon matListItemIcon>wifi</mat-icon> Wi-Fi</a>
+        <a [routerLink]="['/user']" mat-list-item [activated]="currentRouteCategory() == RouteCategory.USER_SETTINGS"><mat-icon matListItemIcon>account_circle</mat-icon> User settings</a>
+        <a mat-list-item (click)="toggleDarkMode()">
           <mat-icon matListItemIcon>{{ prefersDarkTheme() ? "light_mode" : "dark_mode" }}</mat-icon>
           Switch to {{ prefersDarkTheme() ? "light mode" : "dark mode" }}
         </a>
         <a [routerLink]="[ '/logout' ]" mat-list-item><mat-icon matListItemIcon>logout</mat-icon> Log out</a>
       } @else {
-        <a href="#" mat-list-item (click)="toggleDarkMode()">
+        <a mat-list-item (click)="toggleDarkMode()">
           <mat-icon matListItemIcon>{{ prefersDarkTheme() ? "light_mode" : "dark_mode" }}</mat-icon>
           Switch to {{ prefersDarkTheme() ? "light mode" : "dark mode" }}
         </a>
@@ -69,7 +69,7 @@
   </mat-drawer>
   <mat-drawer-content>
     <mat-tab-nav-panel #tabPanel>
-      <div [ngClass]="{ 'fixed-width': !this.isTinyDisplay() }">
+      <div [ngClass]="{ 'fixed-width': !this.isTinyDisplay(), 'tiny-padding': this.isTinyDisplay() }">
         <router-outlet></router-outlet>
       </div>
     </mat-tab-nav-panel>

@@ -17,6 +17,7 @@ export class SnackService {
       {
         horizontalPosition: 'center',
         verticalPosition: 'top',
+        duration: 5000,
       }
     );
   }

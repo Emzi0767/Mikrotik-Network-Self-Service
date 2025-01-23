@@ -75,6 +75,9 @@ export class AuthenticationProviderService {
     } else {
       this._data.authenticationToken = session.token;
 
+      if (session.refresh !== undefined)
+        this._data.refreshToken = session.refresh;
+
       if (session.refreshBy !== undefined)
         this._data.refreshDeadline = session.refreshBy.toDate();
 

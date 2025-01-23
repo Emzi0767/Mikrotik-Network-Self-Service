@@ -16,7 +16,7 @@ import { Error, ErrorCode } from '../../../proto/result.pb';
   standalone: true,
   imports: [
     CoreModule,
-    FormInputComponent
+    FormInputComponent,
   ],
   templateUrl: './login.template.html',
   styles: ``
