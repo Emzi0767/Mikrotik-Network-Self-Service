@@ -64,8 +64,9 @@ public sealed class GrpcAuthenticationService : Authentication.AuthenticationBas
     [Authorize(TokenPolicies.RefreshOnlyPolicy)]
     public override async Task<Result> RefreshSession(Empty request, ServerCallContext context)
     {
-        this._logger.LogInformation("Session refresh attempt from '{username}'", context.GetHttpContext().User.GetName());
-        var response = await this._loginHandler.RefreshTokenAsync(this.GetSessionId(context), context.CancellationToken);
+        var sessionId = this.GetSessionId(context);
+        this._logger.LogInformation("Session refresh attempt for '{sessionId}'", sessionId);
+        var response = await this._loginHandler.RefreshTokenAsync(sessionId, context.CancellationToken);
         var result = new Result
         {
             IsSuccess = response is not null,
