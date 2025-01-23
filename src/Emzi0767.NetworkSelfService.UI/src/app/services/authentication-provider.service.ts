@@ -1,5 +1,5 @@
-import { Inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
-import { LOCAL_STORAGE, StorageService } from './storage.service';
+import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { StorageService } from './storage.service';
 import { AuthenticationState } from '../types/authentication-state.enum';
 import { AuthenticationResponse } from '../proto/auth.pb';
 
@@ -45,10 +45,10 @@ export class AuthenticationProviderService {
   }
 
   getSessionState(): AuthenticationState {
-    const date = new Date();
     if (this._data === null)
       return AuthenticationState.UNAUTHENTICATED;
 
+    const date = new Date();
     const time = date.getTime();
     if (time >= this._data.validityDeadline.getTime()) {
       this._data = null;
@@ -93,7 +93,13 @@ export class AuthenticationProviderService {
   }
 
   private loadData(): IAuthenticationData | null {
-    return this.storage.get<IAuthenticationData>(KEY_AUTH_DATA);
+    const data = this.storage.get<IAuthenticationData>(KEY_AUTH_DATA);
+    if (data === null)
+      return null;
+
+    data.validityDeadline = new Date(data.validityDeadline);
+    data.refreshDeadline = new Date(data.refreshDeadline);
+    return data;
   }
 
   private saveData(): void {

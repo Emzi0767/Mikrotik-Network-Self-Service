@@ -366,3 +366,4 @@ FodyWeavers.xsd
 config.json
 config.yml
 config.dev.yml
+dev.env

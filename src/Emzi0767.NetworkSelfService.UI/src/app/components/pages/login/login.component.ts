@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { catchError } from 'rxjs';
 
 import { CoreModule } from '../../../core.module';
 import { ILoginForm } from '../../../types/login-form.form';
@@ -10,7 +9,7 @@ import { AuthenticationProviderService } from '../../../services/authentication-
 import { AuthenticationClientService } from '../../../services/grpc/authentication-client.service';
 import { FormInputComponent } from "../../partial/form-input/form-input.component";
 import { SnackService } from '../../../services/snack.service';
-import { Error, ErrorCode, Result } from '../../../proto/result.pb';
+import { Error, ErrorCode } from '../../../proto/result.pb';
 
 @Component({
   selector: 'app-login',
@@ -52,7 +51,7 @@ export class LoginComponent {
     this.authenticationClient.authenticate(username!, password!, remember!)
       .subscribe({
         next: x => {
-          this.authenticationProvider.updateSession(x);
+          this.authenticationProvider.updateSession(x.session!);
           this.router.navigate([ '/' ]);
         },
         error: x => {

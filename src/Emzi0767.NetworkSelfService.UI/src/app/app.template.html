@@ -25,7 +25,8 @@
           &nbsp;
           <button
             mat-icon-button
-            aria-label="Log out">
+            aria-label="Log out"
+            [routerLink]="[ '/logout' ]">
             <mat-icon>logout</mat-icon>
           </button>
         }
@@ -57,7 +58,7 @@
           <mat-icon matListItemIcon>{{ prefersDarkTheme() ? "light_mode" : "dark_mode" }}</mat-icon>
           Switch to {{ prefersDarkTheme() ? "light mode" : "dark mode" }}
         </a>
-        <a href="#" mat-list-item><mat-icon matListItemIcon>logout</mat-icon> Log out</a>
+        <a [routerLink]="[ '/logout' ]" mat-list-item><mat-icon matListItemIcon>logout</mat-icon> Log out</a>
       } @else {
         <a href="#" mat-list-item (click)="toggleDarkMode()">
           <mat-icon matListItemIcon>{{ prefersDarkTheme() ? "light_mode" : "dark_mode" }}</mat-icon>

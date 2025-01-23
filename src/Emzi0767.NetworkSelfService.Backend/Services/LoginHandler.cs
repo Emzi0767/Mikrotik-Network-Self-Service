@@ -45,10 +45,10 @@ public sealed class LoginHandler
     {
         var user = await this._users.FindUserByNameAsync(login.Username, cancellationToken);
         if (user is null)
-            return new();
+            return null;
 
         if (!this._passwordHashProvider.Verify(login.Password, user.PasswordHash))
-            return new();
+            return null;
 
         var session = await this._sessions.CreateSessionAsync(new()
         {
@@ -78,7 +78,7 @@ public sealed class LoginHandler
     {
         var session = await this._sessions.GetSessionAsync(sessionId, cancellationToken);
         if (session is null)
-            return new();
+            return null;
 
         var rotateSession = (session.ExpiresAt - DateTimeOffset.UtcNow).TotalDays < 1.0;
         if (rotateSession)

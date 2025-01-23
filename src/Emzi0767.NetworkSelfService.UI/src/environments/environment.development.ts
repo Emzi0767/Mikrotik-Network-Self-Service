@@ -1,3 +1,3 @@
 export const environment = {
-  grpcHost: "http://localhost:9000/",
+  grpcHost: "http://localhost:4200/grpc/",
 };

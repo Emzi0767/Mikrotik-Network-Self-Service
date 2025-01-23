@@ -1,0 +1,35 @@
+﻿name: nss2-dev
+
+services:
+  gateway:
+    image: nginx:1.27.3-alpine3.20
+    ports:
+    - "9000:80"
+    environment:
+    - NGINX_PORT=80
+    volumes:
+    - type: bind
+      source: ./gateway.conf
+      target: /etc/nginx/nginx.conf
+      read_only: true
+    networks:
+    - nss2-mesh
+    depends_on:
+    - backend
+
+  backend:
+    image: nss2-backend:latest
+    build:
+      context: .
+      dockerfile: src/Emzi0767.NetworkSelfService.Backend/Dockerfile
+    networks:
+    - nss2-mesh
+    environment:
+      NSS2__HTTP__ENDPOINTS__0__ADDRESS: 0.0.0.0
+      NSS2__HTTP__ENDPOINTS__0__PORT: 9000
+    env_file:
+    - path: ./dev.env
+      required: false
+
+networks:
+  nss2-mesh:
