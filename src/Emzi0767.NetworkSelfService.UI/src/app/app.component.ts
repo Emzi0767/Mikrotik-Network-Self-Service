@@ -1,10 +1,10 @@
-import { Component, HostBinding, Renderer2, signal, Signal, WritableSignal } from "@angular/core";
+import { Component, Renderer2, signal, Signal, WritableSignal } from "@angular/core";
 import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
-import { toObservable, toSignal } from "@angular/core/rxjs-interop";
+import { toObservable } from "@angular/core/rxjs-interop";
 import { filter, map, startWith, switchMap } from "rxjs";
 
-import { ThemeTypeProviderService } from "./services/theme-type-provider.service";
+import { ThemeType, ThemeTypeProviderService } from "./services/theme-type-provider.service";
 import { AuthenticationProviderService } from "./services/authentication-provider.service";
 import { CoreModule } from "./core.module";
 import { RouteCategory } from "./types/route-category.enum";
@@ -83,8 +83,10 @@ export class AppComponent {
   }
 
   toggleDarkMode(): void {
-    this.themeTypeProvider.prefersDarkTheme.set(
-      !this.themeTypeProvider.prefersDarkTheme()
+    this.themeTypeProvider.setPreferredTheme(
+      this.themeTypeProvider.prefersDarkTheme()
+        ? ThemeType.LIGHT
+        : ThemeType.DARK
     );
   }
 }

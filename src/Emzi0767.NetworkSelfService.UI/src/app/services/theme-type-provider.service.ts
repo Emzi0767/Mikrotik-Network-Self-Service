@@ -1,4 +1,4 @@
-import { effect, Injectable, signal, WritableSignal } from '@angular/core';
+import { effect, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { StorageService } from './storage.service';
 import { fromEvent, map, Observable, startWith } from 'rxjs';
 
@@ -28,7 +28,11 @@ export enum ThemeType {
 })
 export class ThemeTypeProviderService {
 
-  prefersDarkTheme: WritableSignal<boolean>;
+  get prefersDarkTheme(): Signal<boolean> {
+    return this._prefersDarkTheme.asReadonly();
+  }
+
+  private _prefersDarkTheme: WritableSignal<boolean>;
 
   constructor(private storage: StorageService) {
     let pref = this.getSavedPreference();
@@ -36,25 +40,16 @@ export class ThemeTypeProviderService {
     if (pref === InternalThemeType.DEFAULT)
       pref = theme;
 
-    this.prefersDarkTheme = signal(
+    this._prefersDarkTheme = signal(
       this._t2b(this._i2t(pref))
     );
 
-    effect(() => {
-      this.setPreferredTheme(this._b2t(this.prefersDarkTheme()));
-    });
-
-    schemeChange.subscribe(t => this.prefersDarkTheme.set(this._t2b(t)));
+    schemeChange.subscribe(t => this._prefersDarkTheme.set(this._t2b(t)));
   }
 
   setPreferredTheme(theme: ThemeType): void {
     this.storage.set(KEY_THEME_TYPE, theme === ThemeType.DARK);
-  }
-
-  private _b2t(v: boolean): ThemeType {
-    return v
-      ? ThemeType.DARK
-      : ThemeType.LIGHT;
+    this._prefersDarkTheme.set(theme === ThemeType.DARK);
   }
 
   private _t2b(v: ThemeType): boolean {
