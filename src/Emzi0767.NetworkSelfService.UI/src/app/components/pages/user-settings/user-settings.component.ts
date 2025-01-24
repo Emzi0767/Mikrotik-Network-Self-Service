@@ -2,8 +2,8 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { CoreModule } from '../../../core.module';
-import { IPasswordUpdateForm } from '../../../types/password-update-form';
-import { Nullable } from '../../../types/nullable';
+import { IPasswordUpdateForm } from '../../../types/password-update-form.interface';
+import { Nullable } from '../../../types/nullable.type';
 import { SnackService } from '../../../services/snack.service';
 import { AuthenticationClientService } from '../../../services/grpc/authentication-client.service';
 import { AuthenticationProviderService } from '../../../services/authentication-provider.service';
@@ -59,7 +59,7 @@ export class UserSettingsComponent {
         next: x => {
           this.passwordUpdateForm.enable();
           if (!x.isSuccess) {
-            this.snackService.show("Could not update password: " + ErrorCode[x.error!.code], "Dismiss");
+            this.snackService.showError("Could not update password: ", x.error!.code, "Dismiss");
           } else {
             this.snackService.show("Password updated successfully!", "Dismiss");
             this.passwordUpdateForm.reset();
@@ -67,7 +67,7 @@ export class UserSettingsComponent {
         },
         error: err => {
           this.passwordUpdateForm.enable();
-          this.snackService.show("Could not update password: " + ErrorCode[err.code], "Dismiss");
+          this.snackService.showError("Could not update password: ", err.code, "Dismiss");
         }
       });
   }

@@ -2,7 +2,7 @@ import { Component, HostBinding, Renderer2, signal, Signal, WritableSignal } fro
 import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
-import { filter, map, switchMap } from "rxjs";
+import { filter, map, startWith, switchMap } from "rxjs";
 
 import { ThemeTypeProviderService } from "./services/theme-type-provider.service";
 import { AuthenticationProviderService } from "./services/authentication-provider.service";
@@ -32,10 +32,14 @@ export class AppComponent {
     return this._currentRouteCategory.asReadonly();
   }
 
-  isTinyDisplay: Signal<boolean>;
+  get isTinyDisplay(): Signal<boolean> {
+    return this._isTinyDisplay.asReadonly();
+  }
+
   RouteCategory = RouteCategory;
 
   private _currentRouteCategory: WritableSignal<RouteCategory> = signal(RouteCategory.LANDING);
+  private _isTinyDisplay: WritableSignal<boolean> = signal(false);
 
   constructor(
     private themeTypeProvider: ThemeTypeProviderService,
@@ -45,11 +49,18 @@ export class AppComponent {
     private activatedRoute: ActivatedRoute,
     private renderer: Renderer2,
   ) {
-    this.isTinyDisplay = toSignal(
-      this.breakpointObserver.observe([ Breakpoints.Small, Breakpoints.XSmall ])
-        .pipe(map(x => x.matches)),
-      { initialValue: false }
-    );
+    this.breakpointObserver.observe([ Breakpoints.Small, Breakpoints.XSmall ])
+        .pipe(
+          map(x => x.matches),
+          startWith(false),
+        )
+        .subscribe(x => {
+          this._isTinyDisplay.set(x);
+          if (x)
+            this.renderer.addClass(document.body, "tiny-display");
+          else
+            this.renderer.removeClass(document.body, "tiny-display");
+        })
 
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),

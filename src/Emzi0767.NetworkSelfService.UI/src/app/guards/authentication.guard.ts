@@ -17,7 +17,6 @@ export const authenticationGuard: CanActivateFn = (route, state) => {
     return false;
   }
 
-  console.log("NEED REFRESH");
   const authClient = inject(AuthenticationClientService);
   return authClient.refreshSession(authProvider.refreshToken!)
     .pipe(

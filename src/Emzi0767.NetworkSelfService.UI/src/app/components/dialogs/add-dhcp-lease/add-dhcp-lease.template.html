@@ -1,0 +1,11 @@
+<h2 mat-dialog-title>Create static DHCP lease</h2>
+<mat-dialog-content>
+  <form [formGroup]="dhcpLeaseForm" (submit)="confirm()">
+    <app-form-input [form]="dhcpLeaseForm" [type]="'TEXT'" controlName="macAddress" title="MAC Address"></app-form-input>
+    <app-form-input [form]="dhcpLeaseForm" [type]="'TEXT'" controlName="ipAddress" title="IP Address"></app-form-input>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-stroked-button (click)="cancel()" cdkFocusInitial>Cancel</button>
+  <button mat-flat-button (click)="confirm()">Confirm</button>
+</mat-dialog-actions>

@@ -1,0 +1,78 @@
+<h1>DHCP settings</h1>
+<p>
+  You can use this page to configure view active DHCP leases and manage static leases for your network. Please note that
+  creating conflicting entries may lead to connection issues.
+</p>
+<h3>IP settings</h3>
+<mat-table class="meta-info" [dataSource]="metaTableEntries">
+  <ng-container matColumnDef="property">
+    <mat-cell *matCellDef="let entry">{{ entry.property }}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="value">
+    <mat-cell *matCellDef="let entry">{{ entry.value }}</mat-cell>
+  </ng-container>
+
+  <mat-row *matRowDef="let row; columns: ['property', 'value']"></mat-row>
+</mat-table>
+
+<h3>Lease management</h3>
+<div class="table-responsive">
+  <mat-table class="leases" [dataSource]="leases$">
+    <ng-container matColumnDef="macAddress">
+      <mat-header-cell *matHeaderCellDef>MAC Address</mat-header-cell>
+      <mat-cell *matCellDef="let lease">{{ lease.macAddress }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="ipAddress">
+      <mat-header-cell *matHeaderCellDef>IP Address</mat-header-cell>
+      <mat-cell *matCellDef="let lease">{{ lease.ipAddress }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="hostname">
+      <mat-header-cell *matHeaderCellDef>Hostname</mat-header-cell>
+      <mat-cell *matCellDef="let lease">{{ lease.hostname }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="type">
+      <mat-header-cell *matHeaderCellDef>Type</mat-header-cell>
+      <mat-cell *matCellDef="let lease">{{ lease.isDynamic ? 'dynamic' : 'static' }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+      <mat-cell *matCellDef="let lease">
+        @if (lease.isDynamic) {
+          <button
+            mat-icon-button
+            aria-label="Create static lease based on this entry"
+            matTooltip="Create static lease based on this entry"
+            matTooltipPosition="before"
+            (click)="createLease(lease)">
+            <mat-icon>push_pin</mat-icon>
+          </button>
+        } @else {
+          <button
+            mat-icon-button
+            aria-label="Delete this static lease"
+            matTooltip="Delete this static lease"
+            matTooltipPosition="before"
+            (click)="deleteLease(lease)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        }
+      </mat-cell>
+    </ng-container>
+
+    @let columns = [ 'macAddress', 'ipAddress', 'hostname', 'type', 'actions' ];
+    <mat-header-row *matHeaderRowDef="columns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: columns" matRipple></mat-row>
+  </mat-table>
+</div>
+
+<p class="actions">
+  <button mat-fab extended (click)="createLease()">
+    <mat-icon>add</mat-icon>
+    Create lease
+  </button>
+</p>

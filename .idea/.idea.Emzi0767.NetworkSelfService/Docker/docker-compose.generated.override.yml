@@ -24,9 +24,9 @@ services:
       RESHARPER_LOG_CONF: "/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
     image: "nss2-backend:dev"
     ports:
-    - "127.0.0.1:57017:57000"
-    - "127.0.0.1:57217:57200"
-    - "127.0.0.1:57417:57400"
+    - "127.0.0.1:57001:57000"
+    - "127.0.0.1:57201:57200"
+    - "127.0.0.1:57401:57400"
     volumes:
     - "C:\\Users\\emzi0\\Documents\\Visual Studio 2022\\Projects\\Emzi0767.NetworkSelfService\\\
       src\\Emzi0767.NetworkSelfService.Backend:/app:rw"
@@ -36,5 +36,5 @@ services:
       Linux64:/opt/JetBrains/RiderDebuggerTools"
     - "C:\\Program Files\\JetBrains\\JetBrains Rider 2024.3.2\\bin\\backend-log.xml:/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
     - "C:\\Users\\emzi0\\AppData\\Local\\JetBrains\\Rider2024.3\\log\\DebuggerWorker\\\
-      JetBrains.Debugger.Worker.2025_1_23_23_43_35:/var/opt/JetBrains/RiderDebuggerTools:rw"
+      JetBrains.Debugger.Worker.2025_1_24_22_58_09:/var/opt/JetBrains/RiderDebuggerTools:rw"
     working_dir: "/app"

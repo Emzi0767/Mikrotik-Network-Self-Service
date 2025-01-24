@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 
 import { CoreModule } from '../../../core.module';
-import { Nullable } from '../../../types/nullable';
+import { Nullable } from '../../../types/nullable.type';
 import { InputType } from '../../../types/input-type.enum';
 
 @Component({

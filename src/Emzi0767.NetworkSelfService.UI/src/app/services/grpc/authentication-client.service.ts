@@ -6,7 +6,7 @@ import { AuthenticationClient } from '../../proto/auth.pbsc';
 import { AuthenticationRequest, AuthenticationResponse, PasswordUpdateRequest } from '../../proto/auth.pb';
 import { Error, ErrorCode, Result } from '../../proto/result.pb';
 import { Empty } from '@ngx-grpc/well-known-types';
-import { extractNullOrThrow, makeExtractor } from '../../types/grpc-unpacker';
+import { extractNullOrThrow, makeExtractor } from '../../types/grpc-unpacker.function';
 
 const EXTRACT_SESSION = makeExtractor<AuthenticationResponse>(new GrpcMessagePool([ AuthenticationResponse, Empty ]));
 

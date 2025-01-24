@@ -1,0 +1,19 @@
+<h2 mat-dialog-title>Confirm DHCP lease deletion</h2>
+<mat-dialog-content>
+  <p>Are you sure you want to delete this lease?</p>
+  <mat-table class="meta-info" [dataSource]="metaTableEntries">
+    <ng-container matColumnDef="property">
+      <mat-cell *matCellDef="let entry">{{ entry.property }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="value">
+      <mat-cell *matCellDef="let entry">{{ entry.value }}</mat-cell>
+    </ng-container>
+
+    <mat-row *matRowDef="let row; columns: ['property', 'value']"></mat-row>
+  </mat-table>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-stroked-button (click)="cancel()" cdkFocusInitial>Cancel</button>
+  <button mat-flat-button (click)="confirm()">Confirm</button>
+</mat-dialog-actions>

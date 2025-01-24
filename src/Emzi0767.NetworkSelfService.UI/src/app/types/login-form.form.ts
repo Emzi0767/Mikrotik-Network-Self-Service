@@ -1,9 +1,11 @@
-import { FormControl } from "@angular/forms";
+import { NullableProperties } from "./nullable.type";
+import { FormFor } from "./form.type";
 
-import { Nullable } from "./nullable";
+export interface ILogin {
+  username: string;
+  password: string;
+  remember: boolean;
+}
 
-export interface ILoginForm {
-  username: FormControl<Nullable<string>>;
-  password: FormControl<Nullable<string>>;
-  remember: FormControl<Nullable<boolean>>;
-};
+export type ILoginData = NullableProperties<ILogin>;
+export type ILoginForm = FormFor<ILoginData>;

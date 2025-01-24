@@ -1,0 +1,32 @@
+<h2 mat-dialog-title>
+  @if (problemData.isFatal) {
+    Cannot create DHCP lease
+  } @else {
+    Confirm DHCP lease creation
+  }
+</h2>
+<mat-dialog-content>
+  <p>
+    @if (problemData.isFatal) {
+      Cannot create a DHCP lease with specified parameters. Reasons:
+    } @else {
+      A DHCP lease with specified parameters may cause problems, such as conflicts. This may disrupt your connectivity. Reasons:
+    }
+  </p>
+  <ul>
+    @for (item of problemData.problems; track $index) {
+      <li>{{ item }}</li>
+    }
+  </ul>
+  @if (!problemData.isFatal) {
+    <p>Are you sure you want to create the lease, in spite of this?</p>
+  }
+</mat-dialog-content>
+<mat-dialog-actions>
+  @if (problemData.isFatal) {
+    <button mat-flat-button (click)="cancel()" cdkFocusInitial>OK</button>
+  } @else {
+    <button mat-stroked-button (click)="cancel()" cdkFocusInitial>Cancel</button>
+    <button mat-flat-button (click)="confirm()">Confirm</button>
+  }
+</mat-dialog-actions>

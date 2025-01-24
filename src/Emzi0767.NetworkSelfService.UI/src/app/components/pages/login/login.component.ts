@@ -4,7 +4,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 
 import { CoreModule } from '../../../core.module';
 import { ILoginForm } from '../../../types/login-form.form';
-import { Nullable } from '../../../types/nullable';
+import { Nullable } from '../../../types/nullable.type';
 import { AuthenticationProviderService } from '../../../services/authentication-provider.service';
 import { AuthenticationClientService } from '../../../services/grpc/authentication-client.service';
 import { FormInputComponent } from "../../partial/form-input/form-input.component";
@@ -57,7 +57,7 @@ export class LoginComponent {
         error: x => {
           const err = x as Error;
           this.loginForm.enable();
-          this.snackService.show("Could not log in: " + ErrorCode[err.code], "Dismiss");
+          this.snackService.showError("Could not log in: ", err.code, "Dismiss");
         }
       });
   }

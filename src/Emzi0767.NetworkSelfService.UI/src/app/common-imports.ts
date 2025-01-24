@@ -9,6 +9,10 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatCheckboxModule } from "@angular/material/checkbox";
+import { MatTableModule } from "@angular/material/table";
+import { MatRippleModule } from "@angular/material/core";
+import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatDialogModule } from "@angular/material/dialog";
 
 export const MATERIAL_IMPORTS = [
   MatToolbarModule,
@@ -22,4 +26,8 @@ export const MATERIAL_IMPORTS = [
   MatInputModule,
   MatSnackBarModule,
   MatCheckboxModule,
+  MatTableModule,
+  MatRippleModule,
+  MatTooltipModule,
+  MatDialogModule,
 ];

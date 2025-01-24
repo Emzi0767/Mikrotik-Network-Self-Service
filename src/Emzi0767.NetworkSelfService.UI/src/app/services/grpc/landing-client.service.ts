@@ -5,7 +5,7 @@ import { Empty } from '@ngx-grpc/well-known-types';
 import { GrpcMessagePool, GrpcMetadata } from '@ngx-grpc/common';
 
 import { LandingResponse } from '../../proto/landing.pb';
-import { makeExtractor } from '../../types/grpc-unpacker';
+import { makeExtractor } from '../../types/grpc-unpacker.function';
 import { LandingClient } from '../../proto/landing.pbsc';
 import { AuthenticationProviderService } from '../authentication-provider.service';
 import { Error, ErrorCode } from '../../proto/result.pb';

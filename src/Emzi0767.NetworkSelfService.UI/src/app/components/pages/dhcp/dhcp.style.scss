@@ -1,0 +1,30 @@
+mat-table.meta-info {
+  & > mat-row {
+    & > mat-cell {
+      border-bottom-style: none;
+    }
+  }
+}
+
+p.actions {
+  text-align: center;
+}
+
+:host-context(.tiny-display) div.table-responsive {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+
+  & > mat-table {
+    display: grid;
+    grid-template-columns: min-content min-content min-content min-content min-content;
+    //width: fit-content;
+
+    & > mat-row,
+    & > mat-header-row {
+      display: grid;
+      grid-column: span 5;
+      grid-template-columns: subgrid;
+    }
+  }
+}
