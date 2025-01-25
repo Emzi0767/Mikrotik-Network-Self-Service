@@ -1,0 +1,169 @@
+<h1>Wi-Fi settings</h1>
+<p>
+  You can use this page to configure the parameters of your wireless network and manage the device whitelist.
+</p>
+
+<h3>Wi-Fi configuration</h3>
+<mat-table class="meta-info" [dataSource]="config$">
+  <ng-container matColumnDef="property">
+    <mat-cell *matCellDef="let entry">{{ entry.property }}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="value">
+    <mat-cell *matCellDef="let entry">{{ entry.value }}</mat-cell>
+  </ng-container>
+
+  <mat-row *matRowDef="let row; columns: ['property', 'value']"></mat-row>
+</mat-table>
+<p class="actions">
+  <button mat-fab extended (click)="editConfig()">
+    <mat-icon>edit</mat-icon>
+    Edit
+  </button>
+</p>
+
+<h3>Device whitelist</h3>
+<div class="table-responsive">
+  <mat-table class="acls col4" [dataSource]="acls$">
+    <ng-container matColumnDef="flags">
+      <mat-header-cell *matHeaderCellDef>Flags</mat-header-cell>
+      <mat-cell *matCellDef="let acl">
+        @if (acl.isSpecialEntry) {
+          <mat-icon [matTooltip]="'Special entry'" matTooltipPosition="after">flag</mat-icon>
+        }
+
+        @if (!acl.isEnabled) {
+          <mat-icon [matTooltip]="'Disabled'" matTooltipPosition="after">key_off</mat-icon>
+        }
+
+        @if (acl.privatePassword !== undefined) {
+          <mat-icon [matTooltip]="'Has individual password'" matTooltipPosition="after">password</mat-icon>
+        }
+
+        @if (acl.timeRestriction !== undefined) {
+          <mat-icon [matTooltip]="'Has access schedule'" matTooltipPosition="after">schedule</mat-icon>
+        }
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="macAddress">
+      <mat-header-cell *matHeaderCellDef>MAC Address</mat-header-cell>
+      <mat-cell *matCellDef="let acl">{{ acl.macAddress }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="comment">
+      <mat-header-cell *matHeaderCellDef>Comment</mat-header-cell>
+      <mat-cell *matCellDef="let acl">{{ acl.comment }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+      <mat-cell *matCellDef="let acl">
+        @if (!acl.isSpecialEntry) {
+          <button
+            mat-icon-button
+            aria-label="Edit this entry"
+            matTooltip="Edit this entry"
+            matTooltipPosition="before"
+            (click)="editAcl(acl)">
+            <mat-icon>edit</mat-icon>
+          </button>
+
+          <button
+            mat-icon-button
+            aria-label="Delete this entry"
+            matTooltip="Delete this entry"
+            matTooltipPosition="before"
+            (click)="deleteAcl(acl)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        }
+      </mat-cell>
+    </ng-container>
+
+    @let aclColumns = [ 'flags', 'macAddress', 'comment', 'actions' ];
+    <mat-header-row *matHeaderRowDef="aclColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: aclColumns"></mat-row>
+  </mat-table>
+</div>
+<p class="actions">
+  <button mat-fab extended (click)="createAcl()">
+    <mat-icon>add</mat-icon>
+    Add device
+  </button>
+</p>
+
+<h3>Connected devices</h3>
+<div class="table-responsive">
+  <mat-table class="connected col4" [dataSource]="connected$">
+    <ng-container matColumnDef="macAddress">
+      <mat-header-cell *matHeaderCellDef>MAC Address</mat-header-cell>
+      <mat-cell *matCellDef="let conn">{{ conn.macAddress }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="comment">
+      <mat-header-cell *matHeaderCellDef>Comment</mat-header-cell>
+      <mat-cell *matCellDef="let conn">{{ conn.comment }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="band">
+      <mat-header-cell *matHeaderCellDef>Band</mat-header-cell>
+      <mat-cell *matCellDef="let conn">
+        @switch (conn.band) {
+          @case (WifiBand.BAND_2_4_GHZ) {
+            2.4 GHz
+          }
+
+          @case (WifiBand.BAND_5_GHZ) {
+            5 GHz
+          }
+
+          @case (WifiBand.BAND_6_GHZ) {
+            6 GHz
+          }
+
+          @case (WifiBand.BAND_UNKNOWN) {
+            Unknown
+          }
+        }
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="ap">
+      <mat-header-cell *matHeaderCellDef>Access Point</mat-header-cell>
+      <mat-cell *matCellDef="let conn">{{ conn.ap }}</mat-cell>
+    </ng-container>
+
+    @let connectedColumns = [ 'macAddress', 'comment', 'band', 'ap' ];
+    <mat-header-row *matHeaderRowDef="connectedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: connectedColumns"></mat-row>
+  </mat-table>
+</div>
+
+<h3>Recent connection attempts</h3>
+<div class="table-responsive">
+  <mat-table class="recents col2" [dataSource]="recents$">
+    <ng-container matColumnDef="macAddress">
+      <mat-header-cell *matHeaderCellDef>MAC Address</mat-header-cell>
+      <mat-cell *matCellDef="let recent">{{ recent }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+      <mat-cell *matCellDef="let recent">
+        <button
+          mat-icon-button
+          aria-label="Create an entry for this device"
+          matTooltip="Create an entry for this device"
+          matTooltipPosition="before"
+          (click)="createAcl(recent)">
+          <mat-icon>add</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    @let recentColumns = [ 'macAddress', 'actions' ];
+    <mat-header-row *matHeaderRowDef="recentColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: recentColumns"></mat-row>
+  </mat-table>
+</div>

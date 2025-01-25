@@ -3,6 +3,7 @@
   You can use this page to configure view active DHCP leases and manage static leases for your network. Please note that
   creating conflicting entries may lead to connection issues.
 </p>
+
 <h3>IP settings</h3>
 <mat-table class="meta-info" [dataSource]="metaTableEntries">
   <ng-container matColumnDef="property">
@@ -66,7 +67,7 @@
 
     @let columns = [ 'macAddress', 'ipAddress', 'hostname', 'type', 'actions' ];
     <mat-header-row *matHeaderRowDef="columns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: columns" matRipple></mat-row>
+    <mat-row *matRowDef="let row; columns: columns"></mat-row>
   </mat-table>
 </div>
 

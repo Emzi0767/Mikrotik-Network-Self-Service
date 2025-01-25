@@ -6,11 +6,13 @@ import { LoginComponent } from './components/pages/login/login.component';
 import { LogoutComponent } from './components/pages/logout/logout.component';
 import { UserSettingsComponent } from './components/pages/user-settings/user-settings.component';
 import { DhcpComponent } from './components/pages/dhcp/dhcp.component';
+import { WifiComponent } from './components/pages/wifi/wifi.component';
 
 import { authenticationGuard } from './guards/authentication.guard';
 import { anonymousGuard } from './guards/anonymous.guard';
 import { landingDataResolver } from './resolvers/landing-data.resolver';
 import { dhcpDataResolver } from './resolvers/dhcp-data.resolver';
+import { wifiDataResolver } from './resolvers/wifi-data.resolver';
 
 import { RouteCategory } from './types/route-category.enum';
 
@@ -51,6 +53,21 @@ export const routes: Routes = [
     },
     data: {
       category: RouteCategory.DHCP,
+    },
+  },
+
+  {
+    path: 'wifi',
+    component: WifiComponent,
+    runGuardsAndResolvers: 'always',
+    canActivate: [
+      authenticationGuard,
+    ],
+    resolve: {
+      information: wifiDataResolver,
+    },
+    data: {
+      category: RouteCategory.WIFI,
     },
   },
 

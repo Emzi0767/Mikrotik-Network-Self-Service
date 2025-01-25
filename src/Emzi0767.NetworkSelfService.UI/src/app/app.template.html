@@ -45,9 +45,9 @@
         <mat-toolbar-row>
           <nav mat-tab-nav-bar mat-align-tabs="center" [tabPanel]="tabPanel">
             <a [routerLink]="['/']" mat-tab-link [active]="currentRouteCategory() == RouteCategory.LANDING"><mat-icon>home</mat-icon>&nbsp;Landing</a>
-            <a [routerLink]="['/dhcp']" href="#" mat-tab-link [active]="currentRouteCategory() == RouteCategory.DHCP"><mat-icon>lan</mat-icon>&nbsp;DHCP</a>
-            <a [routerLink]="['/wifi']" href="#" mat-tab-link [active]="currentRouteCategory() == RouteCategory.WIFI"><mat-icon>wifi</mat-icon>&nbsp;Wi-Fi</a>
-            <a [routerLink]="['/user']" href="#" mat-tab-link [active]="currentRouteCategory() == RouteCategory.USER_SETTINGS"><mat-icon>account_circle</mat-icon>&nbsp;User settings</a>
+            <a [routerLink]="['/dhcp']" mat-tab-link [active]="currentRouteCategory() == RouteCategory.DHCP"><mat-icon>lan</mat-icon>&nbsp;DHCP</a>
+            <a [routerLink]="['/wifi']" mat-tab-link [active]="currentRouteCategory() == RouteCategory.WIFI"><mat-icon>wifi</mat-icon>&nbsp;Wi-Fi</a>
+            <a [routerLink]="['/user']" mat-tab-link [active]="currentRouteCategory() == RouteCategory.USER_SETTINGS"><mat-icon>account_circle</mat-icon>&nbsp;User settings</a>
           </nav>
         </mat-toolbar-row>
       }

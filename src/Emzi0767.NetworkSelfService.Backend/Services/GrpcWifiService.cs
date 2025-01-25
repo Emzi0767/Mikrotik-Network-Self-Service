@@ -92,7 +92,7 @@ public sealed class GrpcWifiService : Wifi.WifiBase
             yield return MakeAcl(acl);
     }
 
-    private async Task<WifiRecentAttemptsResponse> GetRecentAttemptsAsync(IReadOnlyDictionary<string, string> ifaceApMap, ServerCallContext context)
+    private async Task<WifiRecentAttemptsResponse> GetRecentAttemptsAsync(IReadOnlyDictionary<string, string> ifaceApMap, IEnumerable<WifiAcl> wifiAcls, ServerCallContext context)
     {
         var log = (await this._mikrotikProvider.Get<MikrotikLogEntry>()
                 .ToListAsync(context.CancellationToken))
@@ -101,7 +101,9 @@ public sealed class GrpcWifiService : Wifi.WifiBase
             .Select(x => WifiLoggedAttempt.Parse(x.Message))
             .Where(x => ifaceApMap.ContainsKey(x.Interface))
             .DistinctBy(x => x.Address)
-            .Select(x => x.Address.ToString());
+            .Select(x => x.Address)
+            .Select(x => x.ToString())
+            .Except(wifiAcls.Select(x => x.MacAddress).ToHashSet());
 
         var recentAttempts = new WifiRecentAttemptsResponse();
         recentAttempts.MacAddresses.AddRange(log);
@@ -116,7 +118,7 @@ public sealed class GrpcWifiService : Wifi.WifiBase
 
         var radioMap = radios.ToDictionary(x => x.InterfaceName, x => x.Identity);
         return configurations
-            .ToDictionary(x => x.Name, x => apMap[radioMap[x.MasterInterfaceName ?? x.Name]]);
+            .ToDictionary(x => x.Name, x => apMap[radioMap[x.MasterInterfaceName is null or "none" ? x.Name : x.MasterInterfaceName]]);
     }
 
     private async Task<IEnumerable<WifiConnectedDevice>> GetConnectedDevicesAsync(IEnumerable<MikrotikCapsmanInterfaceConfiguration> configurations, IReadOnlyDictionary<string, string> ifaceApMap, ServerCallContext context)
@@ -172,7 +174,7 @@ public sealed class GrpcWifiService : Wifi.WifiBase
         };
 
         var wifiAcls = await this.GetAclsAsync(network.WirelessInterfaceList).EToListAsync(context.CancellationToken);
-        var recentAttempts = await this.GetRecentAttemptsAsync(ifaceApMap, context);
+        var recentAttempts = await this.GetRecentAttemptsAsync(ifaceApMap, wifiAcls, context);
         var connected = await this.GetConnectedDevicesAsync(configurations, ifaceApMap, context);
 
         return new(
@@ -241,7 +243,8 @@ public sealed class GrpcWifiService : Wifi.WifiBase
         var (_, network, apMap) = await this.GetBasicsAsync(context);
         var configurations = await this.GetConfigurationsAsync(network.WirelessInterfaceList, context);
         var ifaceApMap = await this.GetInterfaceApMapAsync(apMap, configurations, context);
-        var recents = await this.GetRecentAttemptsAsync(ifaceApMap, context);
+        var wifiAcls = await this.GetAclsAsync(network.WirelessInterfaceList).EToListAsync(context.CancellationToken);
+        var recents = await this.GetRecentAttemptsAsync(ifaceApMap, wifiAcls, context);
 
         return new() { IsSuccess = true, Result_ = Any.Pack(recents), };
     }
@@ -499,7 +502,7 @@ public sealed class GrpcWifiService : Wifi.WifiBase
             Id = x.Id,
             Comment = x.Comment,
             IsEnabled = !x.Disabled,
-            IsSpecialEntry = x.VlanId is not null || x.VlanMode is not null,
+            IsSpecialEntry = x.VlanId is not null || x.VlanMode is not null || x.Address is null,
         };
 
         if (x.Address is not null)
