@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { CoreModule } from '../../../core.module';
-import { ILoginForm } from '../../../types/login-form.form';
+import { ILoginForm } from '../../../types/login.form';
 import { Nullable } from '../../../types/nullable.type';
 import { AuthenticationProviderService } from '../../../services/authentication-provider.service';
 import { AuthenticationClientService } from '../../../services/grpc/authentication-client.service';

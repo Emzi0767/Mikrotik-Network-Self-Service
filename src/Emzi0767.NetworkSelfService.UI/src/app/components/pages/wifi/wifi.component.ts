@@ -4,10 +4,13 @@ import { MatDialog } from '@angular/material/dialog';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 import { CoreModule } from '../../../core.module';
-import { WifiAcl, WifiBand, WifiConnectedDevice, WifiInfoResponse, WifiRecentAttemptsResponse } from '../../../proto/wifi.pb';
+import { WifiAcl, WifiAclDeleteRequest, WifiBand, WifiConnectedDevice, WifiInfoResponse, WifiUpdateRequest } from '../../../proto/wifi.pb';
 import { IMetaTableEntry } from '../../../types/meta-table-entry.interface';
-import { WifiClient } from '../../../proto/wifi.pbsc';
 import { SnackService } from '../../../services/snack.service';
+import { WifiEditConfigComponent } from '../../dialogs/wifi-edit-config/wifi-edit-config.component';
+import { IWifiConfig } from '../../../types/wifi-config.form';
+import { WifiClientService } from '../../../services/grpc/wifi-client.service';
+import { WifiRemoveAclComponent } from '../../dialogs/wifi-remove-acl/wifi-remove-acl.component';
 
 @Component({
   selector: 'app-wifi',
@@ -46,7 +49,7 @@ export class WifiComponent {
 
   constructor(
     private activatedRoute: ActivatedRoute,
-    private wifiClient: WifiClient,
+    private wifiClient: WifiClientService,
     private dialog: MatDialog,
     private snackService: SnackService,
   ) {
@@ -61,7 +64,33 @@ export class WifiComponent {
   }
 
   editConfig(): void {
+    const dialogRef = this.dialog.open(
+      WifiEditConfigComponent,
+      { data: this.information.configuration, }
+    );
 
+    dialogRef.afterClosed().subscribe(res => {
+      if (res === null || res === undefined)
+        return;
+
+      const config = res as IWifiConfig;
+      const newConfig = {} as IWifiConfig;
+      if (config.ssid !== this.information.configuration?.ssid)
+        newConfig.ssid = config.ssid;
+
+      if (config.password !== undefined && config.password !== null)
+        newConfig.password = config.password;
+
+      if (config.isolateClients !== this.information.configuration!.isolateClients)
+        newConfig.isolateClients = config.isolateClients;
+
+      console.log(newConfig);
+      this.wifiClient.updateConfiguration(new WifiUpdateRequest(newConfig))
+        .subscribe({
+          next: x => this.handleConfigUpdate(),
+          error: _ => this.snackService.show("Could not update Wi-Fi configuration.", "Dismiss"),
+        });
+    });
   }
 
   createAcl(address?: string): void {
@@ -73,7 +102,42 @@ export class WifiComponent {
   }
 
   deleteAcl(acl: WifiAcl): void {
+    const dialogRef = this.dialog.open(
+      WifiRemoveAclComponent
+    );
 
+    dialogRef.afterClosed().subscribe(res => {
+      if (!res)
+        return;
+
+      this.wifiClient.deleteAcl(new WifiAclDeleteRequest({ identifier: acl.id, }))
+        .subscribe({
+          next: _ => this.reloadAcls(),
+          error: _ => this.snackService.show("Could not delete whitelist entry", "Dismiss"),
+        });
+    });
+  }
+
+  private reloadAcls(): void {
+    this.wifiClient.getAcls()
+      .subscribe({
+        next: x => {
+          this.information.accessControl = x;
+          this._acls$.next(this.information.accessControl.acls!);
+        },
+        error: _ => this.snackService.show("Could not reload whitelist.", "Dismiss"),
+      });
+  }
+
+  private handleConfigUpdate(): void {
+    this.wifiClient.getConfiguration()
+      .subscribe({
+        next: x => {
+          this.information.configuration = x;
+          this.updateConfig();
+        },
+        error: _ => this.snackService.show("Could not reload Wi-Fi configuration.", "Dismiss"),
+      });
   }
 
   private updateConfig(): void {

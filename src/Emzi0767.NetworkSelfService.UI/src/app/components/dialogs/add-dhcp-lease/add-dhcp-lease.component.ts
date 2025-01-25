@@ -3,7 +3,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { CoreModule } from '../../../core.module';
-import { INewDhcpLeaseForm } from '../../../types/new-dhcp-lease-form.interface';
+import { INewDhcpLeaseForm } from '../../../types/new-dhcp-lease.form';
 import { DhcpLease } from '../../../proto/dhcp.pb';
 import { Nullable } from '../../../types/nullable.type';
 import { FormInputComponent } from "../../partial/form-input/form-input.component";
@@ -49,6 +49,7 @@ export class AddDhcpLeaseComponent {
     if (!this.dhcpLeaseForm.valid)
       return;
 
+    this.dhcpLeaseForm.disable();
     this.dialogRef.close(this.dhcpLeaseForm.value);
   }
 }

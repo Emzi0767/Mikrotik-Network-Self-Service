@@ -10,7 +10,7 @@ import { DhcpClientService } from '../../../services/grpc/dhcp-client.service';
 import { RemoveDhcpLeaseComponent } from '../../dialogs/remove-dhcp-lease/remove-dhcp-lease.component';
 import { SnackService } from '../../../services/snack.service';
 import { AddDhcpLeaseComponent } from '../../dialogs/add-dhcp-lease/add-dhcp-lease.component';
-import { INewDhcpLease } from '../../../types/new-dhcp-lease-form.interface';
+import { INewDhcpLease } from '../../../types/new-dhcp-lease.form';
 import { DhcpConfirmComponent } from '../../dialogs/dhcp-confirm/dhcp-confirm.component';
 import { IProblemData } from '../../../types/problem-data.type';
 
@@ -96,7 +96,7 @@ export class DhcpComponent {
         .subscribe({
           next: x => this.handleEligibility(newLease, x),
           error: _ => this.snackService.show("Could not validate DHCP lease.", "Dismiss"),
-        })
+        });
     });
   }
 
@@ -114,15 +114,15 @@ export class DhcpComponent {
         .subscribe({
           next: _ => this.reloadLeases(),
           error: _ => this.snackService.show("Could not delete DHCP lease.", "Dismiss"),
-        })
+        });
     });
   }
 
   private reloadLeases(): void {
     this.dhcpClient.getLeases()
       .subscribe({
-        next: y => {
-          this.information.leases = y.leases;
+        next: x => {
+          this.information.leases = x.leases;
           this._leases$.next(this.information.leases!);
         },
         error: _ => this.snackService.show("Could not reload DHCP leases.", "Dismiss"),

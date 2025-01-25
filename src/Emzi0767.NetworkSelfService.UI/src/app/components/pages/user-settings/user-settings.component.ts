@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { CoreModule } from '../../../core.module';
-import { IPasswordUpdateForm } from '../../../types/password-update-form.interface';
+import { IPasswordUpdateForm } from '../../../types/password-update.form';
 import { Nullable } from '../../../types/nullable.type';
 import { SnackService } from '../../../services/snack.service';
 import { AuthenticationClientService } from '../../../services/grpc/authentication-client.service';

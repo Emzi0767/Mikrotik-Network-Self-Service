@@ -1,0 +1,12 @@
+<h2 mat-dialog-title>Update configuration</h2>
+<mat-dialog-content>
+  <form [formGroup]="wifiConfigForm" (submit)="confirm()">
+    <app-form-input [form]="wifiConfigForm" [type]="'TEXT'" controlName="ssid" title="SSID"></app-form-input>
+    <app-form-input [form]="wifiConfigForm" [type]="'PASSWORD'" controlName="password" title="Password"></app-form-input>
+    <app-form-input [form]="wifiConfigForm" [type]="'TOGGLE'" controlName="isolateClients" title="Isolate clients"></app-form-input>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-stroked-button (click)="cancel()" [disabled]="wifiConfigForm.disabled" cdkFocusInitial>Cancel</button>
+  <button mat-flat-button (click)="confirm()" [disabled]="wifiConfigForm.disabled">Confirm</button>
+</mat-dialog-actions>

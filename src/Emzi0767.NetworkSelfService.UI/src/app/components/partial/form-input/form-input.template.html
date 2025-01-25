@@ -44,5 +44,7 @@
   <mat-error *ngIf="control.touched && control.invalid">
     <span *ngIf="control.errors?.['required']">This field is mandatory.</span>
     <span *ngIf="control.errors?.['pattern']">Value does not match required pattern.</span>
+    <span *ngIf="control.errors?.['minlength']">Value is too short.</span>
+    <span *ngIf="control.errors?.['maxlength']">Value is too long.</span>
   </mat-error>
 </ng-template>
