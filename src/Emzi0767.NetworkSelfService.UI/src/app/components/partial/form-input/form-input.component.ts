@@ -12,6 +12,9 @@ import { InputType } from '../../../types/input-type.enum';
     CoreModule,
   ],
   templateUrl: './form-input.template.html',
+  styleUrls: [
+    './form-input.style.scss',
+  ]
 })
 export class FormInputComponent {
   @Input({ required: true }) controlName!: string;

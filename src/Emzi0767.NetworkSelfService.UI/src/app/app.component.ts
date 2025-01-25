@@ -1,4 +1,4 @@
-import { Component, Renderer2, signal, Signal, WritableSignal } from "@angular/core";
+import { Component, Renderer2, signal, Signal, ViewChild, WritableSignal } from "@angular/core";
 import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { toObservable } from "@angular/core/rxjs-interop";
@@ -9,6 +9,7 @@ import { AuthenticationProviderService } from "./services/authentication-provide
 import { CoreModule } from "./core.module";
 import { RouteCategory } from "./types/route-category.enum";
 import { LoadingStateProviderService } from "./services/loading-state-provider.service";
+import { MatDrawer } from "@angular/material/sidenav";
 
 @Component({
   selector: "app-root",
@@ -46,6 +47,8 @@ export class AppComponent {
   private _currentRouteCategory: WritableSignal<RouteCategory> = signal(RouteCategory.LANDING);
   private _isTinyDisplay: WritableSignal<boolean> = signal(false);
 
+  @ViewChild("drawer") drawer?: MatDrawer;
+
   constructor(
     private themeTypeProvider: ThemeTypeProviderService,
     private breakpointObserver: BreakpointObserver,
@@ -61,6 +64,9 @@ export class AppComponent {
           startWith(false),
         )
         .subscribe(x => {
+          if (this.drawer !== undefined)
+            this.drawer.close();
+
           this._isTinyDisplay.set(x);
           if (x)
             this.renderer.addClass(document.body, "tiny-display");

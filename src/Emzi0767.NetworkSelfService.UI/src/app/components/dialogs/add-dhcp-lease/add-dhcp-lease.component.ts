@@ -39,10 +39,12 @@ export class AddDhcpLeaseComponent {
   }
 
   cancel(): void {
+    this.dhcpLeaseForm.disable();
     this.dialogRef.close(null);
   }
 
   confirm(): void {
+    this.dhcpLeaseForm.disable();
     this.dhcpLeaseForm.markAllAsTouched();
     if (!this.dhcpLeaseForm.valid)
       return;

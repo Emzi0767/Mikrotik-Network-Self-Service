@@ -6,6 +6,6 @@
   </form>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button mat-stroked-button (click)="cancel()" cdkFocusInitial>Cancel</button>
-  <button mat-flat-button (click)="confirm()">Confirm</button>
+  <button mat-stroked-button (click)="cancel()" [disabled]="dhcpLeaseForm.disabled" cdkFocusInitial>Cancel</button>
+  <button mat-flat-button (click)="confirm()" [disabled]="dhcpLeaseForm.disabled">Confirm</button>
 </mat-dialog-actions>

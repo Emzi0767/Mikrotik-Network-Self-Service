@@ -3,7 +3,13 @@
     <ng-container>
       <mat-toolbar-row>
         <button mat-icon-button aria-label="Open navigation menu" (click)="drawer.toggle()">
-          <mat-icon>menu</mat-icon>
+          <mat-icon>
+            @if (drawer.opened) {
+              close
+            } @else {
+              menu
+            }
+          </mat-icon>
         </button>
         <span>Network Administration</span>
       </mat-toolbar-row>
@@ -16,6 +22,8 @@
         <button
           mat-icon-button
           [attr.aria-label]="'Switch to ' + (prefersDarkTheme() ? 'light mode' : 'dark mode')"
+          [matTooltip]="'Switch to ' + (prefersDarkTheme() ? 'light mode' : 'dark mode')"
+          matTooltipPosition="before"
           (click)="toggleDarkMode()">
           <mat-icon>
             {{ prefersDarkTheme() ? "light_mode" : "dark_mode" }}
@@ -26,6 +34,8 @@
           <button
             mat-icon-button
             aria-label="Log out"
+            [matTooltip]="'Log out'"
+            matTooltipPosition="before"
             [routerLink]="[ '/logout' ]">
             <mat-icon>logout</mat-icon>
           </button>
@@ -55,17 +65,61 @@
   <mat-drawer #drawer [mode]="'over'">
     <mat-nav-list>
       @if (isAuthenticated()) {
-        <a [routerLink]="['/']" mat-list-item [activated]="currentRouteCategory() == RouteCategory.LANDING"><mat-icon matListItemIcon>home</mat-icon> Landing</a>
-        <a [routerLink]="['/dhcp']" mat-list-item [activated]="currentRouteCategory() == RouteCategory.DHCP"><mat-icon matListItemIcon>lan</mat-icon> DHCP</a>
-        <a [routerLink]="['/wifi']" mat-list-item [activated]="currentRouteCategory() == RouteCategory.WIFI"><mat-icon matListItemIcon>wifi</mat-icon> Wi-Fi</a>
-        <a [routerLink]="['/user']" mat-list-item [activated]="currentRouteCategory() == RouteCategory.USER_SETTINGS"><mat-icon matListItemIcon>account_circle</mat-icon> User settings</a>
+        <a
+          [routerLink]="['/']"
+          (click)="drawer.close()"
+          mat-list-item
+          matRipple
+          [activated]="currentRouteCategory() == RouteCategory.LANDING">
+          <mat-icon matListItemIcon>home</mat-icon>
+          Landing
+        </a>
+
+        <a
+          [routerLink]="['/dhcp']"
+          (click)="drawer.close()"
+          mat-list-item
+          matRipple
+          [activated]="currentRouteCategory() == RouteCategory.DHCP">
+          <mat-icon matListItemIcon>lan</mat-icon>
+          DHCP
+        </a>
+
+        <a
+          [routerLink]="['/wifi']"
+          (click)="drawer.close()"
+          mat-list-item
+          matRipple
+          [activated]="currentRouteCategory() == RouteCategory.WIFI">
+          <mat-icon matListItemIcon>wifi</mat-icon>
+          Wi-Fi
+        </a>
+
+        <a
+          [routerLink]="['/user']"
+          (click)="drawer.close()"
+          mat-list-item
+          matRipple
+          [activated]="currentRouteCategory() == RouteCategory.USER_SETTINGS">
+          <mat-icon matListItemIcon>account_circle</mat-icon>
+          User settings
+        </a>
+
         <a mat-list-item (click)="toggleDarkMode()">
           <mat-icon matListItemIcon>{{ prefersDarkTheme() ? "light_mode" : "dark_mode" }}</mat-icon>
           Switch to {{ prefersDarkTheme() ? "light mode" : "dark mode" }}
         </a>
-        <a [routerLink]="[ '/logout' ]" mat-list-item><mat-icon matListItemIcon>logout</mat-icon> Log out</a>
+
+        <a
+          [routerLink]="['/logout']"
+          (click)="drawer.close()"
+          mat-list-item
+          matRipple>
+          <mat-icon matListItemIcon>logout</mat-icon>
+          Log out
+        </a>
       } @else {
-        <a mat-list-item (click)="toggleDarkMode()">
+        <a mat-list-item matRipple (click)="toggleDarkMode()">
           <mat-icon matListItemIcon>{{ prefersDarkTheme() ? "light_mode" : "dark_mode" }}</mat-icon>
           Switch to {{ prefersDarkTheme() ? "light mode" : "dark mode" }}
         </a>

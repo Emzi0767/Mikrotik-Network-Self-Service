@@ -1,5 +1,5 @@
 <h1>Log in</h1>
-<form [formGroup]="loginForm" (submit)="submit()">
+<form class="pull-left" [formGroup]="loginForm" (submit)="submit()">
   <app-form-input [form]="loginForm" [type]="'TEXT'" controlName="username" title="Username"></app-form-input>
   <app-form-input [form]="loginForm" [type]="'PASSWORD'" controlName="password" title="Password"></app-form-input>
   <app-form-input [form]="loginForm" [type]="'CHECKBOX'" controlName="remember" title="Remember me"></app-form-input>
