@@ -13,6 +13,7 @@ import { MatTableModule } from "@angular/material/table";
 import { MatRippleModule } from "@angular/material/core";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatDialogModule } from "@angular/material/dialog";
+import { MatProgressBarModule } from "@angular/material/progress-bar";
 
 export const MATERIAL_IMPORTS = [
   MatToolbarModule,
@@ -30,4 +31,5 @@ export const MATERIAL_IMPORTS = [
   MatRippleModule,
   MatTooltipModule,
   MatDialogModule,
+  MatProgressBarModule,
 ];

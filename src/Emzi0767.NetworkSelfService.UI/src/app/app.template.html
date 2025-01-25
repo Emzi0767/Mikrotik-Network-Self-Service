@@ -46,6 +46,11 @@
 
 </mat-toolbar>
 
+<div class="loading-indicator">
+  <mat-progress-bar mode="query" *ngIf="isLoading()"></mat-progress-bar>
+  &nbsp;
+</div>
+
 <mat-drawer-container [hasBackdrop]="true" class="nav-drawer" autosize>
   <mat-drawer #drawer [mode]="'over'">
     <mat-nav-list>
@@ -71,6 +76,15 @@
     <mat-tab-nav-panel #tabPanel>
       <div [ngClass]="{ 'fixed-width': !this.isTinyDisplay(), 'tiny-padding': this.isTinyDisplay() }">
         <router-outlet></router-outlet>
+      </div>
+      <div class="footer">
+        <mat-divider></mat-divider>
+        <p>
+          <mat-icon>copyright</mat-icon> 2025 Emzi0767. Released and available under the terms of AGPL-3.0 or (at your option) any later version.
+        </p>
+        <p>
+          <a mat-button href="https://gitlab.emzi0767.dev/Emzi0767/network-self-service/" target="_blank" title="Source code">Source code is available on Emzi's GitLab</a>
+        </p>
       </div>
     </mat-tab-nav-panel>
   </mat-drawer-content>

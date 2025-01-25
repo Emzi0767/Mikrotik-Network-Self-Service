@@ -8,12 +8,18 @@ import { GrpcWebClientModule } from '@ngx-grpc/grpc-web-client';
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 import { GrpcAuthInterceptor } from './interceptors/grpc-auth.interceptor';
+import { LoadingDetectorInterceptor } from './interceptors/loading-detector.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideExperimentalZonelessChangeDetection(),
     provideRouter(routes),
     provideAnimationsAsync(),
+    {
+      provide: GRPC_INTERCEPTORS,
+      useClass: LoadingDetectorInterceptor,
+      multi: true,
+    },
     {
       provide: GRPC_INTERCEPTORS,
       useClass: GrpcAuthInterceptor,

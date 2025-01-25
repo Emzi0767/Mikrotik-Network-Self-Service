@@ -8,6 +8,7 @@ import { ThemeType, ThemeTypeProviderService } from "./services/theme-type-provi
 import { AuthenticationProviderService } from "./services/authentication-provider.service";
 import { CoreModule } from "./core.module";
 import { RouteCategory } from "./types/route-category.enum";
+import { LoadingStateProviderService } from "./services/loading-state-provider.service";
 
 @Component({
   selector: "app-root",
@@ -36,6 +37,10 @@ export class AppComponent {
     return this._isTinyDisplay.asReadonly();
   }
 
+  get isLoading(): Signal<boolean> {
+    return this.loadingStateProvider.isLoading;
+  }
+
   RouteCategory = RouteCategory;
 
   private _currentRouteCategory: WritableSignal<RouteCategory> = signal(RouteCategory.LANDING);
@@ -48,6 +53,7 @@ export class AppComponent {
     private router: Router,
     private activatedRoute: ActivatedRoute,
     private renderer: Renderer2,
+    private loadingStateProvider: LoadingStateProviderService,
   ) {
     this.breakpointObserver.observe([ Breakpoints.Small, Breakpoints.XSmall ])
         .pipe(
