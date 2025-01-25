@@ -48,7 +48,6 @@ export class UserSettingsComponent {
 
     const { current, update, confirm } = this.passwordUpdateForm.value;
     this.authenticationClient.updatePassword(
-      this.authentication.authenticationToken!,
       new PasswordUpdateRequest({
         currentPassword: current!,
         newPassword: update!,

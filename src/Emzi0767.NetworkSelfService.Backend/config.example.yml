@@ -47,3 +47,5 @@ mikrotik:                          # Mikrotik API client settings
   enableIpv6: false                # Whether to enable IPv6 for connections to the API
   # signalRangeLow: -60            # Minimum signal range to enforce for Wi-Fi ACLs
   # signalRangeHigh: 120           # Maximum signal range to enforce for Wi-Fi ACLs
+  # placeBeforeAcl:                # Filters for finding an ACL to place new entries before
+  #   action:                      # .NET property name to Mikrotik-mapped value pairs

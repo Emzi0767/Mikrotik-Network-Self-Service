@@ -206,7 +206,7 @@ message WifiAclUpdateRequest {
 // Provides methods for managing the segment's Wi-Fi network.
 service Wifi {
     // Retrieves the full information about the current Wi-Fi network.
-    rpc GetInfo(google.protobuf.Empty) returns (result.Result);
+    rpc GetInformation(google.protobuf.Empty) returns (result.Result);
 
     // Retrieves the configuration of the current Wi-Fi network.
     rpc GetConfiguration(google.protobuf.Empty) returns (result.Result);

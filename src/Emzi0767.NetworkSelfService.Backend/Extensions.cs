@@ -24,6 +24,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Emzi0767.NetworkSelfService.gRPC;
+using Emzi0767.NetworkSelfService.Mikrotik.Entities;
+using Emzi0767.NetworkSelfService.Mikrotik.Expressions;
 using Grpc.Core;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.Extensions.Configuration;
@@ -199,6 +201,40 @@ public static class Extensions
             var comparison = Expression.Equal(member, Expression.Constant(val));
             body = body is not null
                 ? Expression.MakeBinary(ExpressionType.OrElse, body, comparison)
+                : comparison;
+        }
+
+        var expr = Expression.Lambda<Func<TItem, bool>>(body, [ param ]);
+        return source.Where(expr);
+    }
+
+    /// <summary>
+    /// Constructs a <see cref="Queryable.Where{TSource}(System.Linq.IQueryable{TSource},System.Linq.Expressions.Expression{System.Func{TSource,bool}})"/>
+    /// expression that matches all given properties.
+    /// </summary>
+    /// <param name="source">Queryable to match.</param>
+    /// <param name="mappedProperties">Mapped properties and their values.</param>
+    /// <typeparam name="TItem">Type of item in the queryable.</typeparam>
+    /// <returns>Queryable with appended constructed expression.</returns>
+    public static IQueryable<TItem> WhereMapped<TItem>(this IQueryable<TItem> source, IReadOnlyDictionary<string, string> mappedProperties)
+    {
+        var param = Expression.Parameter(typeof(TItem), "x");
+        var body = default(Expression);
+        foreach (var (k, v) in mappedProperties)
+        {
+            var member = typeof(TItem).GetProperty(k, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+            var type = member.PropertyType;
+            var value = MikrotikValueParser.Parse(type, v, out var result);
+            if (result != MikrotikValueParser.Result.Success)
+            {
+                ThrowHelper.Argument(k, "Invalid property or value specified.");
+                return null;
+            }
+
+            var access = Expression.MakeMemberAccess(param, member);
+            var comparison = Expression.Equal(access, Expression.Constant(value));
+            body = body is not null
+                ? Expression.MakeBinary(ExpressionType.AndAlso, body, comparison)
                 : comparison;
         }
 

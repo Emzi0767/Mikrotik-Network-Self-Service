@@ -140,7 +140,7 @@ message DhcpLeaseDeleteRequest {
 // Provides methods for managing DHCP leases.
 service Dhcp {
     // Retrieves the info about the current network's DHCP configuration.
-    rpc GetInfo(google.protobuf.Empty) returns (result.Result);
+    rpc GetInformation(google.protobuf.Empty) returns (result.Result);
 
     // Retrieves the info about the current network's DHCP configuration.
     rpc GetLeases(google.protobuf.Empty) returns (result.Result);

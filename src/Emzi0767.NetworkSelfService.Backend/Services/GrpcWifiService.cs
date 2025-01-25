@@ -21,6 +21,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Emzi0767.NetworkSelfService.Backend.Configuration;
 using Emzi0767.NetworkSelfService.Backend.Data;
 using Emzi0767.NetworkSelfService.gRPC;
 using Emzi0767.NetworkSelfService.Mikrotik;
@@ -30,6 +31,7 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Enum = System.Enum;
 
@@ -43,19 +45,22 @@ public sealed class GrpcWifiService : Wifi.WifiBase
     private readonly NetworkRepository _networks;
     private readonly ApMappingRepository _apMappings;
     private readonly MikrotikProvider _mikrotikProvider;
+    private readonly MikrotikConfiguration _config;
 
     public GrpcWifiService(
         ILogger<GrpcWifiService> logger,
         UserRepository users,
         NetworkRepository networks,
         ApMappingRepository apMappings,
-        MikrotikProvider mikrotikProvider)
+        MikrotikProvider mikrotikProvider,
+        IOptions<MikrotikConfiguration> config)
     {
         this._logger = logger;
         this._users = users;
         this._networks = networks;
         this._apMappings = apMappings;
         this._mikrotikProvider = mikrotikProvider;
+        this._config = config.Value;
     }
 
     private string GetUsername(ServerCallContext context)
@@ -193,7 +198,7 @@ public sealed class GrpcWifiService : Wifi.WifiBase
         };
     }
 
-    public override async Task<Result> GetInfo(Empty request, ServerCallContext context)
+    public override async Task<Result> GetInformation(Empty request, ServerCallContext context)
     {
         var info = await this.GetWifiInfoAsync(context);
         this._logger.LogInformation("Get Wi-Fi info for '{username}'", info.User.Username);
@@ -302,8 +307,15 @@ public sealed class GrpcWifiService : Wifi.WifiBase
 
         var mac = MacAddress.Parse(request.MacAddress, CultureInfo.InvariantCulture);
 
-        var baseAcl = await this._mikrotikProvider.Get<MikrotikCapsmanAcl>()
-            .LastOrDefaultAsync(x => x.Action == MikrotikCapsmanAclAction.Reject && x.InterfaceList == "any", context.CancellationToken);
+        var baseAclQuery = this._mikrotikProvider.Get<MikrotikCapsmanAcl>();
+        var baseAcl = this._config.PlaceBeforeAcl is null or { Count: 0 }
+            ? await baseAclQuery.LastOrDefaultAsync(x => x.Action == MikrotikCapsmanAclAction.Reject && x.InterfaceList == "any", context.CancellationToken)
+            : await baseAclQuery.WhereMapped(this._config.PlaceBeforeAcl)
+                .AsAsyncQueryable()
+                .LastOrDefaultAsync(context.CancellationToken);
+
+        if (baseAcl is null)
+            return new() { IsSuccess = false, };
 
         var acl = this._mikrotikProvider.Create<MikrotikCapsmanAcl>()
             .Set(x => x.InterfaceList, network.WirelessInterfaceList)

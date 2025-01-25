@@ -118,7 +118,7 @@ public sealed class GrpcDhcpService : Dhcp.DhcpBase
             .AsAsyncQueryable()
             .ToListAsync(context.CancellationToken);
 
-    public override async Task<Result> GetInfo(Empty request, ServerCallContext context)
+    public override async Task<Result> GetInformation(Empty request, ServerCallContext context)
     {
         var info = await this.GetDhcpInfoAsync(context);
         this._logger.LogInformation("Get DHCP info for '{username}'", info.User.Username);

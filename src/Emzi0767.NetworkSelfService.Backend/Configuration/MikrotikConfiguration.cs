@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 
@@ -77,4 +78,9 @@ public sealed class MikrotikConfiguration
     /// Gets or sets the required maximum signal strength for Wi-Fi ACLs.
     /// </summary>
     public int? SignalRangeHigh { get; set; }
+
+    /// <summary>
+    /// Gets or sets the list of properties to filter for when looking for ACL to place before.
+    /// </summary>
+    public Dictionary<string, string> PlaceBeforeAcl { get; set; }
 }

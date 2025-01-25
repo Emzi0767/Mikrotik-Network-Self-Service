@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
+import { catchError, Observable, of, switchMap, throwError } from 'rxjs';
 import { GrpcMessagePool, GrpcMetadata } from '@ngx-grpc/common';
 
 import { AuthenticationClient } from '../../proto/auth.pbsc';
@@ -47,10 +47,7 @@ export class AuthenticationClientService {
   }
 
   logout(token: string): Observable<null> {
-    const resp = this.authentication.destroySession(
-      new Empty(),
-      new GrpcMetadata({ "Authorization": `Bearer ${token}` })
-    );
+    const resp = this.authentication.destroySession(new Empty());
 
     return resp.pipe(
       catchError((err, caught) => throwError(() => new Error({ code: ErrorCode.UNKNOWN }))),
@@ -58,8 +55,8 @@ export class AuthenticationClientService {
     );
   }
 
-  updatePassword(token: string, req: PasswordUpdateRequest): Observable<Result> {
-    const resp = this.authentication.changePassword(req, new GrpcMetadata({ "Authorization": `Bearer ${token}` }));
+  updatePassword(req: PasswordUpdateRequest): Observable<Result> {
+    const resp = this.authentication.changePassword(req);
 
     return resp.pipe(
       switchMap(x => x.isSuccess ? of(x) : throwError(() => new Error({ code: ErrorCode.UNKNOWN }))),
