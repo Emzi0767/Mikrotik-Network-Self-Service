@@ -15,6 +15,31 @@ administrator, and without giving them full access to the underlying management 
 offer too much functionality, and they're too complicated. The idea is that people are used to consumer-grade management
 tools, and this aims to be close in terms of both UI, UX, and functionality.
 
+I also wanted to implement some extra features that did not exist in the previous iteration, to streamline some tasks.
+There were 3 key problems I wanted to address, and one potentially helpful feature I thought of:
+1. While creating invalid DHCP leases was partially blocked, users would not get proper feedback for it.
+2. The system allowed creating potentially problematic DHCP leases, but the user would not be made aware of the
+   implications.
+3. Finding MAC addresses for some wireless devices was very difficult or not possible, necessitating a trip to me to
+   whitelist the device, rendering the tool useless.
+4. Sometimes, it's necessary to identify connected devices, and their approximate location.
+
+To solve the first two, I implemented a system which validates the lease parameters against a set of criteria, and
+provides itemized feedback. This feedback is then displayed to the user. There are 2 categories of feedback items:
+blockers and non-blockers. If there are any blockers (such as IP address is out of range or conflicts with network
+infrastructure), the lease is rejected. For non-blockers, the user is given the option to proceed, but is informed of
+the implications.
+
+The third problem is solved by processing the controller's system log to extract wireless authentication attempts. This
+gives the user a list of MAC addresses of devices that tried to connect recently. This makes it no longer necessary for
+me to search for this information, making it no longer necessary to visit me in case of access trouble. This also
+provides a kind of rudimentary security feature.
+
+For the last problem, the tool displays the list of devices, that are currently connected to the user's wireless
+network. The controller knows which access point each device is associated with, and this is translated into descriptive
+names, which allows the user to not only find out what devices are connected, but also learn of their approximate
+physical location.
+
 ## Contents
 The project consists of 3 main parts:
 - High-level Mikrotik API wrapper

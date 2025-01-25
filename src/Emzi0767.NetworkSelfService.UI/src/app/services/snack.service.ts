@@ -25,9 +25,9 @@ export class SnackService {
 
   showError(msg: string, err: ErrorCode, act: string): void {
     const errMsg = {
-      [ErrorCode.UNKNOWN]: "Unknown error",
-      [ErrorCode.INVALID_CREDENTIALS]: "Invalid credentials specified",
-      [ErrorCode.SESSION_INVALID_OR_EXPIRED]: "Session has expired, try logging in again",
+      [ErrorCode.UNKNOWN]: "Unknown error.",
+      [ErrorCode.INVALID_CREDENTIALS]: "Invalid credentials specified.",
+      [ErrorCode.SESSION_INVALID_OR_EXPIRED]: "Session has expired, try logging in again.",
     }[err];
 
     this.show(msg + errMsg, act);
