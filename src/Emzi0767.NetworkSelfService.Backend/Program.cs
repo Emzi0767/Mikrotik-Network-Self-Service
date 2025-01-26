@@ -64,7 +64,7 @@ public static class Program
 
                 // Workaround for Windows Schannel oddities
                 // https://github.com/dotnet/runtime/issues/23749#issuecomment-388231655
-                var serverCert = X509CertificateLoader.LoadCertificate(serverCertTemp.Export(X509ContentType.Pkcs12));
+                var serverCert = X509CertificateLoader.LoadPkcs12(serverCertTemp.Export(X509ContentType.Pkcs12), "");
 
                 var caCertsFile = endpoint.MutualTls
                     ? new FileInfo(endpoint.CaCertificate)
