@@ -241,4 +241,12 @@ public static class Extensions
         var expr = Expression.Lambda<Func<TItem, bool>>(body, [ param ]);
         return source.Where(expr);
     }
+
+    /// <summary>
+    /// Checks whether a given ACL is a special entry.
+    /// </summary>
+    /// <param name="acl">ACL to check.</param>
+    /// <returns>Whether the ACL is a special entry.</returns>
+    public static bool IsSpecialEntry(this MikrotikCapsmanAcl acl)
+        => acl.VlanId is not null || acl.VlanMode is not null || acl.Address is null;
 }

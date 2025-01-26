@@ -379,6 +379,9 @@ public sealed class GrpcWifiService : Wifi.WifiBase
         if (acl is null)
             return new() { IsSuccess = false, };
 
+        if (acl.IsSpecialEntry())
+            return new() { IsSuccess = false, };
+
         await acl.DeleteAsync(context.CancellationToken);
         return new() { IsSuccess = true, };
     }
@@ -388,6 +391,12 @@ public sealed class GrpcWifiService : Wifi.WifiBase
         var (_, network, _) = await this.GetBasicsAsync(context);
         var acl = await this._mikrotikProvider.Get<MikrotikCapsmanAcl>()
             .FirstOrDefaultAsync(x => x.InterfaceList == network.WirelessInterfaceList && x.Id == request.Identifier, context.CancellationToken);
+
+        if (acl is null)
+            return new() { IsSuccess = false, };
+
+        if (acl.IsSpecialEntry())
+            return new() { IsSuccess = false, };
 
         var aclMod = acl.Modify();
         if (request.HasMacAddress)
@@ -508,7 +517,7 @@ public sealed class GrpcWifiService : Wifi.WifiBase
             Id = x.Id,
             Comment = x.Comment,
             IsEnabled = !x.Disabled,
-            IsSpecialEntry = x.VlanId is not null || x.VlanMode is not null || x.Address is null,
+            IsSpecialEntry = x.IsSpecialEntry(),
         };
 
         if (x.Address is not null)
