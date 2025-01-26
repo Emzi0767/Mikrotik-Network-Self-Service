@@ -27,8 +27,8 @@ export class AddDhcpLeaseComponent {
     @Optional() @Inject(MAT_DIALOG_DATA) lease?: DhcpLease,
   ) {
     this.dhcpLeaseForm = this.formBuilder.group<INewDhcpLeaseForm>({
-      macAddress:  new FormControl<Nullable<string>>(null, { validators: [ Validators.required, Validators.pattern(/^(?:[a-fA-F0-9]{2}(?<sep>[:-]?))(?:[a-fA-F0-9]{2}\k<sep>){4}([a-fA-F0-9]{2})$/) ] }),
-      ipAddress:   new FormControl<Nullable<string>>(null, { validators: [ Validators.required, Validators.pattern(/^(?:[0-9]{1,3}\.){3}(?:[0-9]{1,3})$/) ] }),
+      macAddress:  new FormControl<Nullable<string>>(null, { validators: [ Validators.required, Validators.pattern(/^(?:[a-fA-F0-9]{2}(?<sep>[:-]?))(?:[a-fA-F0-9]{2}\k<sep>){4}([a-fA-F0-9]{2})$/), ], }),
+      ipAddress:   new FormControl<Nullable<string>>(null, { validators: [ Validators.required, Validators.pattern(/^(?:[0-9]{1,3}\.){3}(?:[0-9]{1,3})$/), ], }),
     });
 
     if (lease !== undefined) {
@@ -44,7 +44,6 @@ export class AddDhcpLeaseComponent {
   }
 
   confirm(): void {
-    this.dhcpLeaseForm.disable();
     this.dhcpLeaseForm.markAllAsTouched();
     if (!this.dhcpLeaseForm.valid)
       return;

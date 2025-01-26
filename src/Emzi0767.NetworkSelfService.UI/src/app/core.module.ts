@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { MATERIAL_IMPORTS } from './common-imports';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 const CORE_MODULES = [
   CommonModule,
@@ -18,6 +19,7 @@ const CORE_MODULES = [
   imports: CORE_MODULES,
   exports: CORE_MODULES,
   providers: [
+    provideNativeDateAdapter(),
   ],
 })
 export class CoreModule { }

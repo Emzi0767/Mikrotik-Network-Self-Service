@@ -1,0 +1,26 @@
+<h2 mat-dialog-title>{{ create ? 'Create' : 'Edit' }} whitelist entry</h2>
+<mat-dialog-content>
+  <form [formGroup]="wifiAclForm" (submit)="confirm()">
+    <app-form-input [form]="wifiAclForm" [type]="'TEXT'" controlName="macAddress" title="MAC Address"></app-form-input>
+    <app-form-input [form]="wifiAclForm" [type]="'TEXT'" controlName="comment" title="Comment"></app-form-input>
+    <app-form-input [form]="wifiAclForm" [type]="'TOGGLE'" controlName="enable" title="Enable entry" *ngIf="!create"></app-form-input>
+    <app-form-input [form]="wifiAclForm" [type]="'TOGGLE'" controlName="hasPrivatePassword" title="Use private password"></app-form-input>
+    <app-form-input [form]="wifiAclForm" [type]="'PASSWORD'" controlName="privatePassword" title="Private password" [ngClass]="{ 'do-not-the-cat': !wifiAclForm.value.hasPrivatePassword }"></app-form-input>
+    <app-form-input [form]="wifiAclForm" [type]="'TOGGLE'" controlName="hasSchedule" title="Use access schedule"></app-form-input>
+    <span [ngClass]="{ 'do-not-the-cat': !wifiAclForm.value.hasSchedule }">
+      <app-form-input [form]="wifiAclForm" [type]="'TIME'" controlName="scheduleStart" title="Start hour"></app-form-input>
+      <app-form-input [form]="wifiAclForm" [type]="'TIME'" controlName="scheduleEnd" title="End hour"></app-form-input>
+      <app-form-input [form]="wifiAclForm.controls.weekdays" [type]="'CHECKBOX'" controlName="MONDAY" title="Monday"></app-form-input>
+      <app-form-input [form]="wifiAclForm.controls.weekdays" [type]="'CHECKBOX'" controlName="TUESDAY" title="Tuesday"></app-form-input>
+      <app-form-input [form]="wifiAclForm.controls.weekdays" [type]="'CHECKBOX'" controlName="WEDNESDAY" title="Wednesday"></app-form-input>
+      <app-form-input [form]="wifiAclForm.controls.weekdays" [type]="'CHECKBOX'" controlName="THURSDAY" title="Thursday"></app-form-input>
+      <app-form-input [form]="wifiAclForm.controls.weekdays" [type]="'CHECKBOX'" controlName="FRIDAY" title="Friday"></app-form-input>
+      <app-form-input [form]="wifiAclForm.controls.weekdays" [type]="'CHECKBOX'" controlName="SATURDAY" title="Saturday"></app-form-input>
+      <app-form-input [form]="wifiAclForm.controls.weekdays" [type]="'CHECKBOX'" controlName="SUNDAY" title="Sunday"></app-form-input>
+    </span>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-stroked-button (click)="cancel()" [disabled]="wifiAclForm.disabled" cdkFocusInitial>Cancel</button>
+  <button mat-flat-button (click)="confirm()" [disabled]="wifiAclForm.disabled">Confirm</button>
+</mat-dialog-actions>

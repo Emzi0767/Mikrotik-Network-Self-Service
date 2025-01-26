@@ -37,6 +37,16 @@
         <ng-container *ngTemplateOutlet="errors"></ng-container>
       </section>
     }
+
+    @case ('TIME') {
+      <mat-form-field [appearance]="'fill'" [formGroup]="form">
+        <mat-label>{{ title }}</mat-label>
+        <input matInput [formControlName]="controlName" [matTimepicker]="picker">
+        <mat-timepicker-toggle matIconSuffix [for]="picker"></mat-timepicker-toggle>
+        <mat-timepicker #picker></mat-timepicker>
+        <ng-container *ngTemplateOutlet="errors"></ng-container>
+      </mat-form-field>
+    }
   }
 </p>
 

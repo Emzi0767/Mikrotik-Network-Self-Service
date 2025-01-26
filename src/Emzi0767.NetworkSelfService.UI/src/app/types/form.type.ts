@@ -1,17 +1,20 @@
-import { FormArray, FormControl, FormGroup } from "@angular/forms";
+import { FormControl, FormGroup } from "@angular/forms";
 
 import { AnyObject } from "./any-object.type";
 import { KeyOf } from "./key-of.type";
-import { Nullable } from "./nullable.type";
 
 export type FormFor<T extends AnyObject> = {
-  [k in KeyOf<T>]: T[k] extends { valueOf(): string }
-    ? FormArray<FormControl<Nullable<boolean>>>
-    : (T[k] extends AnyObject
-      ? FormGroup<FormFor<T[k]>>
-      : FormControl<T[k]>);
+  [k in KeyOf<T>]: NonNullable<T[k]> extends AnyObject
+    ? (NonNullable<T[k]> extends Date
+      ? FormControl<T[k]>
+      : FormGroup<FormFor<NonNullable<T[k]>>>)
+    : FormControl<T[k]>;
 };
 
 export type AnyForm<T extends AnyObject> = {
-  [k in KeyOf<T>]: FormControl<T[k]> | FormArray<FormControl<Nullable<boolean>>> | FormGroup<FormFor<T[k]>>;
+  [k in KeyOf<T>]: T[k] extends FormControl<infer P>
+    ? FormControl<P>
+    : (T[k] extends FormGroup<FormFor<NonNullable<infer Q>>>
+      ? FormGroup<FormFor<NonNullable<Q>>>
+      : never);
 };

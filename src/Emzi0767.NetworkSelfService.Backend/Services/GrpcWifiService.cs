@@ -358,6 +358,12 @@ public sealed class GrpcWifiService : Wifi.WifiBase
             acl = acl.Set(x => x.Time, timeRestriction);
         }
 
+        if (this._config.SignalRangeHigh is not null && this._config.SignalRangeLow is not null)
+        {
+            acl = acl.Set(x => x.SignalRange, new MikrotikRange(this._config.SignalRangeLow.Value, this._config.SignalRangeHigh.Value));
+            acl = acl.Set(x => x.AllowSignalOutOfRange, TimeSpan.FromSeconds(10));
+        }
+
         acl.Extras.PlaceBefore = baseAcl;
         await acl.CommitAsync(context.CancellationToken);
         return new() { IsSuccess = true, };

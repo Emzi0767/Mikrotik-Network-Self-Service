@@ -4,4 +4,5 @@ export enum InputType {
   NUMBER,
   CHECKBOX,
   TOGGLE,
+  TIME,
 };

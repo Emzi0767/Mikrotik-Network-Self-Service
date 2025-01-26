@@ -5,6 +5,7 @@ import { CoreModule } from '../../../core.module';
 
 @Component({
   selector: 'app-wifi-remove-acl',
+  standalone: true,
   imports: [
     CoreModule,
   ],

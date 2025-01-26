@@ -4,13 +4,16 @@ import { MatDialog } from '@angular/material/dialog';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 import { CoreModule } from '../../../core.module';
-import { WifiAcl, WifiAclDeleteRequest, WifiBand, WifiConnectedDevice, WifiInfoResponse, WifiUpdateRequest } from '../../../proto/wifi.pb';
+import { WifiAcl, WifiAclCreateRequest, WifiAclDeleteRequest, WifiAclUpdateRequest, WifiBand, WifiConnectedDevice, WifiInfoResponse, WifiTimeRestriction, WifiUpdateRequest, WifiWeekday } from '../../../proto/wifi.pb';
 import { IMetaTableEntry } from '../../../types/meta-table-entry.interface';
 import { SnackService } from '../../../services/snack.service';
 import { WifiEditConfigComponent } from '../../dialogs/wifi-edit-config/wifi-edit-config.component';
 import { IWifiConfig } from '../../../types/wifi-config.form';
 import { WifiClientService } from '../../../services/grpc/wifi-client.service';
 import { WifiRemoveAclComponent } from '../../dialogs/wifi-remove-acl/wifi-remove-acl.component';
+import { INewWifiAcl, INewWifiAclData } from '../../../types/new-wifi-acl.form';
+import { WifiAddAclComponent } from '../../dialogs/wifi-add-acl/wifi-add-acl.component';
+import { Duration } from '@ngx-grpc/well-known-types';
 
 @Component({
   selector: 'app-wifi',
@@ -75,16 +78,15 @@ export class WifiComponent {
 
       const config = res as IWifiConfig;
       const newConfig = {} as IWifiConfig;
-      if (config.ssid !== this.information.configuration?.ssid)
+      if (config.ssid !== undefined && config.ssid !== null && config.ssid.length > 0 && config.ssid !== this.information.configuration?.ssid)
         newConfig.ssid = config.ssid;
 
-      if (config.password !== undefined && config.password !== null)
+      if (config.password !== undefined && config.password !== null && config.password.length > 0)
         newConfig.password = config.password;
 
-      if (config.isolateClients !== this.information.configuration!.isolateClients)
+      if (config.isolateClients !== undefined && config.isolateClients !== null && config.isolateClients !== this.information.configuration!.isolateClients)
         newConfig.isolateClients = config.isolateClients;
 
-      console.log(newConfig);
       this.wifiClient.updateConfiguration(new WifiUpdateRequest(newConfig))
         .subscribe({
           next: x => this.handleConfigUpdate(),
@@ -94,11 +96,68 @@ export class WifiComponent {
   }
 
   createAcl(address?: string): void {
+    const acl = address !== undefined
+      ? new WifiAcl({ macAddress: address, isEnabled: true, })
+      : null;
 
+    this.editAcl(acl, true);
   }
 
-  editAcl(acl: WifiAcl): void {
+  editAcl(acl: WifiAcl | null, create: boolean): void {
+    const dialogRef = this.dialog.open(
+      WifiAddAclComponent,
+      { data: { acl, create, }, }
+    );
 
+    dialogRef.afterClosed().subscribe(res => {
+      if (res === undefined || res === null)
+        return;
+
+      const aclData = res as INewWifiAclData;
+      if (create) {
+        const newAcl = {
+          macAddress: aclData.macAddress,
+          comment: aclData.comment,
+        } as WifiAclCreateRequest.AsObject;
+
+        if (aclData.hasPrivatePassword && aclData.privatePassword !== undefined && aclData.privatePassword !== null)
+          newAcl.privatePassword = aclData.privatePassword;
+
+        if (aclData.hasSchedule)
+          newAcl.timeRestriction = this.makeSchedule(aclData);
+
+        this.wifiClient.createAcl(new WifiAclCreateRequest(newAcl))
+          .subscribe({
+            next: x => this.reloadAcls(),
+            error: _ => this.snackService.show("Could not create whitelist entry", "Dismiss"),
+          });
+      } else {
+        const modAcl = {
+          identifier: acl!.id,
+          macAddress: aclData.macAddress,
+          comment: aclData.comment,
+          isEnabled: !!aclData.enable,
+        } as WifiAclUpdateRequest.AsObject;
+
+        if (acl!.privatePassword !== undefined && acl!.privatePassword !== null && !aclData.hasPrivatePassword)
+          modAcl.removePrivatePassword = true;
+
+        if (aclData.hasPrivatePassword && aclData.privatePassword !== undefined && aclData.privatePassword !== null)
+          modAcl.privatePassword = aclData.privatePassword;
+
+        if (acl!.timeRestriction !== undefined && acl!.privatePassword !== null && !aclData.hasSchedule)
+          modAcl.removeTimeRestriction = true;
+
+        if (aclData.hasSchedule)
+          modAcl.timeRestriction = this.makeSchedule(aclData);
+
+        this.wifiClient.updateAcl(new WifiAclUpdateRequest(modAcl))
+          .subscribe({
+            next: x => this.reloadAcls(),
+            error: _ => this.snackService.show("Could not update whitelist entry", "Dismiss"),
+          });
+      }
+    });
   }
 
   deleteAcl(acl: WifiAcl): void {
@@ -115,6 +174,29 @@ export class WifiComponent {
           next: _ => this.reloadAcls(),
           error: _ => this.snackService.show("Could not delete whitelist entry", "Dismiss"),
         });
+    });
+  }
+
+  private makeSchedule(aclData: INewWifiAclData): WifiTimeRestriction {
+    const [ sh, sm, ss ] = [ aclData.scheduleStart!.getHours(), aclData.scheduleStart!.getMinutes(), aclData.scheduleStart!.getSeconds(), ];
+    const [ eh, em, es ] = [ aclData.scheduleEnd!.getHours(), aclData.scheduleEnd!.getMinutes(), aclData.scheduleEnd!.getSeconds(), ];
+
+    const start = new Duration({ seconds: (sh * 3600 + sm * 60 + ss).toString(), });
+    const end = new Duration({ seconds: (eh * 3600 + em * 60 + es).toString(), });
+    const weekdays = [];
+    for (const k of Object.keys(aclData.weekdays!)) {
+      const key = k as keyof typeof WifiWeekday;
+      if (key === 'UNKNOWN')
+        continue;
+
+      if (aclData.weekdays![key])
+        weekdays.push(WifiWeekday[key]);
+    }
+
+    return new WifiTimeRestriction({
+      start,
+      end,
+      days: weekdays,
     });
   }
 

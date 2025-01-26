@@ -10,6 +10,7 @@ import { FormInputComponent } from '../../partial/form-input/form-input.componen
 
 @Component({
   selector: 'app-wifi-edit-config',
+  standalone: true,
   imports: [
     CoreModule,
     FormInputComponent,
