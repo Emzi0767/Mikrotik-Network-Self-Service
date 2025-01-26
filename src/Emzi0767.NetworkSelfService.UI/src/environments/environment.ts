@@ -1,3 +1,3 @@
 export const environment = {
-  grpcHost: process.env["GRPC_HOST"]!,
+  grpcHost: window.location.origin,
 };
